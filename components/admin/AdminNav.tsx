@@ -41,7 +41,7 @@ export default function AdminNav({ user }: AdminNavProps) {
           <div className="flex">
             <div className="flex-shrink-0 flex items-center">
               <Link href="/admin" className="text-xl font-bold bg-gradient-to-r from-brand-blue to-brand-darkBlue bg-clip-text text-transparent">
-                Paroki Admin
+                CMS Admin Panel
               </Link>
             </div>
             <div className="hidden sm:ml-8 sm:flex sm:space-x-8">

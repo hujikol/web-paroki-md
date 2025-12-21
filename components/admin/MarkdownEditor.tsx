@@ -52,7 +52,7 @@ export default function MarkdownEditor({ markdown, onChange }: MarkdownEditorPro
 
   return (
     <div className="mdx-editor-wrapper border rounded-lg overflow-hidden bg-white dark:bg-gray-800 focus-within:ring-2 focus-within:ring-brand-blue transition-shadow flex flex-col h-full">
-      <div className="bg-gray-50 border-b p-2 flex justify-between items-center sticky top-20 z-10 transition-all">
+      <div className="bg-gray-50 border-b p-2 flex justify-between items-center">
          <span className="text-xs font-bold text-gray-500 uppercase">Content Editor</span>
          <button
             type="button"
@@ -71,6 +71,11 @@ export default function MarkdownEditor({ markdown, onChange }: MarkdownEditorPro
         markdown={markdown}
         onChange={onChange}
         contentEditableClassName="prose dark:prose-invert max-w-none p-4 min-h-[400px] outline-none"
+        // The toolbar plugin adds a toolbar in the DOM. We can target it via CSS in global or simpler: 
+        // We can't easily control the toolbar DOM node classes here without custom CSS.
+        // However, we can wrap the MDXEditor in a sticky container for the toolbar? 
+        // No, the toolbar is part of the editor structure usually at top.
+        // Let's rely on standard flow but ensure z-index is lower than Header.
         plugins={[
           headingsPlugin(),
           listsPlugin(),

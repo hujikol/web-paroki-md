@@ -1,6 +1,6 @@
 {
-  "name": "blog-cms",
-  "version": "0.1.0",
+  "name": "paroki-brayut-cms",
+  "version": "0.2.1",
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",

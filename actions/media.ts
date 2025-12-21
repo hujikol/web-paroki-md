@@ -50,57 +50,14 @@ export async function listImages(): Promise<{
 }> {
   try {
     // UNIFIED STRUCTURE: List all files in images/
-    // We still return separate arrays to maintain API compatibility for now,
-    // but both will contain the same list or we can try to infer type from filename if needed.
-    // However, the new UI uses a Unified Gallery, so effectively we just need "all".
-    // For backward compatibility with existing components that might expect 'banners'/'inline' keys:
-    
     const allImages = await listFiles("images");
     
-    // Also try to list old folders to be safe?
-    // The user wants to "remake" structure, implying we might ignore old ones or assume migration.
-    // Let's simpler: Just return everything in 'banners' key (or split arbitrarily) 
-    // OR better: Return all in both? No, that duplicates.
-    // The previous API returned { banners: [], inline: [] }.
-    // The new MediaGrid uses [...banners, ...inline]. 
-    // So we can just put everything in 'inline' or 'banners' and leave the other empty, 
-    // or splitting isn't necessary anymore.
-    // Let's put everything in a single list and return it as 'banners' (arbitrary choice) + 'inline' (empty)
-    // or better, let's fix the return type to be simpler in a future refactor.
-    // For now, let's return everything in 'inline' and empty 'banners' to satisfy the Type,
-    // BUT the MediaPage component merges them: `const allImages = [...banners, ...inline];`
-    // So this is safe.
+    // Return all images in the 'inline' key which is used as the primary list in MediaManager
+    // banners is kept empty to preserve type compatibility but is effectively deprecated
     
-    // WAIT! listFiles("images") returns "images/foo.jpg", "images/bar.png"
-    // AND it might return "images/banners" (directory) if not filtered out?
-    // listFiles implementation already filters `item.type === "file"`.
-    
-    // Special handling: We might want to include legacy folders if they still exist?
-    // If the user hasn't moved files yet, listFiles("images") won't show files inside "images/banners/".
-    // So we should try to list "images/banners" and "images/inline" AND "images/" just to be robust
-    // until migration is complete.
-    
-    const [rootImages, legacyBanners, legacyInline] = await Promise.all([
-        listFiles("images"),
-        listFiles("images/banners").catch(() => []), // Catch 404
-        listFiles("images/inline").catch(() => []), 
-    ]);
-
-    // Filter out directories from rootImages just in case (though listFiles does it, it might not catch deeply nested ones depending on impl)
-    // listFiles only returns files.
-    
-    const allPaths = [
-        ...rootImages.map(p => `/${p}`),
-        ...legacyBanners.map(p => `/${p}`),
-        ...legacyInline.map(p => `/${p}`)
-    ];
-    
-    // Deduplicate just in case
-    const uniquePaths = Array.from(new Set(allPaths));
-
     return {
-      banners: [], // Deprecated
-      inline: uniquePaths, // Use this for all
+      banners: [], 
+      inline: allImages.map(p => `/${p}`), 
     };
   } catch (error) {
     console.error("Error listing images:", error);

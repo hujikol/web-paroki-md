@@ -62,7 +62,7 @@ export async function createPost(formData: {
     const frontmatter: PostFrontmatter = {
       title: formData.title,
       slug,
-      description: formData.description,
+      description: formData.description || "",
       publishedAt: now,
       author: formData.author,
       tags: formData.tags,

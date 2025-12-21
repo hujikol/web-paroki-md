@@ -7,7 +7,7 @@ export const PostFrontmatterSchema = z.object({
     .min(1, "Slug is required")
     .max(100, "Slug too long")
     .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "Slug must be lowercase alphanumeric with hyphens"),
-  description: z.string().min(1, "Description is required").max(500, "Description too long"),
+  description: z.string().min(0).max(500, "Description too long"),
   publishedAt: z.string().datetime("Invalid date format"),
   updatedAt: z.string().datetime("Invalid date format").optional(),
   author: z.string().min(1, "Author is required").max(100, "Author name too long"),

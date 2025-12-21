@@ -96,7 +96,7 @@ export default function PostForm({ post, mode, user }: PostFormProps) {
   return (
     <form className="min-h-screen relative pb-20">
        {/* Sticky Header with Actions */}
-       <div className="sticky top-0 z-20 bg-white/95 backdrop-blur-sm border-b border-gray-200 shadow-sm py-4 px-8 mb-8 -mx-8 flex justify-between items-center">
+       <div className="sticky top-20 z-20 bg-white/95 backdrop-blur-sm border-b border-gray-200 shadow-sm py-4 px-8 mb-8 flex justify-between items-center transition-all">
             <h2 className="text-xl font-bold text-gray-800">
                 {mode === "create" ? "Create Post" : `Editing: ${formData.title}`}
             </h2>
@@ -193,10 +193,10 @@ export default function PostForm({ post, mode, user }: PostFormProps) {
 
         <div className="relative">
              {/* Sticky Sidebar */}
-             <div className="sticky top-24 space-y-6">
+             <div className="sticky top-40 space-y-6">
                  
-                 <div className="bg-white dark:bg-gray-800 p-5 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm">
-                     <h3 className="font-bold text-gray-900 dark:text-white uppercase text-xs tracking-wider border-b pb-2 mb-4">
+                 <div className="bg-white p-5 rounded-lg border border-gray-200 shadow-sm">
+                     <h3 className="font-bold text-gray-900 uppercase text-xs tracking-wider border-b pb-2 mb-4">
                          Post Settings
                      </h3>
 
@@ -239,8 +239,8 @@ export default function PostForm({ post, mode, user }: PostFormProps) {
                     </div>
                  </div>
 
-                 <div className="bg-white dark:bg-gray-800 p-5 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm">
-                     <h3 className="font-bold text-gray-900 dark:text-white uppercase text-xs tracking-wider border-b pb-2 mb-4">
+                 <div className="bg-white p-5 rounded-lg border border-gray-200 shadow-sm">
+                     <h3 className="font-bold text-gray-900 uppercase text-xs tracking-wider border-b pb-2 mb-4">
                          Featured Image
                      </h3>
                      <div className="space-y-3">
