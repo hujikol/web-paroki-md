@@ -4,6 +4,26 @@ import { createAppAuth } from "@octokit/auth-app";
 let octokitInstance: Octokit | null = null;
 let tokenExpiry: number = 0;
 
+/**
+ * Check if GitHub App credentials are configured
+ * Returns false if any required env var is missing or empty
+ */
+export function isGitHubConfigured(): boolean {
+  const appId = process.env.GITHUB_APP_ID;
+  const privateKey = process.env.GITHUB_APP_PRIVATE_KEY;
+  const installationId = process.env.GITHUB_APP_INSTALLATION_ID;
+  const owner = process.env.CONTENT_REPO_OWNER;
+  const repo = process.env.CONTENT_REPO_NAME;
+
+  return !!(
+    appId && appId.trim() &&
+    privateKey && privateKey.trim() &&
+    installationId && installationId.trim() &&
+    owner && owner.trim() &&
+    repo && repo.trim()
+  );
+}
+
 export async function getOctokit(): Promise<Octokit> {
   const now = Date.now();
   

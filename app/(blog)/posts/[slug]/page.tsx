@@ -3,13 +3,14 @@ import { getAllPosts, getPostBySlug } from "@/actions/posts";
 import { renderMarkdown } from "@/lib/content/renderer";
 import PostHeader from "@/components/blog/PostHeader";
 import PostContent from "@/components/blog/PostContent";
+import { isGitHubConfigured } from "@/lib/github/client";
 
 export const revalidate = 3600; // Revalidate every hour
 
 export async function generateStaticParams() {
   // Skip static generation during build if GitHub credentials not available
-  if (!process.env.GITHUB_APP_ID || !process.env.GITHUB_APP_INSTALLATION_ID) {
-    console.warn('⚠️  GitHub credentials not available during build. Skipping static generation.');
+  if (!isGitHubConfigured()) {
+    console.warn('⚠️  GitHub not configured. Skipping static generation. Pages will be generated on-demand.');
     return [];
   }
   
