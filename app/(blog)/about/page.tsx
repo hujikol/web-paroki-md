@@ -31,7 +31,7 @@ export default function AboutPage() {
 
         <h2>Our Approach</h2>
         <p>
-          We've built this platform with several key principles in mind:
+          We&apos;ve built this platform with several key principles in mind:
         </p>
         <ul>
           <li><strong>Simplicity</strong> - No complex databases, just markdown files</li>

@@ -11,6 +11,15 @@ export default {
       colors: {
         background: "var(--background)",
         foreground: "var(--foreground)",
+        brand: {
+          blue: "#6E90C9", // Primary Blue
+          darkBlue: "#2F5391", // Hover/Darker Blue
+          cream: "#FBF8F4", // Background Cream
+          dark: "#020817", // Primary Text
+        },
+      },
+      fontFamily: {
+        rubik: ["var(--font-rubik)"],
       },
       animation: {
         "fade-in": "fadeIn 0.5s ease-in-out",

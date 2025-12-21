@@ -1,10 +1,10 @@
 "use client";
 
 import { signIn } from "next-auth/react";
+import Link from "next/link";
 import { useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 
-// Inner component that uses useSearchParams
 function LoginForm() {
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get("callbackUrl") || "/admin";
@@ -33,30 +33,31 @@ function LoginForm() {
       }
     } catch (err) {
       setError("An error occurred. Please try again.");
+      console.error(err);
       setLoading(false);
     }
   };
 
   return (
-    <div className="max-w-md w-full bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8">
+    <div className="max-w-md w-full bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8 border border-white/20">
       <div className="text-center mb-8">
-        <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-2">
-          Admin Login
+        <h1 className="text-3xl font-bold text-brand-blue mb-2 font-rubik">
+          Paroki Brayut
         </h1>
-        <p className="text-gray-600 dark:text-gray-400">
-          Sign in to manage your blog
+        <p className="text-brand-dark/70 dark:text-gray-400 font-rubik">
+          Admin Dashboard Login
         </p>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
         {error && (
-          <div className="p-3 bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200 rounded-lg text-sm">
+          <div className="p-3 bg-red-100 text-red-800 rounded-lg text-sm font-rubik">
             {error}
           </div>
         )}
 
         <div>
-          <label htmlFor="username" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+          <label htmlFor="username" className="block text-sm font-medium text-brand-dark mb-2 font-rubik">
             Username
           </label>
           <input
@@ -67,13 +68,13 @@ function LoginForm() {
             onChange={(e) => setUsername(e.target.value)}
             required
             disabled={loading}
-            className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all disabled:opacity-50"
+            className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-brand-blue focus:border-transparent transition-all disabled:opacity-50 font-rubik"
             placeholder="Enter your username"
           />
         </div>
 
         <div>
-          <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+          <label htmlFor="password" className="block text-sm font-medium text-brand-dark mb-2 font-rubik">
             Password
           </label>
           <input
@@ -84,7 +85,7 @@ function LoginForm() {
             onChange={(e) => setPassword(e.target.value)}
             required
             disabled={loading}
-            className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all disabled:opacity-50"
+            className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-brand-blue focus:border-transparent transition-all disabled:opacity-50 font-rubik"
             placeholder="Enter your password"
           />
         </div>
@@ -92,29 +93,28 @@ function LoginForm() {
         <button
           type="submit"
           disabled={loading}
-          className="w-full px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold rounded-lg hover:shadow-lg transform hover:scale-105 transition-all duration-200 disabled:opacity-50 disabled:transform-none"
+          className="w-full px-6 py-3 bg-brand-blue text-white font-bold rounded-lg hover:bg-brand-darkBlue transition-all duration-200 disabled:opacity-50 font-rubik shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
         >
           {loading ? "Signing in..." : "Sign In"}
         </button>
       </form>
 
       <div className="mt-6 text-center">
-        <a
+        <Link
           href="/"
-          className="text-sm text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400"
+          className="text-sm text-brand-blue hover:text-brand-darkBlue font-medium font-rubik hover:underline"
         >
-          ← Back to Blog
-        </a>
+          ← Back to Main Website
+        </Link>
       </div>
     </div>
   );
 }
 
-// Main page component wrapped in Suspense
 export default function AdminLoginPage() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center px-4">
-      <Suspense fallback={<div className="text-white">Loading...</div>}>
+    <div className="min-h-screen bg-brand-cream flex items-center justify-center px-4 font-rubik bg-[url('/pattern.svg')]">
+      <Suspense fallback={<div className="text-brand-blue">Loading...</div>}>
         <LoginForm />
       </Suspense>
     </div>

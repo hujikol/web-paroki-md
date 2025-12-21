@@ -99,9 +99,13 @@ export const authOptions: NextAuthOptions = {
         password: { label: "Password", type: "password" },
       },
       async authorize(credentials) {
+        console.log("---- AUTH DEBUG START ----");
         if (!credentials?.username || !credentials?.password) {
+          console.log("Missing credentials");
           return null;
         }
+
+        console.log(`Attempting login for: ${credentials.username}`);
 
         // Check rate limiting
         if (!checkRateLimit(credentials.username)) {
@@ -115,22 +119,36 @@ export const authOptions: NextAuthOptions = {
         );
 
         if (!user) {
+          console.log("User not found in ADMIN_USERS");
+          console.log("Available users:", ADMIN_USERS.map(u => u.username));
           recordFailedAttempt(credentials.username);
           return null;
         }
+
+        console.log("User found. Verifying password...");
+        console.log(`Stored password format: ${user.password.substring(0, 4)}...`);
 
         // Verify password
         // Support both bcrypt hashes and plain passwords (for backward compatibility)
         let isValid = false;
         
-        if (user.password.startsWith("$2a$") || user.password.startsWith("$2b$")) {
-          // Bcrypt hash
-          isValid = await bcrypt.compare(credentials.password, user.password);
-        } else {
-          // Plain password (not recommended, for development only)
-          console.warn(`⚠️  User ${user.username} is using a plain password. Please use bcrypt hash!`);
-          isValid = user.password === credentials.password;
+        try {
+            if (user.password.startsWith("$2")) {
+              // Bcrypt hash (supports $2a, $2b, $2y, etc.)
+              isValid = await bcrypt.compare(credentials.password, user.password);
+              console.log("Bcrypt compare result:", isValid);
+            } else {
+              // Plain password (not recommended, for development only)
+              console.warn(`⚠️  User ${user.username} is using a plain password. Please use bcrypt hash!`);
+              isValid = user.password === credentials.password;
+              console.log("Plain text compare result:", isValid);
+            }
+        } catch (error) {
+            console.error("Error during password comparison:", error);
         }
+
+        console.log("Final validation result:", isValid);
+        console.log("---- AUTH DEBUG END ----");
 
         if (!isValid) {
           recordFailedAttempt(credentials.username);

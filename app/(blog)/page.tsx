@@ -9,81 +9,108 @@ export default async function HomePage() {
     allPosts = await getAllPosts();
   } catch (error) {
     console.error('Failed to fetch posts:', error);
-    // Return empty state if GitHub is not configured
   }
   
   const featuredPosts = allPosts.filter((post) => post.published).slice(0, 3);
 
   return (
-    <div className="animate-fade-in">
+    <div className="animate-fade-in pb-16">
       {/* Hero Section */}
-      <section className="relative overflow-hidden">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
-          <div className="text-center animate-slide-up">
-            <h1 className="text-6xl md:text-7xl font-bold mb-6 bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
-              Welcome to Our Blog
-            </h1>
-            <p className="text-xl md:text-2xl text-gray-600 dark:text-gray-300 mb-8 max-w-3xl mx-auto">
-              Discover insightful articles, tutorials, and stories powered by modern technology
-            </p>
-            <div className="flex gap-4 justify-center">
-              <Link
-                href="/blog"
-                className="px-8 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold rounded-lg hover:shadow-lg transform hover:scale-105 transition-all duration-200"
-              >
-                Explore Blog
-              </Link>
-              <Link
-                href="/contact"
-                className="px-8 py-3 bg-white dark:bg-gray-800 text-gray-900 dark:text-white font-semibold rounded-lg border-2 border-gray-300 dark:border-gray-700 hover:border-blue-600 dark:hover:border-blue-400 transition-all duration-200"
-              >
-                Get in Touch
-              </Link>
-            </div>
-          </div>
+      <section className="relative h-[500px] flex items-center justify-center bg-brand-dark/20">
+        {/* Background Image Placeholder or Gradient */}
+        <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1548625361-e8755655761a?q=80&w=2072&auto=format&fit=crop')] bg-cover bg-center">
+          <div className="absolute inset-0 bg-brand-dark/60"></div>
         </div>
-        
-        {/* Decorative gradient orbs */}
-        <div className="absolute top-0 left-0 w-96 h-96 bg-purple-300 dark:bg-purple-900 rounded-full mix-blend-multiply dark:mix-blend-soft-light filter blur-3xl opacity-30 animate-pulse"></div>
-        <div className="absolute bottom-0 right-0 w-96 h-96 bg-blue-300 dark:bg-blue-900 rounded-full mix-blend-multiply dark:mix-blend-soft-light filter blur-3xl opacity-30 animate-pulse delay-1000"></div>
-      </section>
 
-      {/* Featured Posts */}
-      {featuredPosts.length > 0 && (
-        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-          <div className="flex justify-between items-center mb-8">
-            <h2 className="text-4xl font-bold text-gray-900 dark:text-white">
-              Featured Posts
-            </h2>
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-white z-10">
+          <h1 className="text-4xl md:text-6xl font-bold mb-4 tracking-tight drop-shadow-md">
+            Selamat Datang di Website Resmi
+          </h1>
+          <p className="text-xl md:text-3xl font-light mb-8 opacity-90 drop-shadow-sm">
+            Paroki Brayut - Santo Yohanes Paulus II
+          </p>
+          <div className="flex justify-center gap-4">
             <Link
-              href="/blog"
-              className="text-blue-600 dark:text-blue-400 hover:underline font-medium"
+              href="/jadwal-misa"
+              className="px-8 py-3 bg-brand-blue hover:bg-brand-darkBlue text-white font-medium rounded-full transition-colors shadow-lg"
             >
-              View all →
+              Jadwal Misa
+            </Link>
+            <Link
+              href="/contact"
+              className="px-8 py-3 bg-white/10 hover:bg-white/20 backdrop-blur-sm text-white font-medium rounded-full border border-white/30 transition-colors"
+            >
+              Hubungi Kami
             </Link>
           </div>
-          
+        </div>
+      </section>
+
+      {/* Warta Terkini (Latest News) */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+        <div className="flex justify-between items-end mb-10 border-b border-gray-200 pb-4">
+          <div>
+            <span className="text-brand-blue font-bold tracking-wider uppercase text-sm">Update Terbaru</span>
+            <h2 className="text-3xl font-bold text-brand-dark mt-1">
+              Warta Terkini
+            </h2>
+          </div>
+          <Link
+            href="/blog"
+            className="text-brand-blue hover:text-brand-darkBlue font-medium text-sm flex items-center gap-1 mb-1"
+          >
+            Lihat Semua <span aria-hidden="true">&rarr;</span>
+          </Link>
+        </div>
+        
+        {featuredPosts.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {featuredPosts.map((post) => (
               <PostCard key={post.slug} post={post} />
             ))}
           </div>
-        </section>
-      )}
+        ) : (
+          <div className="text-center py-12 bg-white rounded-xl border border-dashed border-gray-300">
+            <p className="text-gray-500">Belum ada berita terbaru.</p>
+          </div>
+        )}
+      </section>
 
-      {/* CTA Section */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl p-12 text-center text-white">
-          <h2 className="text-4xl font-bold mb-4">Stay Updated</h2>
-          <p className="text-xl mb-8 opacity-90">
-            Get the latest articles and updates delivered to your inbox
-          </p>
-          <Link
-            href="/contact"
-            className="inline-block px-8 py-3 bg-white text-blue-600 font-semibold rounded-lg hover:shadow-lg transform hover:scale-105 transition-all duration-200"
-          >
-            Contact Us
-          </Link>
+      {/* Pembangunan Gereja Section */}
+      <section className="bg-white py-16 border-y border-gray-100">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+            <div className="relative h-64 lg:h-96 rounded-2xl overflow-hidden shadow-xl bg-gray-200">
+               {/* Placeholder for Church Building Image */}
+               <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1548625149-fc4a29cf7092?q=80&w=2072&auto=format&fit=crop')] bg-cover bg-center"></div>
+            </div>
+            
+            <div className="space-y-6">
+              <div>
+                <span className="text-brand-blue font-bold tracking-wider uppercase text-sm">Renovasi & Pembangunan</span>
+                <h2 className="text-3xl font-bold text-brand-dark mt-2">
+                  Pembangunan Gereja
+                </h2>
+              </div>
+              
+              <p className="text-gray-600 leading-relaxed text-lg">
+                Gereja Paroki Brayut saat ini sedang dalam proses renovasi dan pembangunan fasilitas penunjang untuk memberikan kenyamanan yang lebih baik bagi seluruh umat dalam beribadah dan berkegiatan.
+              </p>
+              
+              <div className="bg-brand-cream/50 p-6 rounded-xl border border-brand-blue/10">
+                <h3 className="font-bold text-brand-dark mb-2">Mari Berpartisipasi</h3>
+                <p className="text-gray-600 text-sm mb-4">
+                  Dukungan doa dan dana dari Bapak/Ibu/Saudara/i sangat berarti bagi kelancaran pembangunan ini.
+                </p>
+                <Link
+                  href="/contact" 
+                  className="text-brand-blue font-medium hover:text-brand-darkBlue inline-flex items-center gap-2"
+                >
+                  Informasi Donasi <span aria-hidden="true">&rarr;</span>
+                </Link>
+              </div>
+            </div>
+          </div>
         </div>
       </section>
     </div>

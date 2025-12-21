@@ -1,12 +1,15 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Rubik } from "next/font/google";
 import "./globals.css";
 
-const inter = Inter({ subsets: ["latin"] });
+const rubik = Rubik({
+  subsets: ["latin"],
+  variable: "--font-rubik",
+});
 
 export const metadata: Metadata = {
-  title: "Blog CMS",
-  description: "A modern blog powered by Next.js and GitHub",
+  title: "Paroki Brayut",
+  description: "Website Resmi Paroki Brayut - Santo Yohanes Paulus II",
 };
 
 export default function RootLayout({
@@ -15,8 +18,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body className={inter.className}>{children}</body>
+    <html lang="en" suppressHydrationWarning>
+      <body className={`${rubik.variable} font-rubik bg-brand-cream text-brand-dark antialiased`} suppressHydrationWarning>
+        {children}
+      </body>
     </html>
   );
 }

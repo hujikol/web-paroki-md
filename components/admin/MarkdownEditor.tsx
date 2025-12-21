@@ -1,107 +1,107 @@
 "use client";
 
-import { useState } from "react";
+import {
+  MDXEditor,
+  headingsPlugin,
+  listsPlugin,
+  quotePlugin,
+  thematicBreakPlugin,
+  markdownShortcutPlugin,
+  tablePlugin,
+  imagePlugin,
+  toolbarPlugin,
+  BlockTypeSelect,
+  BoldItalicUnderlineToggles,
+  UndoRedo,
+  InsertTable,
+  InsertImage,
+  InsertThematicBreak
+} from "@mdxeditor/editor";
+import "@mdxeditor/editor/style.css";
+import { useState, useRef } from "react";
+import MediaPickerModal from "./MediaPickerModal";
+import { useFormStatus } from "react-dom";
+
+// Helper to insert image into editor
+// We can't access the editor instance easily from outside without a ref or custom plugin
+// But MDXEditor exposes a ref that has manipulation methods? Not fully.
+// However, we can use the `ref` prop to get access to `insertMarkdown` or similar.
+// Let's rely on standard image plugin for now, and a custom button for Media Picker?
+// Actually, let's keep it simple: Standard MDXEditor for writing. 
+// For images, we can use the `imageUploadHandler` to support drag/drop.
+// For picking existing, we can add a button ABOVE the editor "Insert Media" which appends to the markdown?
+// Or we can try to customize the toolbar.
 
 interface MarkdownEditorProps {
-  value: string;
-  onChange: (value: string) => void;
+  markdown: string;
+  onChange: (markdown: string) => void;
 }
 
-export default function MarkdownEditor({ value, onChange }: MarkdownEditorProps) {
-  const [showPreview, setShowPreview] = useState(false);
+export default function MarkdownEditor({ markdown, onChange }: MarkdownEditorProps) {
+  const [isMediaModalOpen, setIsMediaModalOpen] = useState(false);
+  const editorRef = useRef<any>(null); // MDXEditor type ref
 
-  const insertMarkdown = (before: string, after: string = "") => {
-    const textarea = document.getElementById("markdown-editor") as HTMLTextAreaElement;
-    const start = textarea.selectionStart;
-    const end = textarea.selectionEnd;
-    const selectedText = value.substring(start, end);
-    const newText = value.substring(0, start) + before + selectedText + after + value.substring(end);
-    onChange(newText);
-    
-    // Restore cursor position
-    setTimeout(() => {
-      textarea.focus();
-      textarea.setSelectionRange(start + before.length, start + before.length + selectedText.length);
-    }, 0);
+  const handleImageSelect = (path: string) => {
+    if (editorRef.current) {
+        editorRef.current.insertMarkdown(`![Image](${path})`);
+    } else {
+        onChange(markdown + `\n![Image](${path})`);
+    }
+    setIsMediaModalOpen(false);
   };
 
   return (
-    <div className="border border-gray-300 dark:border-gray-700 rounded-lg overflow-hidden">
-      {/* Toolbar */}
-      <div className="bg-gray-100 dark:bg-gray-800 border-b border-gray-300 dark:border-gray-700 p-2 flex items-center gap-2 flex-wrap">
-        <button
-          type="button"
-          onClick={() => insertMarkdown("**", "**")}
-          className="px-3 py-1 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded hover:bg-gray-50 dark:hover:bg-gray-600 text-sm font-semibold"
-          title="Bold"
-        >
-          B
-        </button>
-        <button
-          type="button"
-          onClick={() => insertMarkdown("*", "*")}
-          className="px-3 py-1 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded hover:bg-gray-50 dark:hover:bg-gray-600 text-sm italic"
-          title="Italic"
-        >
-          I
-        </button>
-        <button
-          type="button"
-          onClick={() => insertMarkdown("## ", "")}
-          className="px-3 py-1 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded hover:bg-gray-50 dark:hover:bg-gray-600 text-sm"
-          title="Heading"
-        >
-          H2
-        </button>
-        <button
-          type="button"
-          onClick={() => insertMarkdown("[", "](url)")}
-          className="px-3 py-1 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded hover:bg-gray-50 dark:hover:bg-gray-600 text-sm"
-          title="Link"
-        >
-          🔗
-        </button>
-        <button
-          type="button"
-          onClick={() => insertMarkdown("![alt](", ")")}
-          className="px-3 py-1 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded hover:bg-gray-50 dark:hover:bg-gray-600 text-sm"
-          title="Image"
-        >
-          🖼️
-        </button>
-        <button
-          type="button"
-          onClick={() => insertMarkdown("```\n", "\n```")}
-          className="px-3 py-1 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded hover:bg-gray-50 dark:hover:bg-gray-600 text-sm"
-          title="Code Block"
-        >
-          &lt;/&gt;
-        </button>
-        <div className="ml-auto">
-          <button
+    <div className="mdx-editor-wrapper border rounded-lg overflow-hidden bg-white dark:bg-gray-800 focus-within:ring-2 focus-within:ring-brand-blue transition-shadow flex flex-col h-full">
+      <div className="bg-gray-50 border-b p-2 flex justify-between items-center sticky top-20 z-10 transition-all">
+         <span className="text-xs font-bold text-gray-500 uppercase">Content Editor</span>
+         <button
             type="button"
-            onClick={() => setShowPreview(!showPreview)}
-            className="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm"
-          >
-            {showPreview ? "Edit" : "Preview"}
-          </button>
-        </div>
+            onClick={() => setIsMediaModalOpen(true)}
+            className="flex items-center gap-1 text-xs font-medium text-brand-blue hover:underline"
+         >
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+            Media Library
+         </button>
       </div>
 
-      {/* Editor/Preview */}
-      {showPreview ? (
-        <div className="p-4 prose dark:prose-invert max-w-none min-h-[400px] bg-white dark:bg-gray-900">
-          <div dangerouslySetInnerHTML={{ __html: value.replace(/\n/g, "<br>") }} />
-        </div>
-      ) : (
-        <textarea
-          id="markdown-editor"
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          className="w-full p-4 min-h-[400px] bg-white dark:bg-gray-900 text-gray-900 dark:text-white font-mono text-sm resize-y focus:outline-none"
-          placeholder="Write your post content in markdown..."
-        />
-      )}
+      <MDXEditor
+        ref={editorRef}
+        markdown={markdown}
+        onChange={onChange}
+        contentEditableClassName="prose dark:prose-invert max-w-none p-4 min-h-[400px] outline-none"
+        plugins={[
+          headingsPlugin(),
+          listsPlugin(),
+          quotePlugin(),
+          thematicBreakPlugin(),
+          markdownShortcutPlugin(),
+          tablePlugin(),
+          imagePlugin({
+             // No upload handler for now, we rely on the Media Library button + simple url input if needed
+             // Or we could implement a basic one that auto-uploads to 'inline'
+          }),
+          toolbarPlugin({
+            toolbarContents: () => (
+              <>
+                <UndoRedo />
+                <BlockTypeSelect />
+                <BoldItalicUnderlineToggles />
+                <InsertTable />
+                <InsertImage />
+                <InsertThematicBreak />
+              </>
+            )
+          })
+        ]}
+      />
+
+      <MediaPickerModal
+        isOpen={isMediaModalOpen}
+        onClose={() => setIsMediaModalOpen(false)}
+        onSelect={handleImageSelect}
+      />
     </div>
   );
 }

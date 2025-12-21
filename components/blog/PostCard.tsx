@@ -14,41 +14,41 @@ export default function PostCard({ post }: PostCardProps) {
   });
 
   return (
-    <Link href={`/posts/${post.slug}`} className="group block">
-      <article className="bg-white dark:bg-gray-800 rounded-xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+    <Link href={`/posts/${post.slug}`} className="group block h-full">
+      <article className="bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 border border-gray-100 h-full flex flex-col">
         {post.banner && (
           <div className="relative h-48 w-full overflow-hidden">
             <Image
               src={post.banner}
               alt={post.title}
               fill
-              className="object-cover group-hover:scale-105 transition-transform duration-300"
+              className="object-cover group-hover:scale-105 transition-transform duration-500"
             />
           </div>
         )}
         
-        <div className="p-6">
+        <div className="p-6 flex flex-col flex-grow">
           <div className="flex flex-wrap gap-2 mb-3">
             {post.tags.slice(0, 3).map((tag) => (
               <span
                 key={tag}
-                className="px-3 py-1 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 text-xs font-medium rounded-full"
+                className="px-3 py-1 bg-brand-cream text-brand-blue text-xs font-medium rounded-full"
               >
                 {tag}
               </span>
             ))}
           </div>
           
-          <h2 className="text-2xl font-bold mb-2 text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+          <h2 className="text-xl font-bold mb-3 text-brand-dark group-hover:text-brand-blue transition-colors line-clamp-2">
             {post.title}
           </h2>
           
-          <p className="text-gray-600 dark:text-gray-300 mb-4 line-clamp-2">
+          <p className="text-gray-600 text-sm mb-4 line-clamp-3 flex-grow">
             {post.description}
           </p>
           
-          <div className="flex items-center justify-between text-sm text-gray-500 dark:text-gray-400">
-            <span>{post.author}</span>
+          <div className="flex items-center justify-between text-xs text-gray-500 mt-auto pt-4 border-t border-gray-100">
+            <span className="font-medium text-brand-dark">{post.author}</span>
             <time dateTime={post.publishedAt}>{formattedDate}</time>
           </div>
         </div>
