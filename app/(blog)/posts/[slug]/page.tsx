@@ -7,10 +7,21 @@ import PostContent from "@/components/blog/PostContent";
 export const revalidate = 3600; // Revalidate every hour
 
 export async function generateStaticParams() {
-  const posts = await getAllPosts();
-  return posts.map((post) => ({
-    slug: post.slug,
-  }));
+  // Skip static generation during build if GitHub credentials not available
+  if (!process.env.GITHUB_APP_ID || !process.env.GITHUB_APP_INSTALLATION_ID) {
+    console.warn('⚠️  GitHub credentials not available during build. Skipping static generation.');
+    return [];
+  }
+  
+  try {
+    const posts = await getAllPosts();
+    return posts.map((post) => ({
+      slug: post.slug,
+    }));
+  } catch (error) {
+    console.error('Failed to generate static params:', error);
+    return []; // Return empty array to allow build to succeed
+  }
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {

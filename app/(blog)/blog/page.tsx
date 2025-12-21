@@ -4,7 +4,15 @@ import PostCard from "@/components/blog/PostCard";
 export const revalidate = 3600; // Revalidate every hour
 
 export default async function BlogPage() {
-  const posts = await getAllPosts();
+  let posts: Awaited<ReturnType<typeof getAllPosts>> = [];
+  
+  try {
+    posts = await getAllPosts();
+  } catch (error) {
+    console.error('Failed to fetch posts:', error);
+    // Return empty state if GitHub is not configured
+  }
+  
   const publishedPosts = posts.filter((post) => post.published);
 
   return (

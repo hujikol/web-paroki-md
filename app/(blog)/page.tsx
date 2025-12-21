@@ -3,7 +3,15 @@ import { getAllPosts } from "@/actions/posts";
 import PostCard from "@/components/blog/PostCard";
 
 export default async function HomePage() {
-  const allPosts = await getAllPosts();
+  let allPosts: Awaited<ReturnType<typeof getAllPosts>> = [];
+  
+  try {
+    allPosts = await getAllPosts();
+  } catch (error) {
+    console.error('Failed to fetch posts:', error);
+    // Return empty state if GitHub is not configured
+  }
+  
   const featuredPosts = allPosts.filter((post) => post.published).slice(0, 3);
 
   return (
