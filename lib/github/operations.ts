@@ -25,7 +25,7 @@ export async function getFile(path: string): Promise<string | null> {
   }
 }
 
-export async function listFiles(directory: string): Promise<string[]> {
+export async function listFiles(directory: string): Promise<{ name: string; path: string; size: number }[]> {
   try {
     const octokit = await getOctokit();
     const { owner, repo } = getRepoConfig();
@@ -39,7 +39,11 @@ export async function listFiles(directory: string): Promise<string[]> {
     if (Array.isArray(data)) {
       return data
         .filter((item) => item.type === "file")
-        .map((item) => item.path);
+        .map((item) => ({
+          name: item.name,
+          path: item.path,
+          size: item.size,
+        }));
     }
 
     return [];

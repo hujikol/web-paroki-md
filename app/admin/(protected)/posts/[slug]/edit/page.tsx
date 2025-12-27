@@ -14,13 +14,8 @@ export default async function EditPostPage({ params }: { params: Promise<{ slug:
   }
 
   return (
-    <div>
-      <h1 className="text-4xl font-bold mb-8 text-gray-900 dark:text-white">
-        Edit Post
-      </h1>
-      <div className="bg-white dark:bg-gray-800 p-8 rounded-lg shadow">
+      <div className="bg-white px-8 rounded-lg shadow">
         <PostForm post={post} mode="edit" user={session?.user} />
       </div>
-    </div>
   );
 }

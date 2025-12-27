@@ -10,27 +10,66 @@ import {
   tablePlugin,
   imagePlugin,
   toolbarPlugin,
+  linkPlugin,
+  linkDialogPlugin,
+  codeBlockPlugin,
   BlockTypeSelect,
   BoldItalicUnderlineToggles,
   UndoRedo,
   InsertTable,
   InsertImage,
-  InsertThematicBreak
+  InsertThematicBreak,
+  ListsToggle,
+  Separator,
+  CodeToggle,
+  HighlightToggle,
+  CreateLink,
+  StrikeThroughSupSubToggles
 } from "@mdxeditor/editor";
 import "@mdxeditor/editor/style.css";
 import { useState, useRef } from "react";
 import MediaPickerModal from "./MediaPickerModal";
+import Tooltip from "./Tooltip";
 import { useFormStatus } from "react-dom";
 
-// Helper to insert image into editor
-// We can't access the editor instance easily from outside without a ref or custom plugin
-// But MDXEditor exposes a ref that has manipulation methods? Not fully.
-// However, we can use the `ref` prop to get access to `insertMarkdown` or similar.
-// Let's rely on standard image plugin for now, and a custom button for Media Picker?
-// Actually, let's keep it simple: Standard MDXEditor for writing. 
-// For images, we can use the `imageUploadHandler` to support drag/drop.
-// For picking existing, we can add a button ABOVE the editor "Insert Media" which appends to the markdown?
-// Or we can try to customize the toolbar.
+// Standard Markdown doesn't support alignment, so we'll use HTML as the most compatible way
+// with the existing remark-html renderer which allows raw HTML.
+const TextAlignButtons = ({ onInsert }: { onInsert: (align: string) => void }) => {
+  return (
+    <div className="flex items-center gap-1 border-l border-gray-200 pl-2 ml-1">
+      <button
+        type="button"
+        onClick={() => onInsert('left')}
+        className="p-1 hover:bg-gray-100 rounded transition-colors"
+        title="Align Left"
+      >
+        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h10M4 18h16" />
+        </svg>
+      </button>
+      <button
+        type="button"
+        onClick={() => onInsert('center')}
+        className="p-1 hover:bg-gray-100 rounded transition-colors"
+        title="Align Center"
+      >
+        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M7 12h10M4 18h16" />
+        </svg>
+      </button>
+      <button
+        type="button"
+        onClick={() => onInsert('right')}
+        className="p-1 hover:bg-gray-100 rounded transition-colors"
+        title="Align Right"
+      >
+        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M10 12h10M4 18h16" />
+        </svg>
+      </button>
+    </div>
+  );
+};
 
 interface MarkdownEditorProps {
   markdown: string;
@@ -50,27 +89,23 @@ export default function MarkdownEditor({ markdown, onChange }: MarkdownEditorPro
     setIsMediaModalOpen(false);
   };
 
-  return (
-    <div className="mdx-editor-wrapper border rounded-lg overflow-hidden bg-white dark:bg-gray-800 focus-within:ring-2 focus-within:ring-brand-blue transition-shadow flex flex-col h-full">
-      <div className="bg-gray-50 border-b p-2 flex justify-between items-center">
-         <span className="text-xs font-bold text-gray-500 uppercase">Content Editor</span>
-         <button
-            type="button"
-            onClick={() => setIsMediaModalOpen(true)}
-            className="flex items-center gap-1 text-xs font-medium text-brand-blue hover:underline"
-         >
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-            </svg>
-            Media Library
-         </button>
-      </div>
+  const handleAlign = (align: string) => {
+    if (editorRef.current) {
+        // We wrap selection in an HTML div with alignment
+        // In MDXEditor, we can't easily get the current selection and wrap it without a plugin
+        // but we can insert the tags around it if we use a hack or just insert the block.
+        // For simplicity and compatibility, we'll insert a template block.
+        editorRef.current.insertMarkdown(`\n\n<div align="${align}">\n\nWrite aligned text here...\n\n</div>\n\n`);
+    }
+  };
 
+  return (
+    <div className="mdx-editor-wrapper border rounded-lg bg-white transition-shadow flex flex-col h-full overflow-visible">
       <MDXEditor
         ref={editorRef}
         markdown={markdown}
         onChange={onChange}
-        contentEditableClassName="prose dark:prose-invert max-w-none p-4 min-h-[400px] outline-none"
+        contentEditableClassName="max-w-none p-4 min-h-[400px] outline-none"
         // The toolbar plugin adds a toolbar in the DOM. We can target it via CSS in global or simpler: 
         // We can't easily control the toolbar DOM node classes here without custom CSS.
         // However, we can wrap the MDXEditor in a sticky container for the toolbar? 
@@ -83,24 +118,100 @@ export default function MarkdownEditor({ markdown, onChange }: MarkdownEditorPro
           thematicBreakPlugin(),
           markdownShortcutPlugin(),
           tablePlugin(),
-          imagePlugin({
-             // No upload handler for now, we rely on the Media Library button + simple url input if needed
-             // Or we could implement a basic one that auto-uploads to 'inline'
-          }),
+          imagePlugin({}),
+          linkPlugin(),
+          linkDialogPlugin(),
+          codeBlockPlugin(),
           toolbarPlugin({
             toolbarContents: () => (
-              <>
-                <UndoRedo />
-                <BlockTypeSelect />
-                <BoldItalicUnderlineToggles />
-                <InsertTable />
-                <InsertImage />
-                <InsertThematicBreak />
-              </>
+              <div className="flex flex-col w-full gap-2">
+                {/* Row 1: Primary Formatting */}
+                <div className="flex flex-wrap items-center gap-1">
+                  <UndoRedo />
+                  <Separator />
+                  <BlockTypeSelect />
+                  <Separator />
+                  <BoldItalicUnderlineToggles />
+                  <CodeToggle />
+                  <HighlightToggle />
+                  <Separator />
+                  <ListsToggle />
+                  <TextAlignButtons onInsert={handleAlign} />
+                </div>
+                
+                {/* Row 2: Inserts and Advanced */}
+                <div className="flex flex-wrap items-center gap-1 pt-1 border-t border-gray-50">
+                  <StrikeThroughSupSubToggles />
+                  <Separator />
+                  <InsertTable />
+                  <CreateLink />
+                  <InsertImage />
+                  <InsertThematicBreak />
+                  <Separator />
+                  <Tooltip content="Insert from Media Library" position="bottom">
+                    <button
+                      type="button"
+                      onClick={() => setIsMediaModalOpen(true)}
+                      className="px-2 py-1 text-[10px] font-bold uppercase tracking-wider hover:bg-brand-blue hover:text-white border border-brand-blue/20 text-brand-blue rounded bg-brand-blue/5 transition-all active:scale-95 whitespace-nowrap"
+                    >
+                      Media Library
+                    </button>
+                  </Tooltip>
+                </div>
+              </div>
             )
           })
         ]}
       />
+
+      <style dangerouslySetInnerHTML={{ __html: `
+        .mdx-editor-wrapper [class*="_toolbarRoot"],
+        .mdx-editor-wrapper .mdx-toolbar-container {
+          overflow: visible !important;
+          position: sticky !important;
+          top: 136px !important;
+          z-index: 10 !important;
+          background: white !important;
+          box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1);
+          padding: 8px 12px !important;
+        }
+
+        .mdx-editor-wrapper [class*="_dropdownMenuContent"],
+        .mdx-editor-wrapper [class*="_popoverContent"],
+        .mdx-editor-wrapper [role="menu"],
+        .mdx-editor-wrapper [role="listbox"] {
+          z-index: 150 !important;
+        }
+
+        /* Visible formatting inside the editor */
+        .mdx-editor-wrapper [contenteditable] {
+          font-family: inherit;
+        }
+        .mdx-editor-wrapper [contenteditable] h1 { font-size: 2.25rem; font-weight: 800; margin-top: 1.5rem; margin-bottom: 1rem; color: #111827; }
+        .mdx-editor-wrapper [contenteditable] h2 { font-size: 1.875rem; font-weight: 700; margin-top: 1.25rem; margin-bottom: 0.75rem; color: #1f2937; }
+        .mdx-editor-wrapper [contenteditable] h3 { font-size: 1.5rem; font-weight: 600; margin-top: 1rem; margin-bottom: 0.5rem; color: #374151; }
+        .mdx-editor-wrapper [contenteditable] blockquote { 
+          border-left: 4px solid #3b82f6; 
+          padding-left: 1rem; 
+          font-style: italic; 
+          color: #4b5563; 
+          margin: 1.5rem 0;
+          background: #f9fafb;
+          padding-top: 0.5rem;
+          padding-bottom: 0.5rem;
+        }
+        .mdx-editor-wrapper [contenteditable] ul { list-style-type: disc; padding-left: 1.5rem; margin: 1rem 0; }
+        .mdx-editor-wrapper [contenteditable] ol { list-style-type: decimal; padding-left: 1.5rem; margin: 1rem 0; }
+        .mdx-editor-wrapper [contenteditable] p { margin-bottom: 1rem; line-height: 1.6; }
+        .mdx-editor-wrapper [contenteditable] code:not(pre code) {
+          background-color: #f3f4f6;
+          color: #ef4444;
+          padding: 0.2rem 0.4rem;
+          rounded: 0.25rem;
+          font-family: monospace;
+          font-size: 0.875em;
+        }
+      `}} />
 
       <MediaPickerModal
         isOpen={isMediaModalOpen}

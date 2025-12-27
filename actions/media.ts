@@ -3,61 +3,78 @@
 import { commitFiles, listFiles, deleteFile } from "@/lib/github/operations";
 import { processImage, generateImageFilename } from "@/lib/images/processor";
 
-export async function uploadImage(
-  file: File,
-  type: "banner" | "inline" // Kept for processor optimization but ignored for folder structure
-): Promise<{ success: boolean; path?: string; error?: string }> {
+export async function uploadImages(
+  formData: FormData,
+  type: "banner" | "inline"
+): Promise<{ success: boolean; paths?: string[]; error?: string }> {
   try {
-    // Validate file
-    if (!file.type.startsWith("image/")) {
-      return { success: false, error: "File must be an image" };
-    }
-
-    // Max 10MB
-    if (file.size > 10 * 1024 * 1024) {
-      return { success: false, error: "File size must be less than 10MB" };
-    }
-
-    // Convert to buffer
-    const arrayBuffer = await file.arrayBuffer();
-    const buffer = Buffer.from(arrayBuffer);
-
-    // Process image (still optimized based on intent)
-    const processed = await processImage(buffer, type);
-
-    // Generate filename
-    const filename = generateImageFilename(file.name, type);
+    const files = formData.getAll("files") as File[];
     
-    // UNIFIED STRUCTURE: All images go to root images/
-    const path = `images/${filename}`;
+    if (!files || files.length === 0) {
+      return { success: false, error: "No files provided" };
+    }
 
-    // Commit to GitHub
+    const filesToCommit = [];
+    const uploadedPaths = [];
+
+    for (const file of files) {
+      // Validate file
+      if (!file.type.startsWith("image/")) continue;
+      if (file.size > 10 * 1024 * 1024) continue;
+
+      const arrayBuffer = await file.arrayBuffer();
+      const buffer = Buffer.from(arrayBuffer);
+      const processed = await processImage(buffer, type);
+      const filename = generateImageFilename(file.name, type);
+      const path = `images/${filename}`;
+
+      filesToCommit.push({
+        path,
+        content: processed.buffer,
+        encoding: "base64" as const
+      });
+
+      uploadedPaths.push(`/${path}`);
+    }
+
+    if (filesToCommit.length === 0) {
+      return { success: false, error: "No valid images to upload" };
+    }
+
+    // Commit all files to GitHub in a single commit
     await commitFiles(
-      [{ path, content: processed.buffer, encoding: "base64" }],
-      `Add image: ${filename}`
+      filesToCommit,
+      `Add ${filesToCommit.length} images`
     );
 
-    return { success: true, path: `/${path}` };
+    return { success: true, paths: uploadedPaths };
   } catch (error: any) {
-    console.error("Error uploading image:", error);
+    console.error("Error uploading images:", error);
     return { success: false, error: error.message };
   }
 }
 
+export interface MediaImage {
+  path: string;
+  name: string;
+  size: number;
+}
+
 export async function listImages(): Promise<{
-  banners: string[];
-  inline: string[];
+  banners: MediaImage[];
+  inline: MediaImage[];
 }> {
   try {
     // UNIFIED STRUCTURE: List all files in images/
     const allImages = await listFiles("images");
     
-    // Return all images in the 'inline' key which is used as the primary list in MediaManager
-    // banners is kept empty to preserve type compatibility but is effectively deprecated
-    
     return {
       banners: [], 
-      inline: allImages.map(p => `/${p}`), 
+      inline: allImages.map(img => ({
+        path: `/${img.path}`,
+        name: img.name,
+        size: img.size
+      })), 
     };
   } catch (error) {
     console.error("Error listing images:", error);

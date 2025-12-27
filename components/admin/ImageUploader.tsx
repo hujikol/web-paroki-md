@@ -1,75 +1,107 @@
-/* eslint-disable @next/next/no-img-element */
 "use client";
 
-import { useState } from "react";
-import { uploadImage } from "@/actions/media";
+import { useState, useImperativeHandle, forwardRef, useEffect } from "react";
+import { uploadImages } from "@/actions/media";
+
+interface ImageFile {
+  id: string;
+  file: File;
+  preview: string;
+}
 
 interface ImageUploaderProps {
   type: "banner" | "inline";
-  onUploadComplete?: (path: string) => void;
+  onUploadComplete?: (paths: string[]) => void;
+  onFilesChange?: (count: number) => void;
 }
 
-export default function ImageUploader({ type, onUploadComplete }: ImageUploaderProps) {
+const ImageUploader = forwardRef(({ type, onUploadComplete, onFilesChange }: ImageUploaderProps, ref) => {
   const [isDragging, setIsDragging] = useState(false);
   const [uploading, setUploading] = useState(false);
-  const [preview, setPreview] = useState<string | null>(null);
-  const [uploadedPath, setUploadedPath] = useState<string | null>(null);
+  const [selectedImages, setSelectedImages] = useState<ImageFile[]>([]);
   const [error, setError] = useState<string | null>(null);
 
-  const handleFile = async (file: File) => {
-    if (!file.type.startsWith("image/")) {
-      setError("Please upload an image file");
-      return;
-    }
+  // Sync with parent when files change to avoid "setState in render" errors
+  useEffect(() => {
+    onFilesChange?.(selectedImages.length);
+  }, [selectedImages, onFilesChange]);
 
-    if (file.size > 10 * 1024 * 1024) {
-      setError("File size must be less than 10MB");
-      return;
-    }
+  useImperativeHandle(ref, () => ({
+    async upload() {
+      if (selectedImages.length === 0) return;
+
+      setUploading(true);
+      setError(null);
+
+      const formData = new FormData();
+      selectedImages.forEach((img) => {
+        formData.append("files", img.file);
+      });
+
+      const result = await uploadImages(formData, type);
+
+      setUploading(false);
+
+      if (result.success && result.paths) {
+        onUploadComplete?.(result.paths);
+        setSelectedImages([]);
+      } else {
+        setError(result.error || "Upload failed");
+      }
+    },
+    hasFiles: selectedImages.length > 0
+  }));
+
+  const handleFiles = (files: FileList | null) => {
+    if (!files) return;
+
+    const validImageTypes = ["image/jpeg", "image/png", "image/webp", "image/gif"];
+    const filesArray = Array.from(files);
+
+    filesArray.forEach((file) => {
+      if (!validImageTypes.includes(file.type)) {
+        setError("Please upload valid image files (JPEG, PNG, WebP, GIF)");
+        return;
+      }
+
+      if (file.size > 10 * 1024 * 1024) {
+        setError("Each file must be less than 10MB");
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setSelectedImages((prev) => [
+          ...prev,
+          {
+            id: Math.random().toString(36).substring(7),
+            file,
+            preview: reader.result as string,
+          },
+        ]);
+      };
+      reader.readAsDataURL(file);
+    });
 
     setError(null);
-    setPreview(URL.createObjectURL(file));
-    setUploading(true);
+  };
 
-    const result = await uploadImage(file, type);
-
-    setUploading(false);
-
-    if (result.success && result.path) {
-      setUploadedPath(result.path);
-      onUploadComplete?.(result.path);
-    } else {
-      setError(result.error || "Upload failed");
-      setPreview(null);
-    }
+  const removeImage = (id: string) => {
+    setSelectedImages((prev) => prev.filter((img) => img.id !== id));
   };
 
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
     setIsDragging(false);
-    
-    const file = e.dataTransfer.files[0];
-    if (file) {
-      handleFile(file);
-    }
+    handleFiles(e.dataTransfer.files);
   };
 
   const handleFileInput = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      handleFile(file);
-    }
-  };
-
-  const copyToClipboard = () => {
-    if (uploadedPath) {
-      navigator.clipboard.writeText(uploadedPath);
-      alert("Path copied to clipboard!");
-    }
+    handleFiles(e.target.files);
   };
 
   return (
-    <div className="space-y-4">
+    <div>
       <div
         onDragOver={(e) => {
           e.preventDefault();
@@ -77,65 +109,78 @@ export default function ImageUploader({ type, onUploadComplete }: ImageUploaderP
         }}
         onDragLeave={() => setIsDragging(false)}
         onDrop={handleDrop}
-        className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
+        className={`border-2 border-dashed rounded-xl p-8 text-center transition-all ${
           isDragging
-            ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20"
-            : "border-gray-300 dark:border-gray-700"
+            ? "border-brand-blue bg-brand-cream/50"
+            : "border-gray-300 hover:border-brand-blue/50"
         }`}
       >
-        {preview ? (
-          <div className="space-y-4">
-            <img src={preview} alt="Preview" className="max-h-64 mx-auto rounded-lg" />
-            {uploading && <p className="text-blue-600">Uploading...</p>}
-            {uploadedPath && (
-              <div className="space-y-2">
-                <p className="text-green-600 dark:text-green-400 font-medium">Upload successful!</p>
-                <div className="flex items-center gap-2 justify-center">
-                  <code className="px-3 py-1 bg-gray-100 dark:bg-gray-800 rounded text-sm">
-                    {uploadedPath}
-                  </code>
-                  <button
-                    type="button"
-                    onClick={copyToClipboard}
-                    className="px-3 py-1 bg-blue-600 text-white rounded text-sm hover:bg-blue-700"
-                  >
-                    Copy
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>
-        ) : (
-          <>
-            <div className="text-4xl mb-4">📁</div>
-            <p className="text-gray-600 dark:text-gray-400 mb-2">
-              Drag and drop an image here, or click to select
+        <div className="flex flex-col items-center">
+            <svg className={`w-12 h-12 mb-4 transition-colors ${isDragging ? 'text-brand-blue' : 'text-gray-400'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+            <p className="text-gray-600 font-medium mb-1">
+              {isDragging ? "Drop images here" : "Drag and drop images, or click to select"}
             </p>
+            <p className="text-xs text-gray-400 mb-4">Support multiple files • Max 10MB each</p>
+            
             <input
               type="file"
               accept="image/*"
+              multiple
               onChange={handleFileInput}
               className="hidden"
               id={`file-input-${type}`}
+              disabled={uploading}
             />
             <label
               htmlFor={`file-input-${type}`}
-              className="inline-block px-4 py-2 bg-blue-600 text-white rounded cursor-pointer hover:bg-blue-700"
+              className="px-4 py-2 bg-white border border-gray-200 text-gray-700 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors font-bold text-sm shadow-sm"
             >
-              Choose File
+              Choose Files
             </label>
-            <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
-              Max 10MB • Will be converted to WebP
-            </p>
-          </>
-        )}
+        </div>
       </div>
 
+      {selectedImages.length > 0 && (
+        <div className="grid grid-cols-3 sm:grid-cols-4 gap-4 mt-6">
+          {selectedImages.map((img) => (
+            <div key={img.id} className="relative group aspect-square rounded-lg overflow-hidden border border-gray-200">
+              <img src={img.preview} alt="Preview" className="w-full h-full object-cover" />
+              <button
+                type="button"
+                onClick={() => removeImage(img.id)}
+                className="absolute top-1 right-1 bg-white/90 text-red-600 p-1 rounded-full shadow-sm opacity-0 group-hover:opacity-100 transition-opacity"
+                disabled={uploading}
+              >
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {uploading && (
+        <div className="flex items-center justify-center gap-3 py-4 text-brand-blue animate-pulse">
+            <svg className="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            <span className="font-bold text-sm">Processing {selectedImages.length} images...</span>
+        </div>
+      )}
+
       {error && (
-        <div className="p-3 bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200 rounded">
+        <div className="p-3 bg-red-50 text-red-600 text-sm font-medium rounded-lg border border-red-100 animate-fade-in">
           {error}
         </div>
       )}
     </div>
   );
-}
+});
+
+ImageUploader.displayName = "ImageUploader";
+
+export default ImageUploader;
