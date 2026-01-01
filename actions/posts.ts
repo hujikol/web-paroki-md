@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { getFile, listFiles, commitFiles, deleteFile } from "@/lib/github/operations";
-import { parseMarkdown, stringifyMarkdown } from "@/lib/content/parser";
+import { parseContent, stringifyContent } from "@/lib/content/parser";
 import { validateFrontmatter, generateSlug } from "@/lib/content/validator";
 import { PostMetadata, PostFrontmatter } from "@/types/post";
 
@@ -11,13 +11,13 @@ export async function getAllPosts(): Promise<PostMetadata[]> {
   const posts: PostMetadata[] = [];
 
   for (const item of files) {
-    if (!item.path.endsWith(".md")) continue;
+    if (!item.path.endsWith(".json")) continue;
 
     const content = await getFile(item.path);
     if (!content) continue;
 
     try {
-      const { frontmatter } = parseMarkdown(content);
+      const { frontmatter } = parseContent(content, item.path);
       posts.push(frontmatter);
     } catch (error) {
       console.error(`Error parsing ${item.path}:`, error);
@@ -32,7 +32,7 @@ export async function getAllPosts(): Promise<PostMetadata[]> {
 
 export async function getPostBySlug(slug: string) {
   const files = await listFiles("posts");
-  const item = files.find((file) => file.path.includes(slug) && file.path.endsWith(".md"));
+  const item = files.find((file) => file.path.includes(slug) && file.path.endsWith(".json"));
 
   if (!item) {
     return null;
@@ -43,7 +43,7 @@ export async function getPostBySlug(slug: string) {
     return null;
   }
 
-  return parseMarkdown(content);
+  return parseContent(content, item.path);
 }
 
 export async function createPost(formData: {
@@ -51,7 +51,7 @@ export async function createPost(formData: {
   description: string;
   author: string;
   tags: string[];
-  content: string;
+  content: any;
   banner?: string;
   published?: boolean;
 }) {
@@ -73,14 +73,14 @@ export async function createPost(formData: {
     // Validate frontmatter
     validateFrontmatter(frontmatter);
 
-    // Create markdown file
-    const markdown = stringifyMarkdown(frontmatter, formData.content);
+    // Create content file (JSON by default now)
+    const fileContent = stringifyContent(frontmatter, formData.content);
     const date = now.split("T")[0];
-    const filename = `posts/${date}-${slug}.md`;
+    const filename = `posts/${date}-${slug}.json`;
 
     // Commit to GitHub
     await commitFiles(
-      [{ path: filename, content: markdown }],
+      [{ path: filename, content: fileContent }],
       `Add post: ${formData.title}`
     );
 
@@ -102,7 +102,7 @@ export async function updatePost(
     description: string;
     author: string;
     tags: string[];
-    content: string;
+    content: any;
     banner?: string;
     published?: boolean;
   }
@@ -110,7 +110,7 @@ export async function updatePost(
   try {
     // Find existing post
     const posts = await listFiles("posts");
-    const item = posts.find((file) => file.path.includes(slug) && file.path.endsWith(".md"));
+    const item = posts.find((file) => file.path.includes(slug) && file.path.endsWith(".json"));
 
     if (!item) {
       return { success: false, error: "Post not found" };
@@ -121,7 +121,7 @@ export async function updatePost(
       return { success: false, error: "Post content not found" };
     }
 
-    const { frontmatter: existingFrontmatter } = parseMarkdown(existingContent);
+    const { frontmatter: existingFrontmatter } = parseContent(existingContent, item.path);
 
     const updatedFrontmatter: PostFrontmatter = {
       ...existingFrontmatter,
@@ -137,12 +137,12 @@ export async function updatePost(
     // Validate frontmatter
     validateFrontmatter(updatedFrontmatter);
 
-    // Create updated markdown
-    const markdown = stringifyMarkdown(updatedFrontmatter, formData.content);
+    // Create updated content
+    const fileContent = stringifyContent(updatedFrontmatter, formData.content);
 
     // Commit to GitHub
     await commitFiles(
-      [{ path: item.path, content: markdown }],
+      [{ path: item.path, content: fileContent }],
       `Update post: ${formData.title}`
     );
 
@@ -160,7 +160,7 @@ export async function updatePost(
 export async function deletePost(slug: string) {
   try {
     const files = await listFiles("posts");
-    const item = files.find((file) => file.path.includes(slug) && file.path.endsWith(".md"));
+    const item = files.find((file) => file.path.includes(slug) && file.path.endsWith(".json"));
 
     if (!item) {
       return { success: false, error: "Post not found" };
@@ -181,7 +181,7 @@ export async function deletePost(slug: string) {
 export async function publishPost(slug: string) {
   try {
     const files = await listFiles("posts");
-    const item = files.find((file) => file.path.includes(slug) && file.path.endsWith(".md"));
+    const item = files.find((file) => file.path.includes(slug) && file.path.endsWith(".json"));
 
     if (!item) {
       return { success: false, error: "Post not found" };
@@ -192,14 +192,14 @@ export async function publishPost(slug: string) {
       return { success: false, error: "Post content not found" };
     }
 
-    const { frontmatter, content: markdownContent } = parseMarkdown(content);
+    const { frontmatter, content: postContent } = parseContent(content, item.path);
     frontmatter.published = true;
     frontmatter.updatedAt = new Date().toISOString();
 
-    const markdown = stringifyMarkdown(frontmatter, markdownContent);
+    const fileContent = stringifyContent(frontmatter, postContent);
 
     await commitFiles(
-      [{ path: item.path, content: markdown }],
+      [{ path: item.path, content: fileContent }],
       `Publish post: ${frontmatter.title}`
     );
 

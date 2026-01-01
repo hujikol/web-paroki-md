@@ -12,7 +12,7 @@ export interface PostFrontmatter {
 
 export interface Post {
   frontmatter: PostFrontmatter;
-  content: string;
+  content: any; // Delta object or Markdown string
   rawContent: string;
 }
 

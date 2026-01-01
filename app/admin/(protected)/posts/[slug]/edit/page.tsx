@@ -9,6 +9,8 @@ export default async function EditPostPage({ params }: { params: Promise<{ slug:
   const post = await getPostBySlug(slug);
   const session = await getServerSession(authOptions);
 
+
+
   if (!post) {
     notFound();
   }

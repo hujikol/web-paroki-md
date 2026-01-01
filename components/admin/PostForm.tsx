@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { createPost, updatePost, deletePost } from "@/actions/posts";
 import { getAllCategories, addCategory } from "@/actions/categories";
-import MarkdownEditor from "./MarkdownEditor";
+import QuillEditor from "./QuillEditor";
 import MediaPickerModal from "./MediaPickerModal";
 import DeleteConfirmModal from "./DeleteConfirmModal";
 import StatusPill from "./StatusPill";
@@ -25,7 +25,7 @@ export default function PostForm({ post, mode, user }: PostFormProps) {
     description: post?.frontmatter.description || "",
     author: post?.frontmatter.author || "Admin Paroki",
     tags: post?.frontmatter.tags || [],
-    content: post?.content || "",
+    content: post?.content || { ops: [] },
     banner: post?.frontmatter.banner || "",
     published: post?.frontmatter.published || false,
   });
@@ -68,7 +68,11 @@ export default function PostForm({ post, mode, user }: PostFormProps) {
   }, []);
 
   const handleSubmit = async (publishStatus: boolean) => {
-    if (!formData.title || !formData.content) {
+    const hasContent = formData.content && 
+                     (typeof formData.content === 'string' ? formData.content.trim() !== "" : 
+                      formData.content.ops && formData.content.ops.length > 0);
+
+    if (!formData.title || !hasContent) {
         setError("Title and Content are required.");
         return;
     }
@@ -227,10 +231,12 @@ export default function PostForm({ post, mode, user }: PostFormProps) {
             </div>
 
             <div>
-                <MarkdownEditor
-                    markdown={formData.content}
+            <div>
+                <QuillEditor
+                    value={formData.content}
                     onChange={(content) => setFormData({ ...formData, content })}
                 />
+            </div>
             </div>
         </div>
 

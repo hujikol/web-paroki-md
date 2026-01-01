@@ -1,34 +1,52 @@
-import { unified } from "unified";
-import remarkParse from "remark-parse";
-import remarkGfm from "remark-gfm";
-import remarkRehype from "remark-rehype";
-import rehypeRaw from "rehype-raw";
-import rehypeStringify from "rehype-stringify";
+import { QuillDeltaToHtmlConverter } from "quill-delta-to-html";
 
-export async function renderMarkdown(markdown: string): Promise<string> {
-  // Post-sanitize input but maintain safe tags
-  const sanitizedMarkdown = markdown
-    .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, "")
-    .replace(/javascript:/gi, "")
-    .replace(/on\w+\s*=/gi, "");
+export async function renderContent(content: any): Promise<string> {
+  if (!content) return "";
 
-  // Pre-process highlighting syntax: ==text== -> <mark>text</mark>
-  let processedMarkup = sanitizedMarkdown
-    .replace(/==([^=]+)==/g, '<mark>$1</mark>');
+  let deltaOps = null;
 
-  // Ensure HTML blocks have double newlines around them so Remark parses internal content
-  // We use extra newlines inside the div to guarantee the parser triggers on the content
-  processedMarkup = processedMarkup
-    .replace(/(<div align="[^"]+">)/g, '\n\n$1\n\n')
-    .replace(/(<\/div>)/g, '\n\n$1\n\n');
+  // Case 1: content is already an object
+  if (typeof content === 'object' && content !== null) {
+    if (Array.isArray(content.ops)) {
+      deltaOps = content.ops;
+    } else if (Array.isArray(content)) {
+      deltaOps = content;
+    }
+  }
 
-  const file = await unified()
-    .use(remarkParse)
-    .use(remarkGfm)
-    .use(remarkRehype, { allowDangerousHtml: true })
-    .use(rehypeRaw)
-    .use(rehypeStringify)
-    .process(processedMarkup);
+  // Case 2: content is a string (could be stringified JSON or plain text)
+  if (!deltaOps && typeof content === 'string') {
+    const trimmed = content.trim();
+    if (trimmed.startsWith('{') || trimmed.startsWith('[')) {
+      try {
+        const parsed = JSON.parse(content);
+        if (parsed.ops && Array.isArray(parsed.ops)) {
+          deltaOps = parsed.ops;
+        } else if (Array.isArray(parsed)) {
+          deltaOps = parsed;
+        }
+      } catch (e) {
+        // Not valid JSON, treat as plain string
+      }
+    }
+  }
 
-  return String(file);
+  // If we found Delta operations, convert them to HTML
+  if (deltaOps && Array.isArray(deltaOps)) {
+    try {
+      const converter = new QuillDeltaToHtmlConverter(deltaOps, {
+        inlineStyles: true,
+        multiLineBlockquote: true,
+        multiLineParagraph: true,
+        multiLineHeader: true,
+      });
+      return converter.convert();
+    } catch (error) {
+      console.error("Delta to HTML conversion failed:", error);
+      // Fallback to rawContent or empty
+    }
+  }
+
+  // Final fallback: return as string if it is one, otherwise empty
+  return typeof content === 'string' ? content : "";
 }
