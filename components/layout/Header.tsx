@@ -34,7 +34,7 @@ const navItems: NavItem[] = [
     {
         title: "Informasi",
         items: [
-            { title: "Warta Paroki", href: "/warta-paroki" },
+            { title: "Warta Paroki", href: "/artikel/warta-paroki" },
             { title: "Formulir Gereja", href: "/data/formulir" },
         ],
     },
