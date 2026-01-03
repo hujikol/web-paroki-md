@@ -2,7 +2,7 @@ import { Metadata } from "next";
 import Link from "next/link";
 import { getAllPosts } from "@/actions/posts";
 import PostCard from "@/components/blog/PostCard";
-import { BookOpen, Calendar, FileText, MessageSquare } from "lucide-react";
+import { BookOpen, Calendar, FileText, MessageSquare, Newspaper } from "lucide-react";
 import { PostCategory } from "@/types/post";
 
 const categoryInfo: Record<PostCategory, { title: string; description: string; icon: any }> = {
@@ -36,10 +36,28 @@ const categoryInfo: Record<PostCategory, { title: string; description: string; i
         description: "Warta dan pengumuman paroki",
         icon: FileText,
     },
+    "bacaan-harian": {
+        title: "Bacaan Harian",
+        description: "Bacaan liturgi harian",
+        icon: BookOpen,
+    },
+    "renungan": {
+        title: "Renungan",
+        description: "Renungan rohani",
+        icon: MessageSquare,
+    },
+    "umum": {
+        title: "Umum",
+        description: "Informasi umum",
+        icon: Newspaper,
+    },
 };
 
 export async function generateStaticParams() {
-    const categories: PostCategory[] = ["berita", "event", "gereja", "kegiatan", "wacana", "warta-paroki"];
+    const categories: PostCategory[] = [
+        "berita", "event", "gereja", "kegiatan", "wacana", "warta-paroki",
+        "bacaan-harian", "renungan", "umum"
+    ];
     return categories.map((category) => ({ category }));
 }
 

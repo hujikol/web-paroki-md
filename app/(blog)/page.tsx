@@ -1,11 +1,13 @@
 import Link from "next/link";
 import { Metadata } from "next";
 import { getAllPosts } from "@/actions/posts";
+import { getChurchStatistics, getScheduleEvents } from "@/lib/data";
 import PostCard from "@/components/blog/PostCard";
 import HeroCarousel from "@/components/home/HeroCarousel";
 import JadwalMisaPreview from "@/components/home/JadwalMisaPreview";
 import FormulirLinkSection from "@/components/home/FormulirLinkSection";
 import DonationSection from "@/components/home/DonationSection";
+import StatistikSection from "@/components/home/StatistikSection";
 
 export const metadata: Metadata = {
   title: "Beranda | Paroki Brayut Santo Yohanes Paulus II",
@@ -22,11 +24,25 @@ export const metadata: Metadata = {
 
 export default async function HomePage() {
   let allPosts: Awaited<ReturnType<typeof getAllPosts>> = [];
+  let churchStats = null;
+  let upcomingEvents: any[] = [];
 
   try {
     allPosts = await getAllPosts();
   } catch (error) {
     console.error('Failed to fetch posts:', error);
+  }
+
+  try {
+    churchStats = await getChurchStatistics();
+  } catch (error) {
+    console.error('Failed to fetch stats:', error);
+  }
+
+  try {
+    upcomingEvents = await getScheduleEvents();
+  } catch (error) {
+    console.error('Failed to fetch events:', error);
   }
 
   const featuredPosts = allPosts.filter((post) => post.published).slice(0, 3);
@@ -37,7 +53,7 @@ export default async function HomePage() {
       <HeroCarousel />
 
       {/* 2. Jadwal Misa - Main church schedule + CTAs */}
-      <JadwalMisaPreview />
+      <JadwalMisaPreview upcomingEvents={upcomingEvents} />
 
       {/* 3. Formulir Gereja - CTA Section */}
       <FormulirLinkSection />
@@ -72,7 +88,10 @@ export default async function HomePage() {
         )}
       </section>
 
-      {/* 5. Donation Section - New church building */}
+      {/* 5. Statistik Paroki */}
+      <StatistikSection stats={churchStats} />
+
+      {/* 6. Donation Section - New church building */}
       <DonationSection />
     </div>
   );

@@ -1,32 +1,12 @@
 import { Metadata } from "next";
 import { Store, Phone, MapPin, Info } from "lucide-react";
+import { getUMKM } from "@/lib/data";
+import { UMKM } from "@/types/data";
 
 export const metadata: Metadata = {
     title: "Data UMKM | Paroki Brayut",
     description: "Direktori UMKM umat Paroki Brayut Santo Yohanes Paulus II",
 };
-
-interface UMKMData {
-    pemilik: string;
-    namaUsaha: string;
-    alamat: string;
-    telp: string;
-    jenisUsaha: string;
-    keterangan?: string;
-}
-
-// Placeholder data - akan diganti dengan data dari JSON
-const umkmData: UMKMData[] = [
-    {
-        pemilik: "[Nama Pemilik]",
-        namaUsaha: "[Nama Usaha]",
-        alamat: "[Alamat Lengkap]",
-        telp: "[No. Telp/HP]",
-        jenisUsaha: "Kuliner",
-        keterangan: "[Keterangan tambahan]",
-    },
-    // More entries will be loaded from JSON
-];
 
 const jenisUsahaCategories = [
     "Kuliner",
@@ -37,7 +17,14 @@ const jenisUsahaCategories = [
     "Lainnya",
 ];
 
-export default function UMKMPage() {
+export default async function UMKMPage() {
+    let umkmList: UMKM[] = [];
+    try {
+        umkmList = await getUMKM();
+    } catch (error) {
+        console.error("Failed to load UMKM data", error);
+    }
+
     return (
         <div className="py-12">
             {/* Hero */}
@@ -71,9 +58,9 @@ export default function UMKMPage() {
 
                 {/* UMKM List */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {umkmData.map((umkm, index) => (
+                    {umkmList.map((umkm, index) => (
                         <div
-                            key={index}
+                            key={index} // or umkm.id if available
                             className="bg-white rounded-xl shadow-md border border-gray-200 p-6 hover:border-brand-blue hover:shadow-lg transition-all"
                         >
                             <div className="flex items-start gap-3 mb-4">
@@ -81,9 +68,9 @@ export default function UMKMPage() {
                                     <Store className="h-6 w-6 text-brand-blue" />
                                 </div>
                                 <div className="flex-1">
-                                    <h3 className="font-bold text-brand-dark text-lg mb-1">{umkm.namaUsaha}</h3>
+                                    <h3 className="font-bold text-brand-dark text-lg mb-1">{umkm.businessName}</h3>
                                     <span className="inline-block px-2 py-1 bg-brand-cream text-brand-blue text-xs rounded-full font-medium">
-                                        {umkm.jenisUsaha}
+                                        {umkm.type}
                                     </span>
                                 </div>
                             </div>
@@ -93,25 +80,25 @@ export default function UMKMPage() {
                                     <Info className="h-4 w-4 mt-0.5 flex-shrink-0 text-gray-400" />
                                     <div>
                                         <div className="font-medium">Pemilik:</div>
-                                        <div>{umkm.pemilik}</div>
+                                        <div>{umkm.owner}</div>
                                     </div>
                                 </div>
 
                                 <div className="flex items-start gap-2 text-gray-700">
                                     <MapPin className="h-4 w-4 mt-0.5 flex-shrink-0 text-gray-400" />
-                                    <div>{umkm.alamat}</div>
+                                    <div>{umkm.address}</div>
                                 </div>
 
                                 <div className="flex items-start gap-2 text-gray-700">
                                     <Phone className="h-4 w-4 mt-0.5 flex-shrink-0 text-gray-400" />
-                                    <a href={`tel:${umkm.telp}`} className="hover:text-brand-blue">
-                                        {umkm.telp}
+                                    <a href={`tel:${umkm.phone}`} className="hover:text-brand-blue">
+                                        {umkm.phone}
                                     </a>
                                 </div>
 
-                                {umkm.keterangan && (
+                                {umkm.description && (
                                     <div className="pt-2 border-t border-gray-100">
-                                        <p className="text-gray-600 italic">{umkm.keterangan}</p>
+                                        <p className="text-gray-600 italic line-clamp-3">{umkm.description}</p>
                                     </div>
                                 )}
                             </div>
@@ -120,7 +107,7 @@ export default function UMKMPage() {
                 </div>
 
                 {/* Empty State */}
-                {umkmData.length === 0 && (
+                {umkmList.length === 0 && (
                     <div className="text-center py-12 bg-white rounded-xl border border-dashed border-gray-300">
                         <Store className="h-16 w-16 text-gray-300 mx-auto mb-4" />
                         <p className="text-gray-500">Data UMKM sedang dalam proses pengumpulan.</p>
@@ -134,10 +121,6 @@ export default function UMKMPage() {
                         Apakah Anda memiliki usaha dan ingin didaftarkan di direktori UMKM Paroki?
                         Silakan hubungi sekretariat paroki untuk mendaftarkan usaha Anda.
                     </p>
-                    <div className="text-sm text-gray-700">
-                        <div>Telp: (0274) 860-9221</div>
-                        <div>Email: sekpar.brayut@kas.id</div>
-                    </div>
                 </div>
             </div>
         </div>

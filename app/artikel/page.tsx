@@ -11,6 +11,30 @@ export const metadata: Metadata = {
 };
 
 const categoryInfo: Record<PostCategory, { title: string; description: string; icon: any; color: string }> = {
+    "berita": {
+        title: "Berita",
+        description: "Berita dan informasi terkini paroki",
+        icon: FileText,
+        color: "bg-blue-100 text-blue-700 border-blue-200",
+    },
+    "event": {
+        title: "Event",
+        description: "Acara dan kegiatan mendatang",
+        icon: Calendar,
+        color: "bg-purple-100 text-purple-700 border-purple-200",
+    },
+    "gereja": {
+        title: "Gereja",
+        description: "Artikel seputar kehidupan gereja",
+        icon: BookOpen,
+        color: "bg-green-100 text-green-700 border-green-200",
+    },
+    "wacana": {
+        title: "Wacana",
+        description: "Diskusi dan wacana rohani",
+        icon: MessageSquare,
+        color: "bg-orange-100 text-orange-700 border-orange-200",
+    },
     "bacaan-harian": {
         title: "Bacaan Harian",
         description: "Bacaan liturgi harian",

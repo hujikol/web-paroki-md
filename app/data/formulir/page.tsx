@@ -142,17 +142,6 @@ export default function FormulirPage() {
                         Jika Anda memerlukan bantuan dalam mengisi formulir atau memiliki pertanyaan,
                         silakan hubungi sekretariat paroki.
                     </p>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                        <div>
-                            <div className="font-semibold text-brand-dark">Sekretariat Paroki</div>
-                            <div className="text-gray-700">Senin - Jumat: 08:00 - 15:00 WIB</div>
-                            <div className="text-gray-700">Sabtu: 08:00 - 14:00 WIB</div>
-                        </div>
-                        <div>
-                            <div className="text-gray-700">Telp: (0274) 860-9221</div>
-                            <div className="text-gray-700">Email: sekpar.brayut@kas.id</div>
-                        </div>
-                    </div>
                 </div>
 
                 {/* Note */}

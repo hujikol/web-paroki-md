@@ -138,31 +138,6 @@ export default function ProfilPage() {
                         </ul>
                     </div>
                 </section>
-
-                {/* Contact Info */}
-                <section className="bg-brand-cream rounded-xl p-8">
-                    <h3 className="text-2xl font-bold text-brand-dark mb-6">Kontak</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div>
-                            <h4 className="font-semibold text-brand-dark mb-2">Gereja Santo Yusuf Tambakrejo</h4>
-                            <p className="text-gray-700 text-sm">
-                                Rejodani 1, Sariharjo, Ngaglik<br />
-                                Kabupaten Sleman, DIY 55581<br />
-                                Telp: (0274) 860-9221<br />
-                                Email: sekpar.brayut@kas.id
-                            </p>
-                        </div>
-                        <div>
-                            <h4 className="font-semibold text-brand-dark mb-2">Sekretariat Paroki</h4>
-                            <p className="text-gray-700 text-sm">
-                                Jogopaten, Pandowoharjo<br />
-                                Kec. Sleman, Kabupaten Sleman<br />
-                                Daerah Istimewa Yogyakarta 55581<br />
-                                Jam Kerja: Senin-Jumat 08:00-15:00, Sabtu 08:00-14:00
-                            </p>
-                        </div>
-                    </div>
-                </section>
             </div>
         </div>
     );

@@ -1,32 +1,12 @@
 import { Metadata } from "next";
 import { Calendar, Clock, MapPin, Plus, Filter } from "lucide-react";
+import { getScheduleEvents } from "@/lib/data";
+import { ScheduleEvent } from "@/types/data";
 
 export const metadata: Metadata = {
     title: "Jadwal Kegiatan | Paroki Brayut",
     description: "Kalender dan jadwal kegiatan Paroki Brayut Santo Yohanes Paulus II",
 };
-
-// Placeholder data - will be loaded from JSON
-interface Activity {
-    id: number;
-    date: string;
-    title: string;
-    description: string;
-    location: string;
-    category: "liturgi" | "pastoral" | "sosial" | "lainnya";
-}
-
-const activities: Activity[] = [
-    {
-        id: 1,
-        date: "2026-01-15",
-        title: "[Nama Kegiatan]",
-        description: "[Deskripsi kegiatan]",
-        location: "Gereja Santo Yusuf Tambakrejo",
-        category: "liturgi",
-    },
-    // More activities will be loaded from JSON
-];
 
 const categories = [
     { name: "Semua", value: "all" },
@@ -36,14 +16,21 @@ const categories = [
     { name: "Lainnya", value: "lainnya" },
 ];
 
-const categoryColors = {
+const categoryColors: Record<string, string> = {
     liturgi: "bg-blue-100 text-blue-700 border-blue-200",
     pastoral: "bg-green-100 text-green-700 border-green-200",
     sosial: "bg-purple-100 text-purple-700 border-purple-200",
     lainnya: "bg-gray-100 text-gray-700 border-gray-200",
 };
 
-export default function JadwalKegiatanPage() {
+export default async function JadwalKegiatanPage() {
+    let activities: ScheduleEvent[] = [];
+    try {
+        activities = await getScheduleEvents();
+    } catch (error) {
+        console.error("Failed to load schedule events:", error);
+    }
+
     return (
         <div className="py-12">
             {/* Hero */}
@@ -67,8 +54,8 @@ export default function JadwalKegiatanPage() {
                             <button
                                 key={category.value}
                                 className={`px-4 py-2 rounded-full font-medium transition-colors ${category.value === "all"
-                                        ? "bg-brand-blue text-white"
-                                        : "bg-gray-100 text-gray-700 hover:bg-brand-cream hover:text-brand-blue"
+                                    ? "bg-brand-blue text-white"
+                                    : "bg-gray-100 text-gray-700 hover:bg-brand-cream hover:text-brand-blue"
                                     }`}
                             >
                                 {category.name}
@@ -126,7 +113,7 @@ export default function JadwalKegiatanPage() {
                                             <div className="flex items-start justify-between gap-4 mb-3">
                                                 <h3 className="text-xl font-bold text-brand-dark">{activity.title}</h3>
                                                 <span
-                                                    className={`px-3 py-1 rounded-full text-xs font-semibold border ${categoryColors[activity.category]
+                                                    className={`px-3 py-1 rounded-full text-xs font-semibold border ${categoryColors[activity.category.toLowerCase()] || categoryColors.lainnya
                                                         }`}
                                                 >
                                                     {activity.category.charAt(0).toUpperCase() + activity.category.slice(1)}
@@ -138,7 +125,10 @@ export default function JadwalKegiatanPage() {
                                             <div className="flex flex-wrap gap-4 text-sm text-gray-600">
                                                 <div className="flex items-center gap-2">
                                                     <Clock className="h-4 w-4 text-brand-blue" />
-                                                    <span>{new Date(activity.date).toLocaleDateString('id-ID', { weekday: 'long' })}</span>
+                                                    <span>
+                                                        {new Date(activity.date).toLocaleDateString('id-ID', { weekday: 'long' })}
+                                                        {activity.time ? `, ${activity.time}` : ''}
+                                                    </span>
                                                 </div>
                                                 <div className="flex items-center gap-2">
                                                     <MapPin className="h-4 w-4 text-brand-blue" />

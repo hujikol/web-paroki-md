@@ -1,4 +1,4 @@
-export type PostCategory = "berita" | "event" | "gereja" | "kegiatan" | "wacana" | "warta-paroki";
+export type PostCategory = "berita" | "event" | "gereja" | "kegiatan" | "wacana" | "warta-paroki" | "bacaan-harian" | "renungan" | "umum";
 
 export interface PostFrontmatter {
   title: string;

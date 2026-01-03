@@ -1,10 +1,15 @@
 import Link from "next/link";
 import { Calendar, Clock, MapPin, ArrowRight } from "lucide-react";
+import { ScheduleEvent } from "@/types/data";
 
 interface MassSchedule {
     day: string;
     time: string;
     location?: string;
+}
+
+interface JadwalMisaPreviewProps {
+    upcomingEvents?: ScheduleEvent[];
 }
 
 const mainChurchSchedule: MassSchedule[] = [
@@ -13,11 +18,11 @@ const mainChurchSchedule: MassSchedule[] = [
     { day: "Jumat Pertama", time: "18.30 WIB" },
 ];
 
-export default function JadwalMisaPreview() {
+export default function JadwalMisaPreview({ upcomingEvents = [] }: JadwalMisaPreviewProps) {
     return (
         <section className="bg-white py-16 border-y border-gray-100">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div className="flex flex-col md:flex-row gap-12 items-center">
+                <div className="flex flex-col md:flex-row gap-12 items-start">
                     {/* Left Side - Schedule */}
                     <div className="flex-1 w-full">
                         <div className="mb-6">
@@ -86,22 +91,48 @@ export default function JadwalMisaPreview() {
 
                         {/* Activity Calendar CTA */}
                         <div className="bg-brand-cream rounded-2xl p-8 border-2 border-brand-blue/20 hover:border-brand-blue/40 transition-all">
-                            <div className="flex items-start gap-3 mb-4">
+                            <div className="flex items-start gap-3 mb-6">
                                 <Calendar className="h-8 w-8 flex-shrink-0 text-brand-blue" />
                                 <div>
-                                    <h3 className="text-xl font-bold text-brand-dark mb-2">
-                                        Jadwal Kegiatan
+                                    <h3 className="text-xl font-bold text-brand-dark">
+                                        Agenda Kegiatan
                                     </h3>
-                                    <p className="text-gray-600 text-sm">
-                                        Ikuti berbagai kegiatan dan acara paroki
-                                    </p>
+                                    {upcomingEvents.length === 0 && (
+                                        <p className="text-gray-600 text-sm mt-1">
+                                            Ikuti berbagai kegiatan dan acara paroki
+                                        </p>
+                                    )}
                                 </div>
                             </div>
+
+                            {upcomingEvents.length > 0 ? (
+                                <div className="space-y-3 mb-6">
+                                    {upcomingEvents.slice(0, 2).map((event) => (
+                                        <div key={event.id} className="bg-white p-3 rounded-xl border border-brand-blue/10 shadow-sm hover:shadow-md transition-all group cursor-default">
+                                            <div className="flex flex-col gap-1">
+                                                <div className="text-xs font-bold text-brand-blue uppercase tracking-wide flex items-center justify-between">
+                                                    <span>{new Date(event.date).toLocaleDateString("id-ID", { day: 'numeric', month: 'short' })} • {event.time}</span>
+                                                </div>
+                                                <h4 className="font-bold text-gray-900 leading-tight group-hover:text-brand-blue transition-colors">
+                                                    {event.title}
+                                                </h4>
+                                                {event.location && (
+                                                    <div className="flex items-center gap-1 text-xs text-gray-500 mt-1">
+                                                        <MapPin className="h-3 w-3" />
+                                                        {event.location}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            ) : null}
+
                             <Link
                                 href="/data/jadwal"
-                                className="inline-flex items-center gap-2 mt-4 bg-brand-blue text-white px-6 py-3 rounded-full font-semibold hover:bg-brand-darkBlue transition-colors"
+                                className="inline-flex items-center gap-2 bg-brand-blue text-white px-6 py-3 rounded-full font-semibold hover:bg-brand-darkBlue transition-colors w-full justify-center md:w-auto"
                             >
-                                Lihat Kegiatan
+                                {upcomingEvents.length > 0 ? "Lihat Semua Kegiatan" : "Lihat Kegiatan"}
                                 <ArrowRight className="h-4 w-4" />
                             </Link>
                         </div>
@@ -111,3 +142,4 @@ export default function JadwalMisaPreview() {
         </section>
     );
 }
+

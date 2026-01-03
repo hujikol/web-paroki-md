@@ -89,13 +89,6 @@ export default function PastorTimPage() {
                             Informasi staff sekretariat akan segera ditambahkan. Untuk bantuan dan informasi,
                             silakan hubungi sekretariat paroki pada jam kerja.
                         </p>
-                        <div className="mt-6 p-4 bg-brand-cream rounded-lg">
-                            <div className="font-semibold text-brand-dark mb-2">Jam Kerja Sekretariat:</div>
-                            <div className="text-gray-700 text-sm">
-                                Senin s.d. Jumat: 08.00 - 15.00 WIB<br />
-                                Sabtu: 08.00 - 14.00 WIB
-                            </div>
-                        </div>
                     </div>
                 </section>
             </div>
