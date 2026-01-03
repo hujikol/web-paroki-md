@@ -1,5 +1,6 @@
 import { Metadata } from "next";
 import Image from "next/image";
+import Link from "next/link";
 import { MapPin, Clock, Phone, Mail, Calendar } from "lucide-react";
 
 export const metadata: Metadata = {
@@ -194,9 +195,9 @@ export default function Gereja1Page() {
                     <p className="text-gray-700">
                         <strong className="text-brand-dark">Informasi:</strong> Untuk informasi lebih detail mengenai
                         kegiatan dan jadwal khusus, silakan hubungi sekretariat paroki atau kunjungi halaman{" "}
-                        <a href="/jadwal-misa" className="text-brand-blue hover:underline font-semibold">
+                        <Link href="/jadwal-misa" className="text-brand-blue hover:underline font-semibold">
                             Jadwal Misa
-                        </a>.
+                        </Link>.
                     </p>
                 </div>
             </div>

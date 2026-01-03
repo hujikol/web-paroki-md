@@ -50,6 +50,12 @@ export async function getOctokit(): Promise<Octokit> {
       privateKey: privateKey.replace(/\\n/g, "\n"),
       installationId,
     },
+    log: {
+      debug: () => {},
+      info: () => {},
+      warn: () => {},
+      error: () => {}, // Suppress error logging including 404s
+    },
   });
 
   // Installation tokens expire after 1 hour

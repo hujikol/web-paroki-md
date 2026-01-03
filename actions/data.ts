@@ -42,7 +42,7 @@ export async function getUMKM(): Promise<UMKMData[]> {
   try {
     return JSON.parse(content);
   } catch (e) {
-    console.error("Error parsing UMKM data:", e);
+    // Return empty array for invalid JSON - error handling without console noise
     return [];
   }
 }
@@ -57,7 +57,6 @@ export async function saveUMKM(data: UMKMData[]) {
     revalidatePath("/admin/data/umkm");
     return { success: true };
   } catch (error: any) {
-    console.error("Error saving UMKM data:", error);
     return { success: false, error: error.message };
   }
 }
@@ -69,7 +68,7 @@ export async function getStatistik(): Promise<StatistikData | null> {
   try {
     return JSON.parse(content);
   } catch (e) {
-    console.error("Error parsing statistik data:", e);
+    // Return null for invalid JSON - error handling without console noise
     return null;
   }
 }
@@ -89,7 +88,6 @@ export async function saveStatistik(data: StatistikData) {
     revalidatePath("/admin/data/statistik");
     return { success: true };
   } catch (error: any) {
-    console.error("Error saving statistik data:", error);
     return { success: false, error: error.message };
   }
 }
@@ -101,7 +99,7 @@ export async function getJadwalKegiatan(): Promise<JadwalEvent[]> {
     try {
         return JSON.parse(content);
     } catch (e) {
-        console.error("Error parsing jadwal kegiatan:", e);
+        // Return empty array for invalid JSON - error handling without console noise
         return [];
     }
 }
@@ -116,7 +114,6 @@ export async function saveJadwalKegiatan(data: JadwalEvent[]) {
     revalidatePath("/admin/data/jadwal");
     return { success: true };
   } catch (error: any) {
-    console.error("Error saving jadwal kegiatan:", error);
     return { success: false, error: error.message };
   }
 }

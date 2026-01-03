@@ -18,9 +18,12 @@ export async function getFile(path: string): Promise<string | null> {
 
     return null;
   } catch (error: any) {
+    // 404 is expected when file doesn't exist yet - return null without logging
     if (error.status === 404) {
       return null;
     }
+    // Log other errors for debugging
+    console.error(`Error fetching file ${path}:`, error);
     throw error;
   }
 }

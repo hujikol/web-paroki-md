@@ -1,10 +1,12 @@
+import Link from "next/link";
+
 export default function AboutPage() {
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
       <h1 className="text-5xl font-bold mb-8 text-gray-900 dark:text-white">
         About Us
       </h1>
-      
+
       <div className="prose prose-lg dark:prose-invert max-w-none">
         <p className="text-xl text-gray-600 dark:text-gray-300 mb-6">
           Welcome to our blog, a modern publishing platform built with cutting-edge technology.
@@ -43,9 +45,9 @@ export default function AboutPage() {
         <h2>Get in Touch</h2>
         <p>
           Have questions or want to contribute? Feel free to{" "}
-          <a href="/contact" className="text-blue-600 hover:text-blue-800 underline">
+          <Link href="/contact" className="text-blue-600 hover:text-blue-800 underline">
             contact us
-          </a>
+          </Link>
           .
         </p>
       </div>
