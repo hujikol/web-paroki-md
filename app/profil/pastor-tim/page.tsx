@@ -1,4 +1,5 @@
 import { Metadata } from "next";
+import Image from "next/image";
 import { Users, Mail, Phone } from "lucide-react";
 import { getPastorTimKerja } from "@/actions/data";
 
@@ -37,7 +38,13 @@ export default async function PastorTimPage() {
                                     <div className="flex flex-col md:flex-row gap-8 items-start">
                                         <div className="flex-shrink-0">
                                             {p.imageUrl ? (
-                                                <img src={p.imageUrl} alt={p.name} className="w-48 h-48 rounded-lg object-cover" />
+                                                <Image
+                                                    src={p.imageUrl}
+                                                    alt={p.name}
+                                                    width={192}
+                                                    height={192}
+                                                    className="w-48 h-48 rounded-lg object-cover"
+                                                />
                                             ) : (
                                                 <div className="w-48 h-48 rounded-lg bg-gray-200 flex items-center justify-center">
                                                     <Users className="h-20 w-20 text-gray-400" />
@@ -50,7 +57,7 @@ export default async function PastorTimPage() {
 
                                             {p.quote && (
                                                 <blockquote className="border-l-4 border-brand-blue pl-4 italic text-gray-600 mb-4 bg-gray-50 py-2 pr-2 rounded-r">
-                                                    "{p.quote}"
+                                                    &quot;{p.quote}&quot;
                                                 </blockquote>
                                             )}
 
@@ -104,7 +111,7 @@ export default async function PastorTimPage() {
                                             <p className="text-xs text-gray-600 mb-2">{member.role}</p>
 
                                             {member.quote && (
-                                                <p className="text-xs italic text-gray-500 mb-2">"{member.quote}"</p>
+                                                <p className="text-xs italic text-gray-500 mb-2">&quot;{member.quote}&quot;</p>
                                             )}
 
                                             <div className="space-y-1 mt-2 pt-2 border-t border-gray-100">
