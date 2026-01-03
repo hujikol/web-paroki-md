@@ -34,16 +34,69 @@ export async function renderContent(content: any): Promise<string> {
   // If we found Delta operations, convert them to HTML
   if (deltaOps && Array.isArray(deltaOps)) {
     try {
-      const converter = new QuillDeltaToHtmlConverter(deltaOps, {
+      const options = {
         inlineStyles: true,
         multiLineBlockquote: true,
         multiLineParagraph: true,
         multiLineHeader: true,
+      };
+      
+      const converter = new QuillDeltaToHtmlConverter(deltaOps, options);
+      
+      // Custom renderer for videos
+      converter.renderCustomWith((op) => {
+        if (op.insert.type === 'video') {
+          const url = String(op.insert.value).trim();
+          let embedUrl = url;
+          if (url.includes('youtube.com/watch?v=')) {
+            embedUrl = url.replace('watch?v=', 'embed/');
+          } else if (url.includes('youtu.be/')) {
+            embedUrl = url.replace('youtu.be/', 'youtube.com/embed/');
+          }
+
+          return `
+            <div class="ql-video-wrapper my-8">
+              <iframe 
+                class="ql-video" 
+                src="${embedUrl}" 
+                frameborder="0" 
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+                allowfullscreen
+              ></iframe>
+            </div>`;
+        }
+        return '';
       });
-      return converter.convert();
+
+      const html = converter.convert();
+      
+      // Post-process to ensure all videos are wrapped in ql-video-wrapper
+      // This catches standard embeds that renderCustomWith might miss
+      return html.replace(
+        /<iframe[^>]*class="ql-video"[^>]*src="([^"]+)"[^>]*><\/iframe>/g,
+        (match, src) => {
+          // Ensure it's an embed URL
+          let embedUrl = src;
+          if (src.includes('youtube.com/watch?v=')) {
+            embedUrl = src.replace('watch?v=', 'embed/');
+          } else if (src.includes('youtu.be/')) {
+            embedUrl = src.replace('youtu.be/', 'youtube.com/embed/');
+          }
+          
+          return `
+            <div class="ql-video-wrapper my-8">
+              <iframe 
+                class="ql-video" 
+                src="${embedUrl}" 
+                frameborder="0" 
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+                allowfullscreen
+              ></iframe>
+            </div>`;
+        }
+      );
     } catch (error) {
       console.error("Delta to HTML conversion failed:", error);
-      // Fallback to rawContent or empty
     }
   }
 

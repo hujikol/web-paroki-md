@@ -25,7 +25,8 @@ export function middleware(request: NextRequest) {
     "style-src 'self' 'unsafe-inline'; " +
     "img-src 'self' data: https:; " +
     "font-src 'self' data:; " +
-    "connect-src 'self'; " +
+    "connect-src 'self' https:; " +
+    "frame-src 'self' https://www.youtube.com https://youtube.com https://player.vimeo.com; " +
     "frame-ancestors 'none';"
   );
 

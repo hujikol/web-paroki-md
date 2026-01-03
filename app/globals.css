@@ -90,3 +90,26 @@ body {
 .prose blockquote {
   @apply border-l-4 border-gray-300 pl-4 italic my-4;
 }
+
+.prose iframe,
+.prose .ql-video {
+  @apply rounded-xl w-full aspect-video shadow-lg block mx-auto my-8;
+  pointer-events: all !important;
+}
+
+.prose .ql-video-wrapper {
+  @apply relative w-full aspect-video my-8 mx-auto;
+}
+
+.prose .ql-video-wrapper iframe {
+  @apply absolute top-0 left-0 w-full h-full rounded-xl shadow-lg;
+}
+.prose pre {
+  @apply bg-gray-50 p-4 rounded-lg overflow-x-auto my-6 font-mono text-sm leading-relaxed border border-gray-100;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+.prose code {
+  @apply bg-gray-50 px-1.5 py-0.5 rounded font-mono text-sm border border-gray-100;
+}
