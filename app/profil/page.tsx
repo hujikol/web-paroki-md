@@ -1,13 +1,16 @@
 import { Metadata } from "next";
 import Image from "next/image";
 import { Church, MapPin, Users, Calendar } from "lucide-react";
+import { getChurchStatistics } from "@/lib/data";
 
 export const metadata: Metadata = {
     title: "Profil & Selayang Pandang | Paroki Brayut",
     description: "Selayang pandang Paroki Brayut Santo Yohanes Paulus II - Sejarah, visi, dan misi paroki",
 };
 
-export default function ProfilPage() {
+export default async function ProfilPage() {
+    const stats = await getChurchStatistics();
+
     return (
         <div className="py-12">
             {/* Hero Section */}
@@ -57,7 +60,9 @@ export default function ProfilPage() {
                                     <Church className="h-8 w-8 text-brand-blue" />
                                 </div>
                                 <div>
-                                    <div className="text-3xl font-bold text-brand-dark">5</div>
+                                    <div className="text-3xl font-bold text-brand-dark">
+                                        {stats?.churches.toLocaleString('id-ID') || "5"}
+                                    </div>
                                     <div className="text-sm text-gray-600">Gereja</div>
                                 </div>
                             </div>
@@ -69,7 +74,9 @@ export default function ProfilPage() {
                                     <MapPin className="h-8 w-8 text-brand-blue" />
                                 </div>
                                 <div>
-                                    <div className="text-3xl font-bold text-brand-dark">--</div>
+                                    <div className="text-3xl font-bold text-brand-dark">
+                                        {stats?.wards.toLocaleString('id-ID') || "--"}
+                                    </div>
                                     <div className="text-sm text-gray-600">Lingkungan</div>
                                 </div>
                             </div>
@@ -81,7 +88,9 @@ export default function ProfilPage() {
                                     <Users className="h-8 w-8 text-brand-blue" />
                                 </div>
                                 <div>
-                                    <div className="text-3xl font-bold text-brand-dark">--</div>
+                                    <div className="text-3xl font-bold text-brand-dark">
+                                        {stats?.families.toLocaleString('id-ID') || "--"}
+                                    </div>
                                     <div className="text-sm text-gray-600">Keluarga (KK)</div>
                                 </div>
                             </div>
@@ -93,14 +102,18 @@ export default function ProfilPage() {
                                     <Users className="h-8 w-8 text-brand-blue" />
                                 </div>
                                 <div>
-                                    <div className="text-3xl font-bold text-brand-dark">--</div>
+                                    <div className="text-3xl font-bold text-brand-dark">
+                                        {stats?.parishioners.toLocaleString('id-ID') || "--"}
+                                    </div>
                                     <div className="text-sm text-gray-600">Umat</div>
                                 </div>
                             </div>
                         </div>
                     </div>
                     <p className="text-sm text-gray-500 mt-4">
-                        * Data statistik akan diperbarui dari sistem manajemen paroki
+                        * Data statistik {stats?.lastUpdated
+                            ? `terakhir diperbarui: ${new Date(stats.lastUpdated).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}`
+                            : 'akan diperbarui dari sistem manajemen paroki'}
                     </p>
                 </section>
 

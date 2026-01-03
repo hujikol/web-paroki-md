@@ -117,3 +117,137 @@ export async function saveJadwalKegiatan(data: JadwalEvent[]) {
     return { success: false, error: error.message };
   }
 }
+
+// --- New CMS Features ---
+
+const WILAYAH_FILE = "wilayah-lingkungan.json";
+const PASTOR_FILE = "pastor-tim-kerja.json";
+const FORMULIR_FILE = "formulir.json";
+
+export interface Lingkungan {
+  id: string;
+  name: string;
+  chief: string; // Ketua Lingkungan
+  address: string;
+  email?: string;
+  phone?: string;
+}
+
+export interface Wilayah {
+  id: string;
+  name: string;
+  coordinator: string; // Koordinator/Ketua Wilayah
+  address: string;
+  email?: string;
+  phone?: string;
+  lingkungan: Lingkungan[];
+}
+
+export interface Pastor {
+  id: string;
+  name: string;
+  role: string; // e.g. "Pastor Kepala", "Pastor Rekan"
+  imageUrl?: string;
+  description?: string;
+  quote?: string;
+  email?: string;
+  phone?: string;
+}
+
+export interface TimKerja {
+  id: string;
+  name: string;
+  role: string;
+  division: string; // e.g. "Sekretariat", "Keuangan"
+  quote?: string;
+  email?: string;
+  phone?: string;
+}
+
+export interface PastorTimKerjaData {
+  pastor: Pastor[];
+  timKerja: TimKerja[];
+}
+
+export interface Formulir {
+  id: string;
+  title: string;
+  url: string; // Link to PDF or Google Form
+  description?: string;
+  category: "liturgi" | "pelayanan" | "lainnya";
+}
+
+// Wilayah & Lingkungan Actions
+export async function getWilayahLingkungan(): Promise<Wilayah[]> {
+  const content = await getFile(WILAYAH_FILE);
+  if (!content) return [];
+  try {
+    return JSON.parse(content);
+  } catch (e) {
+    return [];
+  }
+}
+
+export async function saveWilayahLingkungan(data: Wilayah[]) {
+  try {
+    await commitFiles(
+      [{ path: WILAYAH_FILE, content: JSON.stringify(data, null, 2) }],
+      `Update wilayah & lingkungan data`
+    );
+    revalidatePath("/profil/lingkungan");
+    revalidatePath("/admin/data/wilayah");
+    return { success: true };
+  } catch (error: any) {
+    return { success: false, error: error.message };
+  }
+}
+
+// Pastor & Tim Kerja Actions
+export async function getPastorTimKerja(): Promise<PastorTimKerjaData> {
+  const content = await getFile(PASTOR_FILE);
+  if (!content) return { pastor: [], timKerja: [] };
+  try {
+    return JSON.parse(content);
+  } catch (e) {
+    return { pastor: [], timKerja: [] };
+  }
+}
+
+export async function savePastorTimKerja(data: PastorTimKerjaData) {
+  try {
+    await commitFiles(
+      [{ path: PASTOR_FILE, content: JSON.stringify(data, null, 2) }],
+      `Update pastor & tim kerja data`
+    );
+    revalidatePath("/profil/pastor"); // Assumption, will verify
+    revalidatePath("/admin/data/pastor-tim");
+    return { success: true };
+  } catch (error: any) {
+    return { success: false, error: error.message };
+  }
+}
+
+// Formulir Actions
+export async function getFormulir(): Promise<Formulir[]> {
+  const content = await getFile(FORMULIR_FILE);
+  if (!content) return [];
+  try {
+    return JSON.parse(content);
+  } catch (e) {
+    return [];
+  }
+}
+
+export async function saveFormulir(data: Formulir[]) {
+  try {
+    await commitFiles(
+      [{ path: FORMULIR_FILE, content: JSON.stringify(data, null, 2) }],
+      `Update formulir data`
+    );
+    revalidatePath("/layanan/formulir"); // Assumption, will verify
+    revalidatePath("/admin/data/formulir");
+    return { success: true };
+  } catch (error: any) {
+    return { success: false, error: error.message };
+  }
+}
