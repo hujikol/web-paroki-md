@@ -38,7 +38,7 @@ export async function getUMKM(): Promise<UMKM[]> {
     const filePath = path.join(CONTENT_DIR, 'umkm.json');
     const fileContent = await fs.readFile(filePath, 'utf-8');
     return JSON.parse(fileContent);
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+
   } catch (error) {
     console.error('Error reading umkm.json:', error);
     return [];
