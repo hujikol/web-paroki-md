@@ -1,0 +1,47 @@
+{
+    "lastUpdated": "2026-01-03",
+    "jumlahGereja": 5,
+    "lingkungan": 45,
+    "kk": 2500,
+    "umat": 8750,
+    "sacraments": {
+        "baptis": 85,
+        "komuniPertama": 120,
+        "krisma": 95,
+        "pernikahan": 42,
+        "imamat": 0,
+        "pengurapanOrangSakit": 18
+    },
+    "byWilayah": [
+        {
+            "wilayah": 1,
+            "lingkungan": 9,
+            "kk": 500,
+            "umat": 1750
+        },
+        {
+            "wilayah": 2,
+            "lingkungan": 9,
+            "kk": 500,
+            "umat": 1750
+        },
+        {
+            "wilayah": 3,
+            "lingkungan": 9,
+            "kk": 500,
+            "umat": 1750
+        },
+        {
+            "wilayah": 4,
+            "lingkungan": 9,
+            "kk": 500,
+            "umat": 1750
+        },
+        {
+            "wilayah": 5,
+            "lingkungan": 9,
+            "kk": 500,
+            "umat": 1750
+        }
+    ]
+}

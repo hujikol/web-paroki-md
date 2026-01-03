@@ -13,8 +13,11 @@ export default function PostCard({ post }: PostCardProps) {
     day: "numeric",
   });
 
+  // Use the first tag as the category for the URL, convert to lowercase
+  const categorySlug = post.tags[0]?.toLowerCase().replace(/ /g, "-") || "artikel";
+
   return (
-    <Link href={`/posts/${post.slug}`} className="group block h-full">
+    <Link href={`/${categorySlug}/${post.slug}`} className="group block h-full">
       <article className="bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 border border-gray-100 h-full flex flex-col">
         {post.banner && (
           <div className="relative h-48 w-full overflow-hidden">
@@ -26,7 +29,7 @@ export default function PostCard({ post }: PostCardProps) {
             />
           </div>
         )}
-        
+
         <div className="p-6 flex flex-col flex-grow">
           <div className="flex flex-wrap gap-2 mb-3">
             {post.tags.slice(0, 3).map((tag) => (
@@ -38,15 +41,15 @@ export default function PostCard({ post }: PostCardProps) {
               </span>
             ))}
           </div>
-          
+
           <h2 className="text-xl font-bold mb-3 text-brand-dark group-hover:text-brand-blue transition-colors line-clamp-2">
             {post.title}
           </h2>
-          
+
           <p className="text-gray-600 text-sm mb-4 line-clamp-3 flex-grow">
             {post.description}
           </p>
-          
+
           <div className="flex items-center justify-between text-xs text-gray-500 mt-auto pt-4 border-t border-gray-100">
             <span className="font-medium text-brand-dark">{post.author}</span>
             <time dateTime={post.publishedAt}>{formattedDate}</time>

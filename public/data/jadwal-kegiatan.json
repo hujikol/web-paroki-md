@@ -1,0 +1,52 @@
+[
+    {
+        "id": 1,
+        "date": "2026-01-15",
+        "title": "Misa Syukur Tahun Baru",
+        "description": "Perayaan Misa Syukur Tahun Baru 2026 untuk seluruh umat paroki",
+        "location": "Gereja Santo Yusuf Tambakrejo",
+        "time": "18.00 WIB",
+        "category": "liturgi",
+        "coordinator": "Romo Pastor Paroki"
+    },
+    {
+        "id": 2,
+        "date": "2026-01-20",
+        "title": "Pertemuan Dewan Paroki",
+        "description": "Rapat koordinasi Dewan Paroki periode Januari 2026",
+        "location": "Sekretariat Paroki",
+        "time": "19.00 WIB",
+        "category": "pastoral",
+        "coordinator": "Ketua Dewan Paroki"
+    },
+    {
+        "id": 3,
+        "date": "2026-01-25",
+        "title": "Bakti Sosial untuk Masyarakat",
+        "description": "Kegiatan pembagian sembako untuk warga kurang mampu",
+        "location": "Aula Gereja",
+        "time": "08.00 WIB",
+        "category": "sosial",
+        "coordinator": "Bidang Diakonia"
+    },
+    {
+        "id": 4,
+        "date": "2026-02-01",
+        "title": "Adorasi Jumat Pertama",
+        "description": "Adorasi Sakramen Mahakudus Jumat Pertama bulan Februari",
+        "location": "Gereja Santo Yusuf Tambakrejo",
+        "time": "18.30 WIB",
+        "category": "liturgi",
+        "coordinator": "Bidang Liturgi"
+    },
+    {
+        "id": 5,
+        "date": "2026-02-15",
+        "title": "Gathering OMK",
+        "description": "Acara kumpul bersama Orang Muda Katolik se-paroki",
+        "location": "Aula Gereja",
+        "time": "14.00 WIB",
+        "category": "pastoral",
+        "coordinator": "Koordinator OMK"
+    }
+]

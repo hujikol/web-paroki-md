@@ -1,5 +1,6 @@
-import Header from "@/components/blog/Header";
-import Footer from "@/components/blog/Footer";
+import Header from "@/components/layout/Header";
+import Footer from "@/components/layout/Footer";
+import WhatsAppWidget from "@/components/shared/WhatsAppWidget";
 
 export default function BlogLayout({
   children,
@@ -9,11 +10,11 @@ export default function BlogLayout({
   return (
     <div className="min-h-screen bg-brand-cream flex flex-col font-rubik">
       <Header />
-      {/* Add padding top to account for fixed header (h-20 = 5rem) */}
-      <main className="flex-grow pt-20">
+      <main className="flex-grow">
         {children}
       </main>
       <Footer />
+      <WhatsAppWidget />
     </div>
   );
 }

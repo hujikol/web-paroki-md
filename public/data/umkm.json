@@ -1,0 +1,29 @@
+[
+    {
+        "id": 1,
+        "pemilik": "John Doe",
+        "namaUsaha": "Warung Makan Sederhana",
+        "alamat": "Jl. Raya Sleman No. 123, Sleman",
+        "telp": "0812-3456-7890",
+        "jenisUsaha": "Kuliner",
+        "keterangan": "Menyediakan makanan rumahan dengan harga terjangkau. Buka setiap hari 07.00-21.00"
+    },
+    {
+        "id": 2,
+        "pemilik": "Jane Smith",
+        "namaUsaha": "Konveksi Berkah",
+        "alamat": "Jogopaten, Pandowoharjo, Sleman",
+        "telp": "0821-9876-5432",
+        "jenisUsaha": "Fashion",
+        "keterangan": "Menerima pesanan seragam, kaos, dan jahit custom"
+    },
+    {
+        "id": 3,
+        "pemilik": "Ahmad Santoso",
+        "namaUsaha": "Toko Bangunan Jaya",
+        "alamat": "Rejodani, Sariharjo, Ngaglik",
+        "telp": "0813-2468-1357",
+        "jenisUsaha": "Jasa",
+        "keterangan": "Menjual material bangunan dan menerima jasa renovasi"
+    }
+]

@@ -8,6 +8,7 @@ const rubik = Rubik({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXTAUTH_URL!),
   title: "Paroki Brayut",
   description: "Website Resmi Paroki Brayut - Santo Yohanes Paulus II",
 };
