@@ -13,7 +13,10 @@
     "@octokit/rest": "^21.0.2",
     "@types/quill": "^2.0.14",
     "bcryptjs": "^3.0.3",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
     "jose": "^5.9.6",
+    "lucide-react": "^0.562.0",
     "next": "^15.1.0",
     "next-auth": "^4.24.10",
     "quill-delta-to-html": "^0.12.1",
@@ -21,6 +24,8 @@
     "react-dom": "^19.0.0",
     "react-quill-new": "^3.7.0",
     "sharp": "^0.33.5",
+    "tailwind-merge": "^3.4.0",
+    "tailwindcss-animate": "^1.0.7",
     "zod": "^3.24.1"
   },
   "devDependencies": {
