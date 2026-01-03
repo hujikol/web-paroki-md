@@ -97,6 +97,7 @@ export default function PostForm({ post, mode, user }: PostFormProps) {
 
             const data = {
                 ...formData,
+                category: formData.tags[0] || "warta-paroki", // Use first tag as category, default to "warta-paroki"
                 published: publishStatus,
             };
 
