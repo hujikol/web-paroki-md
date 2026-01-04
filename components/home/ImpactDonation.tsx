@@ -67,8 +67,8 @@ export default function ImpactDonation() {
         offset: ["start end", "end end"]
     });
 
-    const opacity = useTransform(scrollYProgress, [0.2, 0.5], [0.3, 1]);
-    const x = useTransform(scrollYProgress, [0.2, 0.5], [-20, 0]);
+    const opacity = useTransform(scrollYProgress, [0.05, 0.35], [0.3, 1]);
+    const x = useTransform(scrollYProgress, [0.05, 0.35], [-20, 0]);
     const color = useTransform(scrollYProgress, [0.3, 0.6], ["#6b7280", "#111827"]); // gray-500 to gray-900
 
     const handleCopy = (text: string) => {
@@ -87,7 +87,7 @@ export default function ImpactDonation() {
     return (
         <section ref={containerRef} className="relative text-gray-900">
             {/* Slide 1: Sticky Vision Section (Secondary Hero) */}
-            <div className="sticky top-0 h-screen flex items-center justify-center overflow-hidden">
+            <div className="relative min-h-screen lg:sticky lg:top-0 lg:h-screen flex items-center justify-center overflow-hidden">
                 {/* Background Image */}
                 <div className="absolute inset-0 z-0">
                     <Image
@@ -132,30 +132,35 @@ export default function ImpactDonation() {
 
                             {/* Progress Bar in Slide 1 */}
                             <motion.div
-                                className="bg-white/10 backdrop-blur-md p-8 rounded-2xl border border-white/20 shadow-lg mt-8"
+                                className="bg-white/10 backdrop-blur-md p-6 rounded-2xl border border-white/20 shadow-lg mt-8"
                                 initial={{ opacity: 0, scale: 0.95 }}
                                 whileInView={{ opacity: 1, scale: 1 }}
                                 viewport={{ once: true }}
                                 transition={{ delay: 0.4 }}
                             >
-                                <div className="flex justify-between items-end mb-4">
+                                <div className="flex flex-col md:flex-row justify-between md:items-end gap-6 md:gap-0 mb-6">
                                     <div>
-                                        <p className="text-sm font-bold text-gray-300 uppercase tracking-wider mb-1">Terkumpul</p>
+                                        <p className="text-sm font-bold font-serif text-gray-300 uppercase tracking-wider mb-2">Terkumpul</p>
                                         <Counter
                                             from={0}
                                             to={currentAmount}
                                             formatter={formatCurrency}
-                                            className="text-2xl md:text-3xl font-serif font-bold text-white"
+                                            className="text-3xl md:text-4xl font-bold text-white block"
                                         />
                                     </div>
-                                    <div className="text-right">
-                                        <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Total Kebutuhan</p>
-                                        <p className="text-base font-bold text-gray-300">{formatCurrency(targetAmount)}</p>
+                                    <div className="text-left md:text-right">
+                                        <p className="text-xs font-bold font-serif text-gray-400 uppercase tracking-wider mb-1">Total Kebutuhan</p>
+                                        <p className="text-xl md:text-base font-bold text-gray-300 opacity-80">{formatCurrency(targetAmount)}</p>
                                     </div>
                                 </div>
-                                <Progress value={progressPercentage} className="h-4 bg-gray-700" indicatorClassName="bg-gradient-to-r from-brand-gold to-brand-warm" />
-                                <div className="mt-2 text-right">
-                                    <span className="text-xs font-bold text-brand-gold">{progressPercentage.toFixed(1)}%</span>
+                                <div className="relative h-6 w-full bg-gray-700/50 rounded-full overflow-hidden">
+                                    <div
+                                        className="absolute top-0 left-0 h-full bg-gradient-to-r from-brand-gold to-brand-warm transition-all duration-1000 ease-out"
+                                        style={{ width: `${progressPercentage}%` }}
+                                    />
+                                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-xs font-bold text-white/90 z-10">
+                                        {progressPercentage.toFixed(1)}%
+                                    </span>
                                 </div>
                             </motion.div>
                         </div>
@@ -177,7 +182,7 @@ export default function ImpactDonation() {
             </div>
 
             {/* Slide 2: Donation Channels (Scrolls Over) */}
-            <div className="relative z-20 bg-white min-h-screen flex items-center py-24 md:py-32 shadow-[0_-50px_100px_rgba(0,0,0,0.1)] rounded-t-[3rem] mt-[-2rem]">
+            <div className="relative z-20 bg-white min-h-screen flex items-center py-24 md:py-32 shadow-[0_-50px_100px_rgba(0,0,0,0.1)] rounded-t-[3rem] -mt-12 lg:-mt-8">
                 <div className="container mx-auto px-4">
                     <div className="max-w-7xl mx-auto">
                         <div className="text-center mb-16 relative">

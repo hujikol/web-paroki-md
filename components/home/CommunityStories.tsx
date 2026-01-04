@@ -160,7 +160,7 @@ export default function CommunityStories({ posts }: CommunityStoriesProps) {
                                 {/* Content */}
                                 <div className="flex-1 flex flex-col px-2">
                                     <h3 className="font-serif text-2xl md:text-3xl text-brand-dark leading-tight mb-3 group-hover:text-brand-blue transition-colors text-balance">
-                                        {post.title}
+                                        {post.title.length > 56 ? post.title.slice(0, 56) + "..." : post.title}
                                     </h3>
 
                                     <div className="mt-auto flex items-center justify-between border-t border-brand-dark/10 pt-4">

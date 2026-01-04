@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { MapPin, Phone, Mail, Clock, ArrowRight, Facebook, Instagram, Youtube } from "lucide-react";
+import { MapPin, Phone, Mail, Clock, ArrowRight, Facebook, Instagram, Youtube, House, Church } from "lucide-react";
 import { motion } from "framer-motion";
 
 import Image from "next/image";
@@ -105,7 +105,7 @@ export default function Footer() {
 
                     {/* Quick Links */}
                     <div>
-                        <h4 className="font-bold text-lg mb-6 uppercase tracking-wider text-gray-500">Jelajahi</h4>
+                        <h4 className="font-bold text-lg mb-6 uppercase tracking-wider text-white">Jelajahi</h4>
                         <ul className="space-y-4">
                             {[
                                 { label: 'Profil Gereja', href: '/profil' },
@@ -126,21 +126,22 @@ export default function Footer() {
                     {/* Locations */}
                     <div className="lg:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-8">
                         <div>
-                            <h4 className="font-bold text-lg mb-6 uppercase tracking-wider text-gray-500">Gereja Utama</h4>
+                            <h4 className="flex gap-2 items-center font-bold text-lg mb-4 uppercase tracking-wider text-white">
+                                <Church className="h-5 w-5 text-brand-gold mb-2" />Gereja Utama
+                            </h4>
                             <address className="not-italic text-gray-300 space-y-2 leading-relaxed">
-                                <MapPin className="h-5 w-5 text-brand-gold mb-2" />
                                 <p>Gereja Santo Yusuf Tambakrejo</p>
                                 <p>Rejodani 1, Sariharjo, Ngaglik</p>
                                 <p>Kabupaten Sleman, DIY 55581</p>
                             </address>
                         </div>
                         <div>
-                            <h4 className="font-bold text-lg mb-6 uppercase tracking-wider text-gray-500">Sekretariat</h4>
+                            <h4 className="flex gap-2 items-center font-bold text-lg mb-4 uppercase tracking-wider text-white">
+                                <House className="h-5 w-5 text-brand-gold mb-2" />Sekretariat</h4>
                             <address className="not-italic text-gray-300 space-y-2 leading-relaxed">
-                                <Clock className="h-5 w-5 text-brand-gold mb-2" />
                                 <p>Jogopaten, Pandowoharjo</p>
-                                <p className="text-sm text-gray-500 mt-2">Senin - Jumat: 08.00 - 15.00</p>
-                                <p className="text-sm text-gray-500">Sabtu: 08.00 - 14.00</p>
+                                <p className="text-sm text-gray-300 mt-2">Senin - Jumat: 08.00 - 15.00</p>
+                                <p className="text-sm text-gray-300">Sabtu: 08.00 - 14.00</p>
                             </address>
                         </div>
                     </div>
@@ -148,14 +149,14 @@ export default function Footer() {
 
                 {/* Bottom Bar - Big Text */}
                 <div className="border-t border-white/10 pt-12">
-                    <div className="flex flex-col md:flex-row justify-between items-center gap-6 mb-12">
+                    <div className="flex flex-col md:flex-row justify-between items-center gap-6">
                         <p className="text-gray-500 text-sm">
                             &copy; {new Date().getFullYear()} Paroki Brayut. All rights reserved.
                         </p>
                     </div>
 
                     <div className="flex justify-center relative w-full overflow-x-visible -bottom-20">
-                        <h1 className="text-[9vw] font-bold font-serif text-white/5 select-none pointer-events-none tracking-widest uppercase leading-none whitespace-nowrap">
+                        <h1 className="text-[10vw] font-bold font-serif text-white/5 select-none pointer-events-none tracking-widest uppercase leading-none whitespace-nowrap">
                             PAROKI BRAYUT
                         </h1>
                     </div>

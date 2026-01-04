@@ -49,7 +49,7 @@ export default function WorshipInvitation({ upcomingEvents = [] }: WorshipInvita
                             whileInView={{ opacity: 1, y: 0 }}
                             viewport={{ once: true }}
                             transition={{ duration: 0.5, delay: idx * 0.1 + 0.2 }}
-                            className="bg-gray-50 p-10 rounded-3xl text-center group transition-all duration-300"
+                            className="bg-brand-warm p-10 rounded-3xl text-center group transition-all duration-300"
                         >
                             <div className="w-16 h-16 mx-auto bg-white rounded-full flex items-center justify-center mb-6 shadow-sm transition-colors">
                                 <Clock className="h-8 w-8 text-brand-gold" />
