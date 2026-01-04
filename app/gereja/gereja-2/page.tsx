@@ -13,7 +13,7 @@ export default function Gereja2Page() {
             {/* Hero Section */}
             <section className="relative h-[400px] bg-brand-dark">
                 <Image
-                    src="https://images.unsplash.com/photo-1503982046-1ac59829895f?q=80&w=2070&auto=format&fit=crop"
+                    src="https://images.unsplash.com/photo-1438032005730-c779502df39b?q=80&w=2070&auto=format&fit=crop"
                     alt="Gereja 2"
                     fill
                     className="object-cover opacity-40"

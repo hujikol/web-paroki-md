@@ -8,6 +8,7 @@ import StatusPill from "./StatusPill";
 import Tooltip from "./Tooltip";
 import { useRouter } from "next/navigation";
 import { useLoading } from "./LoadingProvider";
+import { Eye, Pencil, Trash2 } from "lucide-react";
 
 interface PostTableProps {
   posts: PostMetadata[];
@@ -20,16 +21,30 @@ export default function PostTable({ posts, hidePagination = false }: PostTablePr
   const [isDeleting, setIsDeleting] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState<number | "all">(5);
+  const [categoryFilter, setCategoryFilter] = useState("all");
 
-  const effectiveItemsPerPage = itemsPerPage === "all" ? posts.length : itemsPerPage;
-  const totalPages = Math.ceil(posts.length / effectiveItemsPerPage);
-  
-  const paginatedPosts = itemsPerPage === "all" 
-    ? posts 
-    : posts.slice((currentPage - 1) * effectiveItemsPerPage, currentPage * effectiveItemsPerPage);
+  // Get unique categories for filter dropdown
+  const categories = Array.from(new Set(posts.flatMap(p => [p.category, ...(p.tags || [])]))).filter(Boolean).sort();
+
+  const filteredPosts = posts.filter(post => {
+    if (categoryFilter === "all") return true;
+    return post.tags?.includes(categoryFilter) || post.category === categoryFilter;
+  });
+
+  const effectiveItemsPerPage = itemsPerPage === "all" ? filteredPosts.length : itemsPerPage;
+  const totalPages = Math.ceil(filteredPosts.length / effectiveItemsPerPage);
+
+  const paginatedPosts = itemsPerPage === "all"
+    ? filteredPosts
+    : filteredPosts.slice((currentPage - 1) * effectiveItemsPerPage, currentPage * effectiveItemsPerPage);
 
   const handleItemsPerPageChange = (val: string) => {
     setItemsPerPage(val === "all" ? "all" : parseInt(val));
+    setCurrentPage(1);
+  };
+
+  const handleCategoryFilterChange = (val: string) => {
+    setCategoryFilter(val);
     setCurrentPage(1);
   };
 
@@ -38,7 +53,7 @@ export default function PostTable({ posts, hidePagination = false }: PostTablePr
       startTransition(async () => {
         setIsDeleting(slug);
         const result = await deletePost(slug);
-        
+
         if (result.success) {
           router.refresh(); // Refresh server component to reflect changes
         } else {
@@ -51,6 +66,21 @@ export default function PostTable({ posts, hidePagination = false }: PostTablePr
 
   return (
     <div className="bg-white rounded-2xl shadow-sm border border-gray-100 min-h-[300px]">
+      <div className="p-4 border-b border-gray-100 flex gap-4 items-center bg-gray-50/50 rounded-t-2xl">
+        <div className="flex items-center gap-2">
+          <span className="text-xs font-bold uppercase text-gray-400">Filter Category:</span>
+          <select
+            value={categoryFilter}
+            onChange={(e) => handleCategoryFilterChange(e.target.value)}
+            className="bg-white border border-gray-200 rounded-lg px-3 py-1.5 text-sm outline-none focus:ring-2 focus:ring-brand-blue/20"
+          >
+            <option value="all">All Categories</option>
+            {categories.map(cat => (
+              <option key={cat} value={cat}>{cat}</option>
+            ))}
+          </select>
+        </div>
+      </div>
       <div className="overflow-visible">
         <table className="min-w-full divide-y divide-gray-100">
           <thead className="bg-gray-50/50">
@@ -64,7 +94,7 @@ export default function PostTable({ posts, hidePagination = false }: PostTablePr
               <th scope="col" className="px-8 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-widest">
                 Author
               </th>
-               <th scope="col" className="px-8 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-widest">
+              <th scope="col" className="px-8 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-widest">
                 Category
               </th>
               <th scope="col" className="px-8 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-widest">
@@ -76,90 +106,82 @@ export default function PostTable({ posts, hidePagination = false }: PostTablePr
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-100">
-            {paginatedPosts.map((post, index) => (
-              <tr key={post.slug} className="hover:bg-brand-cream/20 transition-colors group/row tracking-tight h-16">
-                <td className="px-8 py-4 whitespace-nowrap">
-                  <div className="text-sm font-bold text-gray-900 group-hover/row:text-brand-blue transition-colors max-w-md truncate" title={post.title}>
-                     <Link href={`/admin/posts/${post.slug}/edit`}>
+            {paginatedPosts.map((post, index) => {
+              // Determine display categories from tags (assuming tags are the categories now)
+              const displayCategories = post.tags && post.tags.length > 0 ? post.tags : (post.category ? [post.category] : []);
+              const firstCategory = displayCategories[0] || "Uncategorized";
+              const otherCategoriesCount = displayCategories.length > 1 ? displayCategories.length - 1 : 0;
+              const otherCategoriesTitle = displayCategories.slice(1).join(", ");
+
+              return (
+                <tr key={post.slug} className="hover:bg-brand-cream/20 transition-colors group/row tracking-tight h-16">
+                  <td className="px-8 py-4 whitespace-nowrap">
+                    <div className="text-sm font-bold text-gray-900 group-hover/row:text-brand-blue transition-colors max-w-md truncate" title={post.title}>
+                      <Link href={`/admin/posts/${post.slug}/edit`}>
                         {post.title.length > 30 ? `${post.title.substring(0, 30)}...` : post.title}
-                     </Link>
-                  </div>
-                </td>
-                <td className="px-8 py-4 whitespace-nowrap">
-                  <StatusPill published={post.published} />
-                </td>
-                <td className="px-8 py-4 whitespace-nowrap text-sm text-gray-600 font-medium">
-                  {post.author}
-                </td>
-                <td className="px-8 py-4 whitespace-nowrap">
-                  {post.tags && post.tags.length > 0 ? (
-                    <div className="flex items-center gap-1.5">
-                      <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-bold bg-gray-100 text-gray-600 ring-1 ring-inset ring-gray-200">
-                        {post.tags[0]}
-                      </span>
-                      {post.tags.length > 1 && (
-                        <Tooltip 
-                            position={index === 0 ? "bottom" : "top"}
-                            content={
-                                <div className="flex flex-col gap-1.5 py-1">
-                                    <p className="border-b border-white/10 pb-1 mb-1 uppercase tracking-widest text-[8px] text-gray-400">All Categories</p>
-                                    {post.tags.map((tag, idx) => (
-                                        <div key={idx} className="flex items-center gap-2">
-                                            <span className="w-1 h-1 rounded-full bg-brand-blue shrink-0" />
-                                            {tag}
-                                        </div>
-                                    ))}
-                                </div>
-                            }
-                        >
-                            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-bold bg-brand-cream text-brand-blue ring-1 ring-inset ring-brand-blue/10 cursor-help">
-                                +{post.tags.length - 1}
-                            </span>
-                        </Tooltip>
-                      )}
-                    </div>
-                  ) : (
-                    <span className="text-gray-400 font-medium text-xs">None</span>
-                  )}
-                </td>
-                <td className="px-8 py-4 whitespace-nowrap text-sm text-gray-500 tabular-nums">
-                  {new Date(post.publishedAt).toLocaleDateString("id-ID", { day: 'numeric', month: 'short', year: 'numeric' })}
-                </td>
-                <td className="px-8 py-4 whitespace-nowrap text-right text-sm font-bold">
-                  <div className="flex justify-end gap-3">
-                    <Tooltip content="Edit Post content">
-                      <Link
-                        href={`/admin/posts/${post.slug}/edit`}
-                        className="inline-flex items-center gap-1.5 text-brand-blue hover:text-brand-darkBlue p-1.5 hover:bg-brand-blue/10 rounded-lg transition-all"
-                      >
-                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                        </svg>
-                        Edit
                       </Link>
-                    </Tooltip>
-                    <Tooltip content="Permanently delete post" position="left">
-                      <button
-                        onClick={() => handleDelete(post.slug, post.title)}
-                        disabled={isDeleting === post.slug}
-                        className="inline-flex items-center gap-1.5 text-red-500 hover:text-red-700 p-1.5 hover:bg-red-50 rounded-lg transition-all disabled:opacity-50"
-                      >
-                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                        </svg>
-                        {isDeleting === post.slug ? "Wait..." : "Delete"}
-                      </button>
-                    </Tooltip>
-                  </div>
-                </td>
-              </tr>
-            ))}
+                    </div>
+                  </td>
+                  <td className="px-8 py-4 whitespace-nowrap">
+                    <StatusPill published={post.published} />
+                  </td>
+                  <td className="px-8 py-4 whitespace-nowrap text-sm text-gray-600 font-medium">
+                    {post.author}
+                  </td>
+                  <td className="px-8 py-4 whitespace-nowrap">
+                    <span className="inline-flex items-center gap-1">
+                      <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-bold bg-gray-100 text-gray-600 ring-1 ring-inset ring-gray-200 capitalize">
+                        {firstCategory.replace("-", " ")}
+                      </span>
+                      {otherCategoriesCount > 0 && (
+                        <span className="text-xs text-gray-400 font-medium cursor-help" title={otherCategoriesTitle}>
+                          +{otherCategoriesCount}
+                        </span>
+                      )}
+                    </span>
+                  </td>
+                  <td className="px-8 py-4 whitespace-nowrap text-sm text-gray-500 tabular-nums">
+                    {new Date(post.publishedAt).toLocaleDateString("id-ID", { day: 'numeric', month: 'short', year: 'numeric' })}
+                  </td>
+                  <td className="px-8 py-4 whitespace-nowrap text-right text-sm font-bold">
+                    <div className="flex justify-end gap-2">
+                      <Tooltip content="Preview Post">
+                        <Link
+                          href={`/artikel/${firstCategory.toLowerCase().replace(/\s+/g, '-')}/${post.slug}`}
+                          target="_blank"
+                          className="p-1 text-gray-400 hover:text-brand-blue transition-colors"
+                        >
+                          <Eye className="h-4 w-4" />
+                        </Link>
+                      </Tooltip>
+                      <Tooltip content="Edit Post">
+                        <Link
+                          href={`/admin/posts/${post.slug}/edit`}
+                          className="p-1 text-gray-400 hover:text-brand-blue transition-colors"
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </Link>
+                      </Tooltip>
+                      <Tooltip content="Delete Post" position="left">
+                        <button
+                          onClick={() => handleDelete(post.slug, post.title)}
+                          disabled={isDeleting === post.slug}
+                          className="p-1 text-gray-400 hover:text-red-600 transition-colors disabled:opacity-50"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      </Tooltip>
+                    </div>
+                  </td>
+                </tr>
+              )
+            })}
           </tbody>
         </table>
         {posts.length === 0 && (
-            <div className="text-center py-12 text-gray-500 font-medium">
-                No posts found. Create one to get started!
-            </div>
+          <div className="text-center py-12 text-gray-500 font-medium">
+            No posts found. Create one to get started!
+          </div>
         )}
       </div>
 
@@ -170,8 +192,8 @@ export default function PostTable({ posts, hidePagination = false }: PostTablePr
             <div className="flex items-center gap-3">
               <label className="text-xs font-bold uppercase tracking-widest text-gray-400">Show</label>
               <div className="relative group">
-                <select 
-                  value={itemsPerPage} 
+                <select
+                  value={itemsPerPage}
                   onChange={(e) => handleItemsPerPageChange(e.target.value)}
                   className="appearance-none bg-white border border-gray-200 rounded-lg pl-3 pr-9 py-1.5 outline-none focus:ring-2 focus:ring-brand-blue/20 focus:border-brand-blue transition-all text-sm font-bold text-gray-900 cursor-pointer shadow-sm"
                 >
@@ -205,17 +227,16 @@ export default function PostTable({ posts, hidePagination = false }: PostTablePr
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                 </svg>
               </button>
-              
+
               <div className="flex items-center">
                 {[...Array(totalPages)].map((_, i) => (
                   <button
                     key={i + 1}
                     onClick={() => setCurrentPage(i + 1)}
-                    className={`inline-flex items-center px-4 py-2 text-sm font-bold transition-all border-r border-gray-200 last:border-r-0 ${
-                      currentPage === i + 1 
-                        ? "bg-brand-blue text-white" 
-                        : "bg-white text-gray-600 hover:bg-brand-cream/30 hover:text-brand-blue"
-                    }`}
+                    className={`inline-flex items-center px-4 py-2 text-sm font-bold transition-all border-r border-gray-200 last:border-r-0 ${currentPage === i + 1
+                      ? "bg-brand-blue text-white"
+                      : "bg-white text-gray-600 hover:bg-brand-cream/30 hover:text-brand-blue"
+                      }`}
                   >
                     {i + 1}
                   </button>

@@ -6,7 +6,7 @@ import { Plus, Pencil, Trash2, Search, Loader2, Calendar as CalendarIcon, Clock,
 import { useRouter } from "next/navigation";
 import { v4 as uuidv4 } from "uuid";
 
-export default function JadwalClient({ initialData }: { initialData: JadwalEvent[] }) {
+export default function JadwalClient({ initialData, categories }: { initialData: JadwalEvent[], categories: string[] }) {
     const [data, setData] = useState<JadwalEvent[]>(initialData);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [searchTerm, setSearchTerm] = useState("");
@@ -140,11 +140,7 @@ export default function JadwalClient({ initialData }: { initialData: JadwalEvent
                                         </div>
                                     </td>
                                     <td className="px-6 py-4">
-                                        <span className={`px-2 py-1 rounded text-xs font-medium border ${item.category === 'liturgi' ? 'bg-purple-50 text-purple-700 border-purple-100' :
-                                                item.category === 'kegiatan' ? 'bg-blue-50 text-blue-700 border-blue-100' :
-                                                    item.category === 'rapat' ? 'bg-orange-50 text-orange-700 border-orange-100' :
-                                                        'bg-gray-50 text-gray-700 border-gray-100'
-                                            }`}>
+                                        <span className={`px-2 py-1 rounded text-xs font-medium border bg-gray-50 text-gray-700 border-gray-100`}>
                                             {item.category.charAt(0).toUpperCase() + item.category.slice(1)}
                                         </span>
                                     </td>
@@ -243,13 +239,14 @@ export default function JadwalClient({ initialData }: { initialData: JadwalEvent
                                     <label className="block text-sm font-medium text-gray-700 mb-1">Kategori</label>
                                     <select
                                         name="category"
-                                        defaultValue={editingItem?.category || "kegiatan"}
+                                        defaultValue={editingItem?.category || categories[0] || ""}
                                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-blue focus:border-brand-blue outline-none text-sm"
                                     >
-                                        <option value="liturgi">Liturgi</option>
-                                        <option value="kegiatan">Kegiatan</option>
-                                        <option value="rapat">Rapat</option>
-                                        <option value="lainnya">Lainnya</option>
+                                        {categories.map((cat) => (
+                                            <option key={cat} value={cat}>
+                                                {cat}
+                                            </option>
+                                        ))}
                                     </select>
                                 </div>
                             </div>

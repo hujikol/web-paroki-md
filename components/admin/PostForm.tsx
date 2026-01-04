@@ -8,16 +8,19 @@ import QuillEditor from "./QuillEditor";
 import MediaPickerModal from "./MediaPickerModal";
 import DeleteConfirmModal from "./DeleteConfirmModal";
 import StatusPill from "./StatusPill";
-import { Post } from "@/types/post";
+import { Post, PostCategory } from "@/types/post";
 import { useLoading } from "./LoadingProvider";
+import { POST_CATEGORIES } from "@/lib/constants";
+import { Eye } from "lucide-react";
 
 interface PostFormProps {
     post?: Post;
     mode: "create" | "edit";
     user?: { name?: string | null } | null;
+    categories: string[];
 }
 
-export default function PostForm({ post, mode, user }: PostFormProps) {
+export default function PostForm({ post, mode, user, categories: masterCategories }: PostFormProps) {
     const router = useRouter();
     const { startTransition } = useLoading();
     const [formData, setFormData] = useState({
@@ -25,6 +28,7 @@ export default function PostForm({ post, mode, user }: PostFormProps) {
         description: post?.frontmatter.description || "",
         author: post?.frontmatter.author || "Admin Paroki",
         tags: post?.frontmatter.tags || [],
+        category: post?.frontmatter.category || (masterCategories[0] || "umum") as PostCategory,
         content: post?.content || { ops: [] },
         banner: post?.frontmatter.banner || "",
         published: post?.frontmatter.published || false,
@@ -37,9 +41,15 @@ export default function PostForm({ post, mode, user }: PostFormProps) {
 
     const [tagInput, setTagInput] = useState("");
 
-    const [categories, setCategories] = useState<string[]>([]);
+    // removed local categories state fetching since passed via props
+    const [categories, setCategories] = useState<string[]>([]); // Keep for tags autocomplete if needed, but maybe better to avoid confusion? 
+    // Wait, getAllCategories() fetches tags essentially in the old system. 
+    // Let's rename the prop to masterCategories to avoid conflict.
+
     const [loadingCategories, setLoadingCategories] = useState(false);
     const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
+    // ...
+
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [showBannerPicker, setShowBannerPicker] = useState(false);
@@ -97,7 +107,8 @@ export default function PostForm({ post, mode, user }: PostFormProps) {
 
             const data = {
                 ...formData,
-                category: formData.tags[0] || "warta-paroki", // Use first tag as category, default to "warta-paroki"
+                // Use the first tag as the category, defaulting to "umum" if no tags
+                category: formData.category,
                 published: publishStatus,
             };
 
@@ -155,7 +166,7 @@ export default function PostForm({ post, mode, user }: PostFormProps) {
     return (
         <form className="min-h-screen relative pb-20">
             {/* Sticky Header with Actions */}
-            <div className="sticky top-[65px] z-40 bg-white py-4 pt-8 mb-8 flex justify-between items-center">
+            <div className="sticky top-0 z-40 bg-white py-4 pt-8 mb-8 flex justify-between items-center">
                 <div className="flex items-center gap-3">
                     <StatusPill published={formData.published} />
                     <h2 className="text-xl font-bold text-gray-800">
@@ -218,6 +229,23 @@ export default function PostForm({ post, mode, user }: PostFormProps) {
                                         >
                                             Save as Draft
                                         </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                // Use first tag as category for preview, or 'umum' fallback
+                                                const category = (formData.tags.length > 0 ? formData.tags[0].toLowerCase().replace(/\s+/g, '-') : 'umum');
+                                                const slug = post?.frontmatter.slug || (formData.title ? formData.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') : null);
+
+                                                if (slug) {
+                                                    window.open(`/artikel/${category}/${slug}`, '_blank');
+                                                } else {
+                                                    alert("Please enter a title to preview.");
+                                                }
+                                            }}
+                                            className="flex items-center w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-brand-cream hover:bg-grey-100 transition-colors gap-2"
+                                        >
+                                            <Eye className="w-4 h-4" /> Preview
+                                        </button>
                                     </div>
                                 </div>
                             )}
@@ -249,7 +277,7 @@ export default function PostForm({ post, mode, user }: PostFormProps) {
 
                 <div className="relative">
                     {/* Sticky Sidebar */}
-                    <div className="sticky top-[152px] space-y-6">
+                    <div className="sticky top-[87px] space-y-6">
 
                         <div className="bg-white p-5 rounded-lg border border-gray-200 shadow-sm">
                             <h3 className="font-bold text-gray-900 uppercase text-xs tracking-wider border-b pb-2 mb-4">
@@ -279,8 +307,28 @@ export default function PostForm({ post, mode, user }: PostFormProps) {
                                     />
                                 </div>
 
-                                <div className="space-y-3">
+
+                                {/* Category Selection */}
+                                <div>
                                     <label className="block text-xs font-semibold uppercase text-gray-500 mb-1">Category</label>
+                                    <select
+                                        value={formData.category as string}
+                                        onChange={(e) => setFormData({ ...formData, category: e.target.value as PostCategory })}
+                                        className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded text-sm focus:ring-1 focus:ring-brand-blue outline-none"
+                                    >
+                                        {masterCategories.map((cat) => (
+                                            <option key={cat} value={cat}>
+                                                {cat.charAt(0).toUpperCase() + cat.slice(1)}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+
+                                <div className="space-y-3">
+                                    <label className="block text-xs font-semibold uppercase text-gray-500 mb-1">Tags (Keywords)</label>
+                                    <p className="text-[10px] text-gray-400 mb-2">
+                                        The first tag will be used as the primary category for the URL.
+                                    </p>
 
                                     {/* Badges container */}
                                     <div className="flex flex-wrap gap-2 mb-2">
@@ -303,7 +351,7 @@ export default function PostForm({ post, mode, user }: PostFormProps) {
                                             </span>
                                         ))}
                                         {formData.tags.length === 0 && (
-                                            <span className="text-[10px] text-gray-400 italic">No categories selected</span>
+                                            <span className="text-[10px] text-gray-400 italic">No tags selected</span>
                                         )}
                                     </div>
 
@@ -325,7 +373,7 @@ export default function PostForm({ post, mode, user }: PostFormProps) {
                                                     }
                                                 }}
                                                 className="w-full pl-3 pr-10 py-2 bg-gray-50 border border-gray-200 rounded text-sm focus:ring-1 focus:ring-brand-blue outline-none transition-all"
-                                                placeholder="Add category..."
+                                                placeholder="Add tag..."
                                             />
                                             <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1.5">
                                                 {loadingCategories && (
@@ -387,7 +435,7 @@ export default function PostForm({ post, mode, user }: PostFormProps) {
                                                                 ))
                                                         ) : (
                                                             <div className="p-4 text-center text-gray-400 text-xs italic">
-                                                                {tagInput ? `Press Enter to add "${tagInput}"` : "Search for categories"}
+                                                                {tagInput ? `Press Enter to add "${tagInput}"` : "Search for tags"}
                                                             </div>
                                                         )}
                                                     </>
@@ -563,3 +611,4 @@ export default function PostForm({ post, mode, user }: PostFormProps) {
         </form>
     );
 }
+

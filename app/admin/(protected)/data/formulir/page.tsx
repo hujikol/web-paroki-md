@@ -6,12 +6,16 @@ export const metadata: Metadata = {
     title: "Kelola Formulir | Admin Paroki",
 };
 
+import { getMasterCategories } from "@/actions/master-categories";
+
 export default async function AdminFormulirPage() {
     const data = await getFormulir();
+    const categories = await getMasterCategories();
+
     return (
         <div className="space-y-6">
             <h1 className="text-2xl font-bold text-gray-900">Kelola Formulir Gereja</h1>
-            <FormulirClient initialData={data} />
+            <FormulirClient initialData={data} categories={categories.formulir} />
         </div>
     );
 }

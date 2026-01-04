@@ -24,6 +24,7 @@
     "lucide-react": "^0.562.0",
     "next": "^15.1.0",
     "next-auth": "^4.24.10",
+    "next-devtools-mcp": "^0.3.8",
     "quill-delta-to-html": "^0.12.1",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",

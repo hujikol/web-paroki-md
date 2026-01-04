@@ -13,11 +13,11 @@ export default function PostCard({ post }: PostCardProps) {
     day: "numeric",
   });
 
-  // Use the first tag as the category for the URL, convert to lowercase
-  const categorySlug = post.tags[0]?.toLowerCase().replace(/ /g, "-") || "artikel";
+  // Use the post category for the URL, fallback to 'umum'
+  const categorySlug = post.category || "umum";
 
   return (
-    <Link href={`/${categorySlug}/${post.slug}`} className="group block h-full">
+    <Link href={`/artikel/${categorySlug}/${post.slug}`} className="group block h-full">
       <article className="bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 border border-gray-100 h-full flex flex-col">
         {post.banner && (
           <div className="relative h-48 w-full overflow-hidden">

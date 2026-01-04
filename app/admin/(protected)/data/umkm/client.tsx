@@ -6,7 +6,7 @@ import { Plus, Pencil, Trash2, Search, Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { v4 as uuidv4 } from "uuid";
 
-export default function UMKMClient({ initialData }: { initialData: UMKMData[] }) {
+export default function UMKMClient({ initialData, categories }: { initialData: UMKMData[], categories: string[] }) {
     const [data, setData] = useState<UMKMData[]>(initialData);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [searchTerm, setSearchTerm] = useState("");
@@ -15,8 +15,7 @@ export default function UMKMClient({ initialData }: { initialData: UMKMData[] })
     const router = useRouter();
 
     const filteredData = data.filter(item =>
-        item.businessName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        item.owner.toLowerCase().includes(searchTerm.toLowerCase())
+        item.businessName.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
     const handleEdit = (item: UMKMData) => {
@@ -25,7 +24,7 @@ export default function UMKMClient({ initialData }: { initialData: UMKMData[] })
     };
 
     const handleDelete = async (id: string) => {
-        if (!confirm("Apakah Anda yakin ingin menghapus data ini?")) return;
+        if (!confirm("Apakah Anda yakin ingin menghapus data UMKM ini?")) return;
 
         const newData = data.filter(item => item.id !== id);
         setData(newData);
@@ -49,10 +48,10 @@ export default function UMKMClient({ initialData }: { initialData: UMKMData[] })
             id: editingItem?.id || uuidv4(),
             businessName: formData.get("businessName") as string,
             owner: formData.get("owner") as string,
+            type: formData.get("type") as any,
             address: formData.get("address") as string,
             phone: formData.get("phone") as string,
-            type: formData.get("type") as string,
-            description: formData.get("description") as string,
+            description: formData.get("description") as string
         };
 
         const newData = editingItem
@@ -105,10 +104,10 @@ export default function UMKMClient({ initialData }: { initialData: UMKMData[] })
                 <table className="w-full text-sm text-left">
                     <thead className="bg-gray-50 text-gray-700 font-medium uppercase text-xs">
                         <tr>
-                            <th className="px-6 py-3">Nama Usaha / Pemilik</th>
-                            <th className="px-6 py-3">Jenis Usaha</th>
+                            <th className="px-6 py-3">Nama Usaha</th>
+                            <th className="px-6 py-3">Pemilik</th>
+                            <th className="px-6 py-3">Jenis</th>
                             <th className="px-6 py-3">Kontak</th>
-                            <th className="px-6 py-3">Alamat</th>
                             <th className="px-6 py-3 text-right">Aksi</th>
                         </tr>
                     </thead>
@@ -116,19 +115,14 @@ export default function UMKMClient({ initialData }: { initialData: UMKMData[] })
                         {filteredData.length > 0 ? (
                             filteredData.map((item) => (
                                 <tr key={item.id} className="hover:bg-gray-50 transition-colors">
+                                    <td className="px-6 py-4 font-medium text-gray-900">{item.businessName}</td>
+                                    <td className="px-6 py-4 text-gray-600">{item.owner}</td>
                                     <td className="px-6 py-4">
-                                        <div className="font-medium text-brand-dark">{item.businessName}</div>
-                                        <div className="text-gray-500 text-xs">{item.owner}</div>
-                                    </td>
-                                    <td className="px-6 py-4">
-                                        <span className="px-2 py-1 bg-blue-50 text-brand-blue rounded text-xs font-medium border border-blue-100">
+                                        <span className="px-2 py-1 bg-blue-50 text-brand-blue text-xs rounded-full border border-blue-100 font-medium">
                                             {item.type}
                                         </span>
                                     </td>
                                     <td className="px-6 py-4 text-gray-600">{item.phone}</td>
-                                    <td className="px-6 py-4 text-gray-600 max-w-xs truncate" title={item.address}>
-                                        {item.address}
-                                    </td>
                                     <td className="px-6 py-4 text-right">
                                         <div className="flex items-center justify-end gap-2">
                                             <button
@@ -164,7 +158,7 @@ export default function UMKMClient({ initialData }: { initialData: UMKMData[] })
                     <div className="bg-white rounded-xl shadow-xl w-full max-w-lg overflow-hidden animate-fade-in">
                         <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center">
                             <h3 className="font-bold text-lg text-gray-900">
-                                {editingItem ? "Edit Data UMKM" : "Tambah UMKM Baru"}
+                                {editingItem ? "Edit UMKM" : "Tambah UMKM"}
                             </h3>
                             <button
                                 onClick={() => setIsModalOpen(false)}
@@ -175,17 +169,18 @@ export default function UMKMClient({ initialData }: { initialData: UMKMData[] })
                         </div>
 
                         <form onSubmit={handleSubmit} className="p-6 space-y-4">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Nama Usaha</label>
+                                <input
+                                    name="name"
+                                    defaultValue={editingItem?.businessName}
+                                    required
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-blue focus:border-brand-blue outline-none text-sm"
+                                    placeholder="Nama Usaha"
+                                />
+                            </div>
+
                             <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Nama Usaha</label>
-                                    <input
-                                        name="businessName"
-                                        defaultValue={editingItem?.businessName}
-                                        required
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-blue focus:border-brand-blue outline-none text-sm"
-                                        placeholder="Contoh: Warung Berkah"
-                                    />
-                                </div>
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-1">Nama Pemilik</label>
                                     <input
@@ -193,36 +188,33 @@ export default function UMKMClient({ initialData }: { initialData: UMKMData[] })
                                         defaultValue={editingItem?.owner}
                                         required
                                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-blue focus:border-brand-blue outline-none text-sm"
-                                        placeholder="Nama Lengkap"
+                                        placeholder="Nama Pemilik"
                                     />
                                 </div>
-                            </div>
-
-                            <div className="grid grid-cols-2 gap-4">
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-1">Jenis Usaha</label>
                                     <select
                                         name="type"
-                                        defaultValue={editingItem?.type || "Kuliner"}
+                                        defaultValue={editingItem?.type || categories[0] || ""}
                                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-blue focus:border-brand-blue outline-none text-sm"
                                     >
-                                        <option value="Kuliner">Kuliner</option>
-                                        <option value="Jasa">Jasa</option>
-                                        <option value="Perdagangan">Perdagangan</option>
-                                        <option value="Kerajinan">Kerajinan</option>
-                                        <option value="Agribisnis">Agribisnis</option>
-                                        <option value="Lainnya">Lainnya</option>
+                                        {categories.map((category) => (
+                                            <option key={category} value={category}>
+                                                {category}
+                                            </option>
+                                        ))}
                                     </select>
                                 </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">No. Telp / HP</label>
-                                    <input
-                                        name="phone"
-                                        defaultValue={editingItem?.phone}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-blue focus:border-brand-blue outline-none text-sm"
-                                        placeholder="08..."
-                                    />
-                                </div>
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">No. Telp / HP</label>
+                                <input
+                                    name="phone"
+                                    defaultValue={editingItem?.phone}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-blue focus:border-brand-blue outline-none text-sm"
+                                    placeholder="08..."
+                                />
                             </div>
 
                             <div>

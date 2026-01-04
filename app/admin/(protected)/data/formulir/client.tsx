@@ -6,7 +6,7 @@ import { Plus, Pencil, Trash2, Search, Loader2, FileText, Link as LinkIcon } fro
 import { useRouter } from "next/navigation";
 import { v4 as uuidv4 } from "uuid";
 
-export default function FormulirClient({ initialData }: { initialData: Formulir[] }) {
+export default function FormulirClient({ initialData, categories }: { initialData: Formulir[], categories: string[] }) {
     const [data, setData] = useState<Formulir[]>(initialData);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [searchTerm, setSearchTerm] = useState("");
@@ -127,10 +127,7 @@ export default function FormulirClient({ initialData }: { initialData: Formulir[
                                         </div>
                                     </td>
                                     <td className="px-6 py-4">
-                                        <span className={`px-2 py-1 rounded text-xs font-medium border ${item.category === 'liturgi' ? 'bg-purple-50 text-purple-700 border-purple-100' :
-                                                item.category === 'pelayanan' ? 'bg-green-50 text-green-700 border-green-100' :
-                                                    'bg-gray-50 text-gray-600 border-gray-200'
-                                            }`}>
+                                        <span className={`px-2 py-1 rounded text-xs font-medium border bg-gray-50 text-gray-600 border-gray-200`}>
                                             {item.category.charAt(0).toUpperCase() + item.category.slice(1)}
                                         </span>
                                     </td>
@@ -210,12 +207,14 @@ export default function FormulirClient({ initialData }: { initialData: Formulir[
                                 <label className="block text-sm font-medium text-gray-700 mb-1">Kategori</label>
                                 <select
                                     name="category"
-                                    defaultValue={editingItem?.category || "liturgi"}
+                                    defaultValue={editingItem?.category || categories[0] || ""}
                                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-blue outline-none text-sm"
                                 >
-                                    <option value="liturgi">Liturgi</option>
-                                    <option value="pelayanan">Pelayanan</option>
-                                    <option value="lainnya">Lainnya</option>
+                                    {categories.map((cat) => (
+                                        <option key={cat} value={cat}>
+                                            {cat}
+                                        </option>
+                                    ))}
                                 </select>
                             </div>
                             <div>

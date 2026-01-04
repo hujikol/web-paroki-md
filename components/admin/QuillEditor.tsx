@@ -125,7 +125,7 @@ export default function QuillEditor({ value, onChange }: QuillEditorProps) {
           font-family: var(--font-rubik), sans-serif;
           padding: 8px;
           position: sticky;
-          top: 152px;
+          top: 87px;
           z-index: 50;
           border-radius: 0.5rem 0.5rem 0 0;
           margin-top: -1px;

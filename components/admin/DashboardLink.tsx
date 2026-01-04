@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useLoading } from "./LoadingProvider";
+import { useLoading } from "@/components/admin/LoadingProvider";
 import { ReactNode } from "react";
 
 interface DashboardLinkProps {
@@ -14,10 +14,10 @@ export default function DashboardLink({ href, className, children }: DashboardLi
   const { startTransition } = useLoading();
 
   return (
-    <Link 
-      href={href} 
+    <Link
+      href={href}
       className={className}
-      onClick={() => startTransition(() => {})}
+      onClick={() => startTransition(() => { })}
     >
       {children}
     </Link>

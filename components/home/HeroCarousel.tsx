@@ -19,7 +19,7 @@ const slides: CarouselSlide[] = [
     },
     {
         id: 2,
-        image: "https://images.unsplash.com/photo-1503982046-1ac59829895f?q=80&w=2070&auto=format&fit=crop",
+        image: "https://images.unsplash.com/photo-1438032005730-c779502df39b?q=80&w=2070&auto=format&fit=crop",
         alt: "Gereja Paroki 2",
     },
     {
@@ -113,8 +113,8 @@ export default function HeroCarousel() {
                         key={index}
                         onClick={() => goToSlide(index)}
                         className={`h-2 rounded-full transition-all ${index === currentSlide
-                                ? "w-8 bg-white"
-                                : "w-2 bg-white/50 hover:bg-white/75"
+                            ? "w-8 bg-white"
+                            : "w-2 bg-white/50 hover:bg-white/75"
                             }`}
                         aria-label={`Go to slide ${index + 1}`}
                     />
