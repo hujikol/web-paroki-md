@@ -175,7 +175,7 @@ export default function Header() {
                                                 {item.title}
                                             </NavigationMenuTrigger>
                                             <NavigationMenuContent>
-                                                <ul className="grid w-[400px] gap-3 p-4 md:w-[500px] md:grid-cols-2 lg:w-[600px]">
+                                                <ul className="grid w-max min-w-[100px] gap-3 p-4 md:block">
                                                     {item.items.map((subItem) => (
                                                         <ListItem
                                                             key={subItem.title}
