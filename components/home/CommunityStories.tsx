@@ -164,9 +164,14 @@ export default function CommunityStories({ posts }: CommunityStoriesProps) {
                                     </h3>
 
                                     <div className="mt-auto flex items-center justify-between border-t border-brand-dark/10 pt-4">
-                                        <span className="text-xs font-bold uppercase tracking-widest text-gray-400">
-                                            {new Date(post.publishedAt).toLocaleDateString("id-ID", { month: 'long', year: 'numeric' })}
-                                        </span>
+                                        <div className="flex flex-col gap-1">
+                                            <span className="text-xs font-bold uppercase tracking-widest text-gray-400">
+                                                {new Date(post.publishedAt).toLocaleDateString("id-ID", { month: 'long', year: 'numeric' })}
+                                            </span>
+                                            <span className="text-[10px] font-bold uppercase tracking-widest text-brand-gold">
+                                                {post.readingTime || 3} Menit Baca
+                                            </span>
+                                        </div>
                                         <ArrowUpRight className="h-5 w-5 text-brand-dark opacity-0 group-hover:opacity-100 transition-opacity -translate-x-2 group-hover:translate-x-0 duration-300" />
                                     </div>
                                 </div>

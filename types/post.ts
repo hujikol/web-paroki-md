@@ -40,4 +40,5 @@ export interface PostMetadata {
   metaDescription?: string;
   metaKeywords?: string[];
   ogImage?: string;
+  readingTime?: number;
 }

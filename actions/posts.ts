@@ -17,8 +17,9 @@ export async function getAllPosts(): Promise<PostMetadata[]> {
     if (!content) continue;
 
     try {
-      const { frontmatter } = parseContent(content, item.path);
-      posts.push(frontmatter);
+      const { frontmatter, content: postContent } = parseContent(content, item.path);
+      const readingTime = calculateReadingTime(postContent);
+      posts.push({ ...frontmatter, readingTime });
     } catch (error) {
       console.error(`Error parsing ${item.path}:`, error);
     }
@@ -28,6 +29,18 @@ export async function getAllPosts(): Promise<PostMetadata[]> {
   return posts.sort((a, b) => 
     new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime()
   );
+}
+
+function calculateReadingTime(content: any): number {
+  try {
+    const text = typeof content === 'string' ? content : JSON.stringify(content);
+    // Remove HTML tags and special chars roughly
+    const cleanText = text.replace(/<[^>]*>/g, '').replace(/[^\w\s]|_/g, "").replace(/\s+/g, " ");
+    const words = cleanText.split(" ").length;
+    return Math.max(1, Math.ceil(words / 200));
+  } catch (e) {
+    return 1;
+  }
 }
 
 export async function getPostBySlug(slug: string) {
