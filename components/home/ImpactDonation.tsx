@@ -205,7 +205,7 @@ export default function ImpactDonation() {
                                 className="lg:col-span-3 text-center lg:text-left space-y-8"
                             >
                                 <blockquote className="font-serif italic text-xl text-gray-600 leading-relaxed">
-                                    "Hendaklah masing-masing memberikan menurut kerelaan hatinya, jangan dengan sedih hati atau karena paksaan."
+                                    &quot;Hendaklah masing-masing memberikan menurut kerelaan hatinya, jangan dengan sedih hati atau karena paksaan.&quot;
                                 </blockquote>
                                 <div className="pt-8 border-t border-gray-100">
                                     <p className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-2">Narahubung</p>
@@ -272,7 +272,7 @@ export default function ImpactDonation() {
                                 className="lg:col-span-3 text-center lg:text-right space-y-8"
                             >
                                 <blockquote className="font-serif italic text-xl text-gray-600 leading-relaxed">
-                                    "Sebab Allah mengasihi orang yang memberi dengan sukacita."
+                                    &quot;Sebab Allah mengasihi orang yang memberi dengan sukacita.&quot;
                                     <footer className="text-sm font-sans not-italic text-gray-400 mt-2">— 2 Korintus 9:7</footer>
                                 </blockquote>
                                 <div className="pt-8 border-t border-gray-100">

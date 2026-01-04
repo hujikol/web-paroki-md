@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { Menu, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
@@ -123,13 +124,16 @@ export default function Header() {
             >
                 {/* Logo */}
                 <div className="flex lg:flex-1">
-                    <Link href="/" className="flex items-center gap-3 group">
+
+
+                    <Link href="/" className="-m-1.5 p-1.5 flex items-center gap-3 group">
                         <div className="relative h-10 w-10 overflow-hidden transition-transform duration-300 group-hover:scale-110">
-                            {/* Using standard img for now to ensure load, can switch to next/image if configured */}
-                            <img
+                            <Image
                                 src="/images/logo/logo.png"
                                 alt="Logo Paroki"
-                                className="h-full w-full object-contain"
+                                fill
+                                className="object-contain"
+                                sizes="40px"
                             />
                         </div>
                         <div className="hidden sm:block">
@@ -240,57 +244,59 @@ export default function Header() {
             </nav>
 
             {/* Mobile menu */}
-            {mobileMenuOpen && (
-                <div className="lg:hidden border-t bg-background absolute top-full w-full left-0 shadow-lg">
-                    <div className="space-y-1 px-4 pb-3 pt-2">
-                        {navItems.map((item) => (
-                            <div key={item.title}>
-                                {item.items ? (
-                                    <div className="space-y-2 py-2">
-                                        <div className="font-semibold text-foreground px-3">{item.title}</div>
-                                        <div className="pl-4 space-y-1 border-l ml-3">
-                                            {item.items.map((subItem) => (
-                                                <Link
-                                                    key={subItem.href}
-                                                    href={subItem.href || "#"}
-                                                    className="block rounded-md px-3 py-2 text-sm text-muted-foreground hover:bg-accent hover:text-accent-foreground"
-                                                    onClick={() => setMobileMenuOpen(false)}
-                                                >
-                                                    {subItem.title}
-                                                </Link>
-                                            ))}
+            {
+                mobileMenuOpen && (
+                    <div className="lg:hidden border-t bg-background absolute top-full w-full left-0 shadow-lg">
+                        <div className="space-y-1 px-4 pb-3 pt-2">
+                            {navItems.map((item) => (
+                                <div key={item.title}>
+                                    {item.items ? (
+                                        <div className="space-y-2 py-2">
+                                            <div className="font-semibold text-foreground px-3">{item.title}</div>
+                                            <div className="pl-4 space-y-1 border-l ml-3">
+                                                {item.items.map((subItem) => (
+                                                    <Link
+                                                        key={subItem.href}
+                                                        href={subItem.href || "#"}
+                                                        className="block rounded-md px-3 py-2 text-sm text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                                                        onClick={() => setMobileMenuOpen(false)}
+                                                    >
+                                                        {subItem.title}
+                                                    </Link>
+                                                ))}
+                                            </div>
                                         </div>
-                                    </div>
-                                ) : (
-                                    <Link
-                                        href={item.href || "#"}
-                                        className="block rounded-md px-3 py-2 text-base font-medium text-foreground hover:bg-accent hover:text-accent-foreground"
-                                        onClick={() => setMobileMenuOpen(false)}
-                                    >
-                                        {item.title}
-                                    </Link>
-                                )}
+                                    ) : (
+                                        <Link
+                                            href={item.href || "#"}
+                                            className="block rounded-md px-3 py-2 text-base font-medium text-foreground hover:bg-accent hover:text-accent-foreground"
+                                            onClick={() => setMobileMenuOpen(false)}
+                                        >
+                                            {item.title}
+                                        </Link>
+                                    )}
+                                </div>
+                            ))}
+                            <div className="mt-4 space-y-2 border-t pt-4">
+                                <Link
+                                    href="/jadwal-misa"
+                                    className={cn(buttonVariants({ variant: "default" }), "w-full rounded-full justify-center")}
+                                    onClick={() => setMobileMenuOpen(false)}
+                                >
+                                    Jadwal Misa
+                                </Link>
+                                <Link
+                                    href="/contact"
+                                    className={cn(buttonVariants({ variant: "outline" }), "w-full rounded-full justify-center border-primary text-primary")}
+                                    onClick={() => setMobileMenuOpen(false)}
+                                >
+                                    Donate Us
+                                </Link>
                             </div>
-                        ))}
-                        <div className="mt-4 space-y-2 border-t pt-4">
-                            <Link
-                                href="/jadwal-misa"
-                                className={cn(buttonVariants({ variant: "default" }), "w-full rounded-full justify-center")}
-                                onClick={() => setMobileMenuOpen(false)}
-                            >
-                                Jadwal Misa
-                            </Link>
-                            <Link
-                                href="/contact"
-                                className={cn(buttonVariants({ variant: "outline" }), "w-full rounded-full justify-center border-primary text-primary")}
-                                onClick={() => setMobileMenuOpen(false)}
-                            >
-                                Donate Us
-                            </Link>
                         </div>
                     </div>
-                </div>
-            )}
-        </header>
+                )
+            }
+        </header >
     );
 }

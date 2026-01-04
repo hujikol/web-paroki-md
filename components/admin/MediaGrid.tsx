@@ -1,7 +1,7 @@
-/* eslint-disable @next/next/no-img-element */
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
+import Image from "next/image";
 import { deleteImage, MediaImage } from "@/actions/media";
 import { useRouter } from "next/navigation";
 import { useLoading } from "./LoadingProvider";
@@ -178,10 +178,12 @@ export default function MediaGrid({ initialImages }: MediaGridProps) {
               >
                 {/* Image Container */}
                 <div className="absolute inset-0 bg-muted/30">
-                  <img
+                  <Image
                     src={img.path}
                     alt={img.name}
-                    className="w-full h-full object-cover transition-transform duration-500 group-hover/card:scale-105"
+                    fill
+                    className="object-cover transition-transform duration-500 group-hover/card:scale-105"
+                    sizes="(max-width: 768px) 50vw, 20vw"
                   />
                 </div>
 

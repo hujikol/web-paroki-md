@@ -33,7 +33,7 @@ export default function UMKMList({ initialUMKM, categories }: UMKMListProps) {
         });
 
         return counts;
-    }, [initialUMKM]);
+    }, [initialUMKM, categories]);
 
     // Filter Logic
     const filteredUMKM = useMemo(() => {

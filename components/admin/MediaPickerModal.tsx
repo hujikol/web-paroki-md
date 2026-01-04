@@ -11,8 +11,10 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Loader2, Upload, X, Image as ImageIcon } from "lucide-react";
+import Image from "next/image";
 import { cn } from "@/lib/utils";
 
 interface MediaPickerModalProps {
@@ -137,11 +139,12 @@ export default function MediaPickerModal({
                     className="group relative aspect-square bg-muted/30 rounded-lg overflow-hidden cursor-pointer border-2 border-transparent hover:border-primary transition-all shadow-sm hover:shadow-md"
                     onClick={() => onSelect(img.path)}
                   >
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
+                    <Image
                       src={img.path}
                       alt={img.name}
-                      className="object-cover w-full h-full transition-transform group-hover:scale-105"
+                      fill
+                      className="object-cover transition-transform group-hover:scale-105"
+                      sizes="(max-width: 768px) 33vw, 20vw"
                     />
                     <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors" />
                     <div className="absolute bottom-0 left-0 right-0 bg-black/60 backdrop-blur-sm text-white text-[10px] font-medium p-2 truncate opacity-0 group-hover:opacity-100 transition-opacity translate-y-2 group-hover:translate-y-0">

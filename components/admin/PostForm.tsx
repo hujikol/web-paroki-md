@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { createPost, updatePost, deletePost } from "@/actions/posts";
 import { getAllCategories, addCategory } from "@/actions/categories";
@@ -489,9 +490,14 @@ export default function PostForm({ post, mode, user, categories: masterCategorie
                                 </h3>
                                 <div className="space-y-3">
                                     {watchedBanner ? (
-                                        <div className="relative group rounded-md overflow-hidden border">
-                                            {/* eslint-disable-next-line @next/next/no-img-element */}
-                                            <img src={watchedBanner} alt="Banner" className="w-full h-32 object-cover" />
+                                        <div className="relative group rounded-md overflow-hidden border h-32">
+                                            <Image
+                                                src={watchedBanner}
+                                                alt="Banner"
+                                                fill
+                                                className="object-cover"
+                                                sizes="(max-width: 768px) 100vw, 50vw"
+                                            />
                                             <Button
                                                 type="button"
                                                 variant="destructive"
@@ -576,9 +582,14 @@ export default function PostForm({ post, mode, user, categories: masterCategorie
                                     <div className="space-y-2">
                                         <Label>Open Graph Image</Label>
                                         {watchedOgImage ? (
-                                            <div className="relative group rounded-md overflow-hidden border">
-                                                {/* eslint-disable-next-line @next/next/no-img-element */}
-                                                <img src={watchedOgImage} alt="OG Image" className="w-full h-32 object-cover" />
+                                            <div className="relative group rounded-md overflow-hidden border h-32">
+                                                <Image
+                                                    src={watchedOgImage}
+                                                    alt="OG Image"
+                                                    fill
+                                                    className="object-cover"
+                                                    sizes="(max-width: 768px) 100vw, 50vw"
+                                                />
                                                 <Button
                                                     type="button"
                                                     variant="destructive"
