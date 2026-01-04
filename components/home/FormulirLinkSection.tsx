@@ -1,14 +1,34 @@
 import Link from "next/link";
 import { FileText, Download, ArrowRight } from "lucide-react";
+import { Formulir } from "@/actions/data";
 
-const formCategories = [
-    { title: "Baptis", count: 2 },
-    { title: "Pernikahan", count: 1 },
-    { title: "Sakramen", count: 3 },
-    { title: "Administrasi", count: 3 },
-];
+interface FormulirLinkSectionProps {
+    formulirData: Formulir[];
+}
 
-export default function FormulirLinkSection() {
+export default function FormulirLinkSection({ formulirData = [] }: FormulirLinkSectionProps) {
+    // Ensure formulirData is an array
+    const safeFormulirData = Array.isArray(formulirData) ? formulirData : [];
+
+    // Group forms by category and count them
+    const categoryGroups = safeFormulirData.reduce((acc, form) => {
+        const category = form.category || "lainnya";
+        if (!acc[category]) {
+            acc[category] = [];
+        }
+        acc[category].push(form);
+        return acc;
+    }, {} as Record<string, Formulir[]>);
+
+    // Create category summary with counts
+    const categorySummary = Object.entries(categoryGroups).map(([category, forms]) => ({
+        title: category.charAt(0).toUpperCase() + category.slice(1),
+        count: forms.length,
+    }));
+
+    // Get top 5 forms to display
+    const topForms = safeFormulirData.slice(0, 5);
+
     return (
         <section className="bg-gradient-to-br from-brand-blue to-brand-darkBlue py-16">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -26,17 +46,23 @@ export default function FormulirLinkSection() {
                             Semua formulir tersedia dalam format PDF.
                         </p>
 
-                        <div className="flex flex-wrap gap-3 mb-8">
-                            {formCategories.map((category, index) => (
-                                <div
-                                    key={index}
-                                    className="bg-white/10 backdrop-blur-sm rounded-lg px-4 py-2 border border-white/20"
-                                >
-                                    <div className="text-sm font-medium">{category.title}</div>
-                                    <div className="text-xs text-blue-200">{category.count} formulir</div>
-                                </div>
-                            ))}
-                        </div>
+                        {categorySummary.length > 0 ? (
+                            <div className="flex flex-wrap gap-3 mb-8">
+                                {categorySummary.map((category, index) => (
+                                    <div
+                                        key={index}
+                                        className="bg-white/10 backdrop-blur-sm rounded-lg px-4 py-2 border border-white/20"
+                                    >
+                                        <div className="text-sm font-medium">{category.title}</div>
+                                        <div className="text-xs text-blue-200">{category.count} formulir</div>
+                                    </div>
+                                ))}
+                            </div>
+                        ) : (
+                            <div className="mb-8 text-blue-200 text-sm">
+                                Belum ada formulir tersedia
+                            </div>
+                        )}
 
                         <Link
                             href="/data/formulir"
@@ -52,26 +78,28 @@ export default function FormulirLinkSection() {
                     <div className="relative">
                         <div className="bg-white/10 backdrop-blur-md rounded-3xl p-8 border border-white/20">
                             <div className="space-y-4">
-                                {[
-                                    "Baptis Anak",
-                                    "Baptis Dewasa",
-                                    "Pernikahan",
-                                    "Keterangan Kematian",
-                                    "Komuni Pertama",
-                                ].map((form, index) => (
-                                    <div
-                                        key={index}
-                                        className="flex items-center gap-4 p-4 bg-white/5 rounded-xl border border-white/10 hover:bg-white/10 transition-all"
-                                    >
-                                        <div className="rounded-lg bg-white/20 p-3">
-                                            <Download className="h-5 w-5 text-white" />
+                                {topForms.length > 0 ? (
+                                    topForms.map((form) => (
+                                        <div
+                                            key={form.id}
+                                            className="flex items-center gap-4 p-4 bg-white/5 rounded-xl border border-white/10 hover:bg-white/10 transition-all"
+                                        >
+                                            <div className="rounded-lg bg-white/20 p-3">
+                                                <Download className="h-5 w-5 text-white" />
+                                            </div>
+                                            <div className="flex-1 text-white">
+                                                <div className="font-semibold">{form.title}</div>
+                                                <div className="text-sm text-blue-200">
+                                                    {form.category ? form.category.charAt(0).toUpperCase() + form.category.slice(1) : "PDF Format"}
+                                                </div>
+                                            </div>
                                         </div>
-                                        <div className="flex-1 text-white">
-                                            <div className="font-semibold">{form}</div>
-                                            <div className="text-sm text-blue-200">PDF Format</div>
-                                        </div>
+                                    ))
+                                ) : (
+                                    <div className="text-center py-8 text-blue-200">
+                                        Belum ada formulir tersedia
                                     </div>
-                                ))}
+                                )}
                             </div>
                         </div>
 

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Metadata } from "next";
 import { getAllPosts } from "@/actions/posts";
 import { getChurchStatistics, getScheduleEvents } from "@/lib/data";
+import { getFormulir } from "@/actions/data";
 import PostCard from "@/components/blog/PostCard";
 import HeroCarousel from "@/components/home/HeroCarousel";
 import JadwalMisaPreview from "@/components/home/JadwalMisaPreview";
@@ -26,6 +27,7 @@ export default async function HomePage() {
   let allPosts: Awaited<ReturnType<typeof getAllPosts>> = [];
   let churchStats = null;
   let upcomingEvents: any[] = [];
+  let formulirData: Awaited<ReturnType<typeof getFormulir>> = [];
 
   try {
     allPosts = await getAllPosts();
@@ -45,6 +47,12 @@ export default async function HomePage() {
     console.error('Failed to fetch events:', error);
   }
 
+  try {
+    formulirData = await getFormulir();
+  } catch (error) {
+    console.error('Failed to fetch formulir:', error);
+  }
+
   const featuredPosts = allPosts.filter((post) => post.published).slice(0, 3);
 
   return (
@@ -56,7 +64,7 @@ export default async function HomePage() {
       <JadwalMisaPreview upcomingEvents={upcomingEvents} />
 
       {/* 3. Formulir Gereja - CTA Section */}
-      <FormulirLinkSection />
+      <FormulirLinkSection formulirData={formulirData} />
 
       {/* 4. Warta Paroki - Latest News */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
