@@ -30,7 +30,7 @@ export default function FormulirLinkSection({ formulirData = [] }: FormulirLinkS
     const topForms = safeFormulirData.slice(0, 5);
 
     return (
-        <section className="bg-gradient-to-br from-brand-blue to-brand-darkBlue py-16">
+        <section className="bg-gradient-to-br from-blue-700 to-blue-900 py-16">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
                     {/* Left Side - Description */}
@@ -66,7 +66,7 @@ export default function FormulirLinkSection({ formulirData = [] }: FormulirLinkS
 
                         <Link
                             href="/data/formulir"
-                            className="inline-flex items-center gap-2 bg-white text-brand-blue px-8 py-4 rounded-full font-bold text-lg hover:bg-gray-100 transition-all shadow-lg hover:shadow-xl hover:scale-105"
+                            className="inline-flex items-center gap-2 bg-white text-blue-700 px-8 py-4 rounded-full font-bold text-lg hover:bg-gray-100 transition-all shadow-lg hover:shadow-xl hover:scale-105"
                         >
                             <FileText className="h-5 w-5" />
                             Lihat Semua Formulir

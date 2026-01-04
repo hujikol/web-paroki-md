@@ -1,106 +1,164 @@
+"use client";
+
 import Link from "next/link";
-import { MapPin, Phone, Mail, Clock } from "lucide-react";
+import { MapPin, Phone, Mail, Clock, ArrowRight, Facebook, Instagram, Youtube } from "lucide-react";
+import { motion } from "framer-motion";
+
+import Image from "next/image";
 
 export default function Footer() {
     return (
-        <footer className="bg-brand-dark text-white">
-            <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
-                <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
-                    {/* Column 1: Church Info */}
-                    <div className="space-y-4">
-                        <div className="flex items-center gap-2">
-                            <div className="h-12 w-12 rounded-full bg-brand-blue flex items-center justify-center text-white font-bold text-xl">
-                                P
-                            </div>
-                            <div>
-                                <div className="font-bold text-lg">Paroki Brayut</div>
-                                <div className="text-sm text-gray-300">Santo Yohanes Paulus II</div>
-                            </div>
+        <footer className="bg-brand-dark text-white pt-32 pb-12 overflow-hidden relative">
+            {/* Background decorative elements - Animated */}
+            <div className="absolute inset-0 overflow-hidden pointer-events-none">
+                <motion.div
+                    animate={{
+                        scale: [1, 1.2, 1],
+                        opacity: [0.1, 0.2, 0.1],
+                    }}
+                    transition={{
+                        duration: 8,
+                        repeat: Infinity,
+                        repeatType: "reverse"
+                    }}
+                    className="absolute -top-[50%] -right-[20%] w-[1000px] h-[1000px] rounded-full bg-brand-gold blur-[150px] mix-blend-screen"
+                />
+                <motion.div
+                    animate={{
+                        scale: [1, 1.3, 1],
+                        opacity: [0.1, 0.2, 0.1],
+                    }}
+                    transition={{
+                        duration: 10,
+                        repeat: Infinity,
+                        repeatType: "reverse",
+                        delay: 1
+                    }}
+                    className="absolute -bottom-[20%] -left-[10%] w-[800px] h-[800px] rounded-full bg-brand-blue blur-[150px] mix-blend-screen"
+                />
+            </div>
+
+            <div className="relative z-10 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+                {/* Top Section: Calls to Action */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-12 border-b border-white/10 pb-20 mb-20">
+                    <motion.div
+                        initial={{ opacity: 0, x: -20 }}
+                        whileInView={{ opacity: 1, x: 0 }}
+                        viewport={{ once: true }}
+                    >
+                        <h2 className="font-serif text-4xl md:text-5xl leading-tight mb-6">
+                            Bergabung dengan <br /> <span className="text-brand-gold italic">Keluarga Kami</span>
+                        </h2>
+                        <p className="text-gray-400 text-lg max-w-md mb-8">
+                            Kami menantikan kehadiran Anda dalam perayaan Ekaristi dan kegiatan komunitas.
+                        </p>
+                        <Link href="/jadwal-misa" className="group inline-flex items-center text-lg font-bold uppercase tracking-widest hover:text-brand-gold transition-colors">
+                            Lihat Jadwal Misa
+                            <ArrowRight className="ml-3 h-5 w-5 transform group-hover:translate-x-2 transition-transform" />
+                        </Link>
+                    </motion.div>
+
+                    <motion.div
+                        initial={{ opacity: 0, x: 20 }}
+                        whileInView={{ opacity: 1, x: 0 }}
+                        viewport={{ once: true }}
+                        className="flex flex-col items-start md:items-end justify-center"
+                    >
+                        <div className="text-left md:text-right">
+                            <h3 className="font-serif text-3xl mb-4">Butuh Bantuan?</h3>
+                            <a href="https://wa.me/628123456789" className="text-2xl md:text-4xl font-bold font-sans hover:text-brand-gold transition-colors block mb-2">
+                                (0274) 860-9221
+                            </a>
+                            <p className="text-gray-500">Sekretariat Paroki (Senin - Sabtu)</p>
                         </div>
+                    </motion.div>
+                </div>
 
-                        <div className="space-y-3 text-sm text-gray-300">
-                            <div className="flex items-start gap-2">
-                                <MapPin className="h-4 w-4 mt-1 flex-shrink-0" />
-                                <span>
-                                    Gereja Santo Yusuf Tambakrejo<br />
-                                    Rejodani 1, Sariharjo, Ngaglik<br />
-                                    Kabupaten Sleman, DIY 55581
-                                </span>
-                            </div>
-
-                            <div className="flex items-center gap-2">
-                                <Mail className="h-4 w-4 flex-shrink-0" />
-                                <a href="mailto:sekpar.brayut@kas.id" className="hover:text-brand-blue transition-colors">
-                                    sekpar.brayut@kas.id
-                                </a>
-                            </div>
-
-                            <div className="flex items-center gap-2">
-                                <Phone className="h-4 w-4 flex-shrink-0" />
-                                <a href="tel:+622748609221" className="hover:text-brand-blue transition-colors">
-                                    (0274) 860-9221
-                                </a>
-                            </div>
+                {/* Middle Section: Links & Info */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-20">
+                    {/* Brand */}
+                    <div className="space-y-6">
+                        <div className="relative h-20 w-20">
+                            <Image
+                                src="/images/logo/logo.png"
+                                alt="Logo Paroki Brayut"
+                                fill
+                                className="object-contain"
+                            />
+                        </div>
+                        <div className="space-y-1">
+                            <h4 className="font-bold text-xl">Paroki Brayut</h4>
+                            <p className="text-sm text-gray-400">Santo Yohanes Paulus II</p>
+                        </div>
+                        <div className="flex gap-4">
+                            <a href="#" className="h-10 w-10 rounded-full bg-white/5 flex items-center justify-center hover:bg-brand-blue hover:text-white transition-all">
+                                <Instagram className="h-5 w-5" />
+                            </a>
+                            <a href="#" className="h-10 w-10 rounded-full bg-white/5 flex items-center justify-center hover:bg-brand-blue hover:text-white transition-all">
+                                <Facebook className="h-5 w-5" />
+                            </a>
+                            <a href="#" className="h-10 w-10 rounded-full bg-white/5 flex items-center justify-center hover:bg-brand-blue hover:text-white transition-all">
+                                <Youtube className="h-5 w-5" />
+                            </a>
                         </div>
                     </div>
 
-                    {/* Column 2: Secretariat */}
-                    <div className="space-y-4">
-                        <h3 className="font-bold text-lg">
-                            Sekretariat Paroki Brayut<br />
-                            Santo Yohanes Paulus II
-                        </h3>
-
-                        <div className="space-y-3 text-sm text-gray-300">
-                            <div className="flex items-start gap-2">
-                                <MapPin className="h-4 w-4 mt-1 flex-shrink-0" />
-                                <span>
-                                    Jogopaten, Pandowoharjo<br />
-                                    Kec. Sleman, Kabupaten Sleman<br />
-                                    Daerah Istimewa Yogyakarta 55581
-                                </span>
-                            </div>
-
-                            <div className="flex items-start gap-2">
-                                <Clock className="h-4 w-4 mt-1 flex-shrink-0" />
-                                <div>
-                                    <div>Senin s.d. Jumat: 08.00 - 15.00 WIB</div>
-                                    <div>Sabtu: 08.00 - 14.00 WIB</div>
-                                </div>
-                            </div>
-                        </div>
+                    {/* Quick Links */}
+                    <div>
+                        <h4 className="font-bold text-lg mb-6 uppercase tracking-wider text-gray-500">Jelajahi</h4>
+                        <ul className="space-y-4">
+                            {[
+                                { label: 'Profil Gereja', href: '/profil' },
+                                { label: 'Jadwal Misa', href: '/jadwal-misa' },
+                                { label: 'Warta Paroki', href: '/artikel' },
+                                { label: 'Data UMKM', href: '/data/umkm' },
+                                { label: 'Hubungi Kami', href: '/contact' }
+                            ].map((item) => (
+                                <li key={item.label}>
+                                    <Link href={item.href} className="text-gray-300 hover:text-brand-gold transition-colors block py-1 border-b border-transparent hover:border-brand-gold/30 w-fit">
+                                        {item.label}
+                                    </Link>
+                                </li>
+                            ))}
+                        </ul>
                     </div>
 
-                    {/* Column 3: Donation */}
-                    <div className="space-y-4">
-                        <h3 className="font-bold text-lg">
-                            Donasi Pembangunan Gereja<br />
-                            Santo Yohanes Paulus II
-                        </h3>
-
-                        <div className="space-y-3 text-sm text-gray-300">
-                            <div className="rounded-lg bg-white/10 p-4 space-y-2">
-                                <div>
-                                    <div className="font-semibold text-white">Bank Mandiri KCP Sleman</div>
-                                    <div className="font-mono">No. Rek. 137-00-1632682-5</div>
-                                </div>
-
-                                <div className="border-t border-white/20 pt-2">
-                                    <div className="font-semibold text-white">Bank BRI Unit Palagan</div>
-                                    <div className="font-mono">No. Rek. 7307-01-015723-53-5</div>
-                                </div>
-
-                                <div className="border-t border-white/20 pt-2 text-xs">
-                                    a.n. PGPM Paroki Santo Yohanes Paulus II
-                                </div>
-                            </div>
+                    {/* Locations */}
+                    <div className="lg:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-8">
+                        <div>
+                            <h4 className="font-bold text-lg mb-6 uppercase tracking-wider text-gray-500">Gereja Utama</h4>
+                            <address className="not-italic text-gray-300 space-y-2 leading-relaxed">
+                                <MapPin className="h-5 w-5 text-brand-gold mb-2" />
+                                <p>Gereja Santo Yusuf Tambakrejo</p>
+                                <p>Rejodani 1, Sariharjo, Ngaglik</p>
+                                <p>Kabupaten Sleman, DIY 55581</p>
+                            </address>
+                        </div>
+                        <div>
+                            <h4 className="font-bold text-lg mb-6 uppercase tracking-wider text-gray-500">Sekretariat</h4>
+                            <address className="not-italic text-gray-300 space-y-2 leading-relaxed">
+                                <Clock className="h-5 w-5 text-brand-gold mb-2" />
+                                <p>Jogopaten, Pandowoharjo</p>
+                                <p className="text-sm text-gray-500 mt-2">Senin - Jumat: 08.00 - 15.00</p>
+                                <p className="text-sm text-gray-500">Sabtu: 08.00 - 14.00</p>
+                            </address>
                         </div>
                     </div>
                 </div>
 
-                {/* Bottom Bar */}
-                <div className="mt-8 border-t border-gray-700 pt-8 text-center text-sm text-gray-400">
-                    <p>&copy; {new Date().getFullYear()} Paroki Brayut - Santo Yohanes Paulus II. All rights reserved.</p>
+                {/* Bottom Bar - Big Text */}
+                <div className="border-t border-white/10 pt-12">
+                    <div className="flex flex-col md:flex-row justify-between items-center gap-6 mb-12">
+                        <p className="text-gray-500 text-sm">
+                            &copy; {new Date().getFullYear()} Paroki Brayut. All rights reserved.
+                        </p>
+                    </div>
+
+                    <div className="flex justify-center relative w-full overflow-x-visible -bottom-20">
+                        <h1 className="text-[9vw] font-bold font-serif text-white/5 select-none pointer-events-none tracking-widest uppercase leading-none whitespace-nowrap">
+                            PAROKI BRAYUT
+                        </h1>
+                    </div>
                 </div>
             </div>
         </footer>

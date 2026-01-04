@@ -5,7 +5,30 @@ import { useState, useEffect, useMemo } from "react";
 import { deleteImage, MediaImage } from "@/actions/media";
 import { useRouter } from "next/navigation";
 import { useLoading } from "./LoadingProvider";
-import Tooltip from "./Tooltip";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
+import { Card, CardContent } from "@/components/ui/card";
+import { Copy, Trash2, Image as ImageIcon } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface MediaGridProps {
   initialImages: MediaImage[];
@@ -20,7 +43,7 @@ export default function MediaGrid({ initialImages }: MediaGridProps) {
   const [deleting, setDeleting] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState<SortOption>("latest");
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState<number | "all">(25);
+  const [itemsPerPage, setItemsPerPage] = useState<string>("25");
 
   // Sync state when initialImages changes (from router.refresh)
   useEffect(() => {
@@ -45,7 +68,7 @@ export default function MediaGrid({ initialImages }: MediaGridProps) {
 
   const sortedImages = useMemo(() => {
     const filtered = images.filter(img => !img.name.endsWith('.gitkeep'));
-    
+
     return [...filtered].sort((a, b) => {
       if (sortBy === "latest") {
         return getTimestamp(b.name) - getTimestamp(a.name);
@@ -60,9 +83,9 @@ export default function MediaGrid({ initialImages }: MediaGridProps) {
     });
   }, [images, sortBy]);
 
-  const effectiveItemsPerPage = itemsPerPage === "all" ? sortedImages.length : itemsPerPage;
+  const effectiveItemsPerPage = itemsPerPage === "all" ? sortedImages.length : parseInt(itemsPerPage);
   const totalPages = Math.ceil(sortedImages.length / effectiveItemsPerPage) || 1;
-  
+
   const paginatedImages = useMemo(() => {
     if (itemsPerPage === "all") return sortedImages;
     const start = (currentPage - 1) * effectiveItemsPerPage;
@@ -70,7 +93,7 @@ export default function MediaGrid({ initialImages }: MediaGridProps) {
   }, [sortedImages, currentPage, effectiveItemsPerPage, itemsPerPage]);
 
   const handleItemsPerPageChange = (val: string) => {
-    setItemsPerPage(val === "all" ? "all" : parseInt(val));
+    setItemsPerPage(val);
     setCurrentPage(1);
   };
 
@@ -97,164 +120,143 @@ export default function MediaGrid({ initialImages }: MediaGridProps) {
   };
 
   return (
-    <div className="flex flex-col p-6 min-h-[600px]">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
+    <div className="flex flex-col p-6 min-h-[600px] gap-6">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div className="flex items-center gap-4">
-            <div className="text-sm font-bold text-gray-500 bg-gray-100 px-3 py-1.5 rounded-full">
-               Total {sortedImages.length} images
+          <div className="text-sm font-medium text-muted-foreground bg-muted px-3 py-1.5 rounded-full">
+            Total {sortedImages.length} images
+          </div>
+          {sortedImages.length > 0 && (
+            <div className="text-sm font-medium text-muted-foreground">
+              Showing {Math.min((currentPage - 1) * effectiveItemsPerPage + 1, sortedImages.length)} - {Math.min(currentPage * effectiveItemsPerPage, sortedImages.length)}
             </div>
-            {sortedImages.length > 0 && (
-                <div className="text-sm font-medium text-gray-400">
-                    Showing {Math.min((currentPage - 1) * effectiveItemsPerPage + 1, sortedImages.length)} - {Math.min(currentPage * effectiveItemsPerPage, sortedImages.length)}
-                </div>
-            )}
+          )}
         </div>
         <div className="flex flex-wrap items-center gap-4">
           <div className="flex items-center gap-2">
-            <label className="text-xs font-bold uppercase tracking-wider text-gray-400">Sort by:</label>
-            <div className="relative group">
-              <select 
-                value={sortBy}
-                onChange={(e) => setSortBy(e.target.value as SortOption)}
-                className="appearance-none text-xs border border-gray-200 rounded-lg focus:ring-2 focus:ring-brand-blue/20 focus:border-brand-blue bg-white pl-3 pr-8 py-2 font-bold transition-all cursor-pointer hover:border-brand-blue/50 outline-none"
-              >
-                <option value="latest">Latest Upload</option>
-                <option value="name">Name (A-Z)</option>
-                <option value="size">Large Size First</option>
-              </select>
-              <div className="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none text-gray-400 group-hover:text-brand-blue">
-                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M19 9l-7 7-7-7" />
-                </svg>
-              </div>
-            </div>
+            <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Sort by:</label>
+            <Select value={sortBy} onValueChange={(val) => setSortBy(val as SortOption)}>
+              <SelectTrigger className="w-[140px] h-9 text-xs">
+                <SelectValue placeholder="Latest" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="latest">Latest Upload</SelectItem>
+                <SelectItem value="name">Name (A-Z)</SelectItem>
+                <SelectItem value="size">Large Size First</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="flex items-center gap-2">
-            <label className="text-xs font-bold uppercase tracking-wider text-gray-400">Show:</label>
-            <div className="relative group">
-              <select 
-                value={itemsPerPage}
-                onChange={(e) => handleItemsPerPageChange(e.target.value)}
-                className="appearance-none text-xs border border-gray-200 rounded-lg focus:ring-2 focus:ring-brand-blue/20 focus:border-brand-blue bg-white pl-3 pr-8 py-2 font-bold transition-all cursor-pointer hover:border-brand-blue/50 outline-none"
-              >
-                <option value={25}>25 items</option>
-                <option value={50}>50 items</option>
-                <option value="all">Show All</option>
-              </select>
-              <div className="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none text-gray-400 group-hover:text-brand-blue">
-                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M19 9l-7 7-7-7" />
-                </svg>
-              </div>
-            </div>
+            <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Show:</label>
+            <Select value={itemsPerPage} onValueChange={handleItemsPerPageChange}>
+              <SelectTrigger className="w-[100px] h-9 text-xs">
+                <SelectValue placeholder="25 items" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="25">25 items</SelectItem>
+                <SelectItem value="50">50 items</SelectItem>
+                <SelectItem value="all">Show All</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
         </div>
       </div>
 
       {paginatedImages.length === 0 ? (
-        <div className="flex-1 flex flex-col items-center justify-center py-20 bg-gray-50 rounded-2xl border-2 border-dashed border-gray-200">
-            <svg className="w-16 h-16 text-gray-300 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-            </svg>
-            <p className="text-gray-500 font-medium">No images found in your library.</p>
-        </div>
+        <Card className="flex-1 flex flex-col items-center justify-center py-20 bg-muted/20 border-dashed">
+          <ImageIcon className="w-16 h-16 text-muted-foreground mb-4 opacity-50" />
+          <p className="text-muted-foreground font-medium">No images found in your library.</p>
+        </Card>
       ) : (
         <>
-            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4 mb-10">
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
             {paginatedImages.map((img) => (
-                <div
+              <div
                 key={img.path}
-                className="group/card relative bg-white border border-gray-100 rounded-md hover:shadow-md transition-all duration-300 aspect-square border-b-4 hover:border-b-brand-blue"
-                >
-                {/* Image Container with Zoom effect - this one HAS overflow-hidden */}
-                <div className="absolute inset-0 overflow-hidden rounded-md bg-gray-50">
-                    <img
-                        src={img.path}
-                        alt={img.name}
-                        className="w-full h-full object-cover transition-transform duration-500 group-hover/card:scale-110"
-                    />
-                </div>
-                
-                {/* Action Overlay - this one DOES NOT have overflow-hidden to allow tooltips to escape */}
-                <div className="absolute inset-0 bg-black/60 opacity-0 group-hover/card:opacity-100 transition-all duration-300 flex flex-col items-center justify-center gap-3 z-10 rounded-md">
-                    <div className="flex gap-2">
-                        <Tooltip content="Copy Image URL">
-                            <button
-                                onClick={() => {
-                                    navigator.clipboard.writeText(img.path);
-                                    alert("Path copied to clipboard!");
-                                }}
-                                className="p-2 bg-white text-gray-700 rounded-lg hover:bg-brand-cream hover:text-brand-blue transition-all transform hover:scale-110 active:scale-95 shadow-lg"
-                            >
-                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                                </svg>
-                            </button>
-                        </Tooltip>
-                        <Tooltip content="Delete Image">
-                            <button
-                                onClick={() => handleDelete(img.path)}
-                                disabled={deleting === img.path}
-                                className="p-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 transition-all transform hover:scale-110 active:scale-95 shadow-lg"
-                            >
-                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                </svg>
-                            </button>
-                        </Tooltip>
-                    </div>
+                className="group/card relative bg-card border rounded-lg overflow-hidden transition-all duration-300 hover:shadow-lg hover:border-primary/50 aspect-square"
+              >
+                {/* Image Container */}
+                <div className="absolute inset-0 bg-muted/30">
+                  <img
+                    src={img.path}
+                    alt={img.name}
+                    className="w-full h-full object-cover transition-transform duration-500 group-hover/card:scale-105"
+                  />
                 </div>
 
-                <div className="absolute bottom-0 left-0 right-0 bg-white/95 backdrop-blur-sm p-2 border-t border-gray-100 flex flex-col gap-0.5 pointer-events-none">
-                    <div className="text-[10px] font-extrabold text-gray-900 truncate">
-                        {img.name}
-                    </div>
-                    <div className="text-[8px] font-bold text-gray-400 uppercase drop-shadow-sm">
-                        {formatSize(img.size)}
-                    </div>
+                {/* Action Overlay */}
+                <div className="absolute inset-0 bg-black/60 opacity-0 group-hover/card:opacity-100 transition-opacity duration-300 flex items-center justify-center gap-3 z-10">
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <button
+                          onClick={() => {
+                            navigator.clipboard.writeText(img.path);
+                            // Use Sonner toast ideal here instead of alert, but keeping logic simpler
+                            alert("Path copied to clipboard!");
+                          }}
+                          className="p-2 bg-background text-foreground rounded-md hover:bg-primary hover:text-primary-foreground transition-all transform hover:scale-110 shadow-sm"
+                        >
+                          <Copy className="w-4 h-4" />
+                        </button>
+                      </TooltipTrigger>
+                      <TooltipContent>Copy Image URL</TooltipContent>
+                    </Tooltip>
+
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <button
+                          onClick={() => handleDelete(img.path)}
+                          disabled={deleting === img.path}
+                          className="p-2 bg-destructive text-destructive-foreground rounded-md hover:bg-destructive/90 transition-all transform hover:scale-110 shadow-sm"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </TooltipTrigger>
+                      <TooltipContent>Delete Image</TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
                 </div>
+
+                <div className="absolute bottom-0 left-0 right-0 bg-background/90 backdrop-blur-sm p-2 border-t flex flex-col gap-0.5">
+                  <div className="text-[10px] font-semibold truncate text-foreground">
+                    {img.name}
+                  </div>
+                  <div className="text-[9px] font-medium text-muted-foreground uppercase">
+                    {formatSize(img.size)}
+                  </div>
                 </div>
+              </div>
             ))}
-            </div>
+          </div>
 
-            {/* Pagination Controls */}
-            {itemsPerPage !== "all" && totalPages > 1 && (
-                <div className="mt-auto pt-6 flex flex-col sm:flex-row items-center justify-between border-t border-gray-100 gap-4">
-                    <p className="text-sm text-gray-500 font-medium">
-                        Showing <span className="text-gray-900 font-bold">{Math.min((currentPage - 1) * effectiveItemsPerPage + 1, sortedImages.length)}</span> to <span className="text-gray-900 font-bold">{Math.min(currentPage * effectiveItemsPerPage, sortedImages.length)}</span> of <span className="text-gray-900 font-bold">{sortedImages.length}</span> results
-                    </p>
-                    <nav className="inline-flex -space-x-px rounded-lg shadow-sm" aria-label="Pagination">
-                        <button
-                            onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                            disabled={currentPage === 1}
-                            className="inline-flex items-center rounded-l-lg border border-gray-300 bg-white px-3 py-2 text-sm font-bold text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                        >
-                            Previous
-                        </button>
-                        {[...Array(totalPages)].map((_, i) => (
-                            <button
-                                key={i + 1}
-                                onClick={() => setCurrentPage(i + 1)}
-                                className={`inline-flex items-center border border-gray-300 px-4 py-2 text-sm font-bold transition-colors ${
-                                    currentPage === i + 1
-                                        ? "z-10 bg-brand-blue text-white border-brand-blue"
-                                        : "bg-white text-gray-500 hover:bg-gray-50"
-                                }`}
-                            >
-                                {i + 1}
-                            </button>
-                        ))}
-                        <button
-                            onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                            disabled={currentPage === totalPages}
-                            className="inline-flex items-center rounded-r-lg border border-gray-300 bg-white px-3 py-2 text-sm font-bold text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                        >
-                            Next
-                        </button>
-                    </nav>
-                </div>
-            )}
+          {/* Pagination Controls */}
+          {itemsPerPage !== "all" && totalPages > 1 && (
+            <div className="mt-auto pt-6 border-t flex flex-col sm:flex-row items-center justify-between gap-4">
+              <p className="text-sm text-muted-foreground font-medium">
+                Showing <span className="text-foreground font-bold">{Math.min((currentPage - 1) * effectiveItemsPerPage + 1, sortedImages.length)}</span> to <span className="text-foreground font-bold">{Math.min(currentPage * effectiveItemsPerPage, sortedImages.length)}</span> of <span className="text-foreground font-bold">{sortedImages.length}</span> results
+              </p>
+              <Pagination className="w-auto mx-0">
+                <PaginationContent>
+                  <PaginationItem>
+                    <PaginationPrevious
+                      onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                      aria-disabled={currentPage === 1}
+                      className={cn("cursor-pointer", currentPage === 1 && "pointer-events-none opacity-50")}
+                    />
+                  </PaginationItem>
+                  <PaginationItem>
+                    <PaginationNext
+                      onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                      aria-disabled={currentPage === totalPages}
+                      className={cn("cursor-pointer", currentPage === totalPages && "pointer-events-none opacity-50")}
+                    />
+                  </PaginationItem>
+                </PaginationContent>
+              </Pagination>
+            </div>
+          )}
         </>
       )}
     </div>

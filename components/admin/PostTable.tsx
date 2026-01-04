@@ -5,10 +5,40 @@ import { useState } from "react";
 import { deletePost } from "@/actions/posts";
 import { PostMetadata } from "@/types/post";
 import StatusPill from "./StatusPill";
-import Tooltip from "./Tooltip";
 import { useRouter } from "next/navigation";
 import { useLoading } from "./LoadingProvider";
-import { Eye, Pencil, Trash2 } from "lucide-react";
+import { Eye, Pencil, Trash2, Filter } from "lucide-react";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface PostTableProps {
   posts: PostMetadata[];
@@ -20,7 +50,7 @@ export default function PostTable({ posts, hidePagination = false }: PostTablePr
   const router = useRouter();
   const [isDeleting, setIsDeleting] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState<number | "all">(5);
+  const [itemsPerPage, setItemsPerPage] = useState<string>("5");
   const [categoryFilter, setCategoryFilter] = useState("all");
 
   // Get unique categories for filter dropdown
@@ -31,7 +61,7 @@ export default function PostTable({ posts, hidePagination = false }: PostTablePr
     return post.tags?.includes(categoryFilter) || post.category === categoryFilter;
   });
 
-  const effectiveItemsPerPage = itemsPerPage === "all" ? filteredPosts.length : itemsPerPage;
+  const effectiveItemsPerPage = itemsPerPage === "all" ? filteredPosts.length : parseInt(itemsPerPage);
   const totalPages = Math.ceil(filteredPosts.length / effectiveItemsPerPage);
 
   const paginatedPosts = itemsPerPage === "all"
@@ -39,7 +69,7 @@ export default function PostTable({ posts, hidePagination = false }: PostTablePr
     : filteredPosts.slice((currentPage - 1) * effectiveItemsPerPage, currentPage * effectiveItemsPerPage);
 
   const handleItemsPerPageChange = (val: string) => {
-    setItemsPerPage(val === "all" ? "all" : parseInt(val));
+    setItemsPerPage(val);
     setCurrentPage(1);
   };
 
@@ -55,7 +85,7 @@ export default function PostTable({ posts, hidePagination = false }: PostTablePr
         const result = await deletePost(slug);
 
         if (result.success) {
-          router.refresh(); // Refresh server component to reflect changes
+          router.refresh();
         } else {
           alert("Failed to delete post: " + result.error);
           setIsDeleting(null);
@@ -65,196 +95,177 @@ export default function PostTable({ posts, hidePagination = false }: PostTablePr
   };
 
   return (
-    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 min-h-[300px]">
-      <div className="p-4 border-b border-gray-100 flex gap-4 items-center bg-gray-50/50 rounded-t-2xl">
+    <div className="bg-card rounded-lg border shadow-sm">
+      <div className="p-4 border-b flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <span className="text-xs font-bold uppercase text-gray-400">Filter Category:</span>
-          <select
-            value={categoryFilter}
-            onChange={(e) => handleCategoryFilterChange(e.target.value)}
-            className="bg-white border border-gray-200 rounded-lg px-3 py-1.5 text-sm outline-none focus:ring-2 focus:ring-brand-blue/20"
-          >
-            <option value="all">All Categories</option>
-            {categories.map(cat => (
-              <option key={cat} value={cat}>{cat}</option>
-            ))}
-          </select>
+          <Filter className="h-4 w-4 text-muted-foreground" />
+          <span className="text-sm font-medium text-muted-foreground">Filter Category:</span>
+          <Select value={categoryFilter} onValueChange={handleCategoryFilterChange}>
+            <SelectTrigger className="w-[180px] h-8 text-xs">
+              <SelectValue placeholder="All Categories" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Categories</SelectItem>
+              {categories.map(cat => (
+                <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
       </div>
-      <div className="overflow-visible">
-        <table className="min-w-full divide-y divide-gray-100">
-          <thead className="bg-gray-50/50">
-            <tr>
-              <th scope="col" className="px-8 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-widest first:rounded-tl-2xl">
-                Title
-              </th>
-              <th scope="col" className="px-8 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-widest">
-                Status
-              </th>
-              <th scope="col" className="px-8 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-widest">
-                Author
-              </th>
-              <th scope="col" className="px-8 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-widest">
-                Category
-              </th>
-              <th scope="col" className="px-8 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-widest">
-                Date
-              </th>
-              <th scope="col" className="relative px-8 py-4 last:rounded-tr-2xl">
-                <span className="sr-only">Actions</span>
-              </th>
-            </tr>
-          </thead>
-          <tbody className="bg-white divide-y divide-gray-100">
-            {paginatedPosts.map((post, index) => {
-              // Determine display categories from tags (assuming tags are the categories now)
+
+      <div className="border-b">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead className="w-[400px]">Title</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead>Author</TableHead>
+              <TableHead>Category</TableHead>
+              <TableHead>Date</TableHead>
+              <TableHead className="text-right">Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {posts.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={6} className="h-24 text-center">
+                  No posts found.
+                </TableCell>
+              </TableRow>
+            ) : paginatedPosts.map((post) => {
               const displayCategories = post.tags && post.tags.length > 0 ? post.tags : (post.category ? [post.category] : []);
               const firstCategory = displayCategories[0] || "Uncategorized";
               const otherCategoriesCount = displayCategories.length > 1 ? displayCategories.length - 1 : 0;
               const otherCategoriesTitle = displayCategories.slice(1).join(", ");
 
               return (
-                <tr key={post.slug} className="hover:bg-brand-cream/20 transition-colors group/row tracking-tight h-16">
-                  <td className="px-8 py-4 whitespace-nowrap">
-                    <div className="text-sm font-bold text-gray-900 group-hover/row:text-brand-blue transition-colors max-w-md truncate" title={post.title}>
-                      <Link href={`/admin/posts/${post.slug}/edit`}>
-                        {post.title.length > 30 ? `${post.title.substring(0, 30)}...` : post.title}
-                      </Link>
-                    </div>
-                  </td>
-                  <td className="px-8 py-4 whitespace-nowrap">
+                <TableRow key={post.slug}>
+                  <TableCell className="font-medium">
+                    <Link href={`/admin/posts/${post.slug}/edit`} className="hover:underline">
+                      {post.title}
+                    </Link>
+                  </TableCell>
+                  <TableCell>
                     <StatusPill published={post.published} />
-                  </td>
-                  <td className="px-8 py-4 whitespace-nowrap text-sm text-gray-600 font-medium">
-                    {post.author}
-                  </td>
-                  <td className="px-8 py-4 whitespace-nowrap">
-                    <span className="inline-flex items-center gap-1">
-                      <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-bold bg-gray-100 text-gray-600 ring-1 ring-inset ring-gray-200 capitalize">
+                  </TableCell>
+                  <TableCell>{post.author}</TableCell>
+                  <TableCell>
+                    <div className="flex items-center gap-1">
+                      <Badge variant="outline" className="capitalize">
                         {firstCategory.replace("-", " ")}
-                      </span>
+                      </Badge>
                       {otherCategoriesCount > 0 && (
-                        <span className="text-xs text-gray-400 font-medium cursor-help" title={otherCategoriesTitle}>
-                          +{otherCategoriesCount}
-                        </span>
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Badge variant="secondary" className="text-xs h-5 px-1 cursor-help">
+                                +{otherCategoriesCount}
+                              </Badge>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>{otherCategoriesTitle}</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
                       )}
-                    </span>
-                  </td>
-                  <td className="px-8 py-4 whitespace-nowrap text-sm text-gray-500 tabular-nums">
-                    {new Date(post.publishedAt).toLocaleDateString("id-ID", { day: 'numeric', month: 'short', year: 'numeric' })}
-                  </td>
-                  <td className="px-8 py-4 whitespace-nowrap text-right text-sm font-bold">
-                    <div className="flex justify-end gap-2">
-                      <Tooltip content="Preview Post">
-                        <Link
-                          href={`/artikel/${firstCategory.toLowerCase().replace(/\s+/g, '-')}/${post.slug}`}
-                          target="_blank"
-                          className="p-1 text-gray-400 hover:text-brand-blue transition-colors"
-                        >
-                          <Eye className="h-4 w-4" />
-                        </Link>
-                      </Tooltip>
-                      <Tooltip content="Edit Post">
-                        <Link
-                          href={`/admin/posts/${post.slug}/edit`}
-                          className="p-1 text-gray-400 hover:text-brand-blue transition-colors"
-                        >
-                          <Pencil className="h-4 w-4" />
-                        </Link>
-                      </Tooltip>
-                      <Tooltip content="Delete Post" position="left">
-                        <button
-                          onClick={() => handleDelete(post.slug, post.title)}
-                          disabled={isDeleting === post.slug}
-                          className="p-1 text-gray-400 hover:text-red-600 transition-colors disabled:opacity-50"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </button>
-                      </Tooltip>
                     </div>
-                  </td>
-                </tr>
+                  </TableCell>
+                  <TableCell>
+                    {new Date(post.publishedAt).toLocaleDateString("id-ID", { day: 'numeric', month: 'short', year: 'numeric' })}
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <TooltipProvider>
+                      <div className="flex justify-end gap-2">
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button variant="ghost" size="icon" asChild className="h-8 w-8">
+                              <Link
+                                href={`/artikel/${firstCategory.toLowerCase().replace(/\s+/g, '-')}/${post.slug}`}
+                                target="_blank"
+                              >
+                                <Eye className="h-4 w-4 text-muted-foreground" />
+                              </Link>
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>Preview Post</TooltipContent>
+                        </Tooltip>
+
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button variant="ghost" size="icon" asChild className="h-8 w-8">
+                              <Link href={`/admin/posts/${post.slug}/edit`}>
+                                <Pencil className="h-4 w-4 text-muted-foreground" />
+                              </Link>
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>Edit Post</TooltipContent>
+                        </Tooltip>
+
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => handleDelete(post.slug, post.title)}
+                              disabled={isDeleting === post.slug}
+                              className="h-8 w-8 hover:text-destructive"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>Delete Post</TooltipContent>
+                        </Tooltip>
+                      </div>
+                    </TooltipProvider>
+                  </TableCell>
+                </TableRow>
               )
             })}
-          </tbody>
-        </table>
-        {posts.length === 0 && (
-          <div className="text-center py-12 text-gray-500 font-medium">
-            No posts found. Create one to get started!
-          </div>
-        )}
+          </TableBody>
+        </Table>
       </div>
 
       {/* Pagination Controls */}
       {posts.length > 0 && !hidePagination && (
-        <div className="bg-gray-50/80 px-8 py-5 border-t border-gray-100 flex flex-col sm:flex-row justify-between items-center gap-6 rounded-b-2xl">
-          <div className="flex flex-col sm:flex-row items-center gap-6">
-            <div className="flex items-center gap-3">
-              <label className="text-xs font-bold uppercase tracking-widest text-gray-400">Show</label>
-              <div className="relative group">
-                <select
-                  value={itemsPerPage}
-                  onChange={(e) => handleItemsPerPageChange(e.target.value)}
-                  className="appearance-none bg-white border border-gray-200 rounded-lg pl-3 pr-9 py-1.5 outline-none focus:ring-2 focus:ring-brand-blue/20 focus:border-brand-blue transition-all text-sm font-bold text-gray-900 cursor-pointer shadow-sm"
-                >
-                  <option value={5}>5</option>
-                  <option value={10}>10</option>
-                  <option value={25}>25</option>
-                  <option value={50}>50</option>
-                  <option value="all">All</option>
-                </select>
-                <div className="absolute inset-y-0 right-0 flex items-center pr-2.5 pointer-events-none text-gray-400 group-hover:text-brand-blue transition-colors">
-                  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M19 9l-7 7-7-7" />
-                  </svg>
-                </div>
-              </div>
-            </div>
-            <p className="text-sm text-gray-500 font-medium tracking-tight">
-              Showing <span>{((currentPage - 1) * effectiveItemsPerPage) + 1}</span> to <span>{Math.min(currentPage * effectiveItemsPerPage, posts.length)}</span> of total <span>{posts.length}</span> results
-            </p>
+        <div className="py-4 flex flex-col sm:flex-row justify-between items-center gap-4 px-4">
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-muted-foreground">Rows per page</span>
+            <Select value={itemsPerPage} onValueChange={handleItemsPerPageChange}>
+              <SelectTrigger className="w-[70px] h-8 text-xs">
+                <SelectValue placeholder="5" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="5">5</SelectItem>
+                <SelectItem value="10">10</SelectItem>
+                <SelectItem value="25">25</SelectItem>
+                <SelectItem value="50">50</SelectItem>
+                <SelectItem value="all">All</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
-          {itemsPerPage !== "all" && totalPages > 1 && (
-            <nav className="inline-flex -space-x-px rounded-xl shadow-sm bg-white border border-gray-200 overflow-hidden" aria-label="Pagination">
-              <button
-                onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-                disabled={currentPage === 1}
-                className="inline-flex items-center px-3 py-2 text-gray-500 bg-white hover:bg-gray-50 disabled:opacity-30 disabled:hover:bg-white transition-all border-r border-gray-200"
-                title="Previous Page"
-              >
-                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                </svg>
-              </button>
-
-              <div className="flex items-center">
-                {[...Array(totalPages)].map((_, i) => (
-                  <button
-                    key={i + 1}
-                    onClick={() => setCurrentPage(i + 1)}
-                    className={`inline-flex items-center px-4 py-2 text-sm font-bold transition-all border-r border-gray-200 last:border-r-0 ${currentPage === i + 1
-                      ? "bg-brand-blue text-white"
-                      : "bg-white text-gray-600 hover:bg-brand-cream/30 hover:text-brand-blue"
-                      }`}
-                  >
-                    {i + 1}
-                  </button>
-                ))}
-              </div>
-
-              <button
-                onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-                disabled={currentPage === totalPages}
-                className="inline-flex items-center px-3 py-2 text-gray-500 bg-white hover:bg-gray-50 disabled:opacity-30 disabled:hover:bg-white transition-all border-l border-gray-200"
-                title="Next Page"
-              >
-                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                </svg>
-              </button>
-            </nav>
-          )}
+          <div className="flex items-center gap-4 text-sm text-muted-foreground">
+            <span>{((currentPage - 1) * effectiveItemsPerPage) + 1}-{Math.min(currentPage * effectiveItemsPerPage, filteredPosts.length)} of {filteredPosts.length}</span>
+            <Pagination>
+              <PaginationContent>
+                <PaginationItem>
+                  <PaginationPrevious
+                    onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                    aria-disabled={currentPage === 1}
+                    className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                  />
+                </PaginationItem>
+                <PaginationItem>
+                  <PaginationNext
+                    onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                    aria-disabled={currentPage === totalPages}
+                    className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                  />
+                </PaginationItem>
+              </PaginationContent>
+            </Pagination>
+          </div>
         </div>
       )}
     </div>

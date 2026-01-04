@@ -2,8 +2,18 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { Menu, X, ChevronDown } from "lucide-react";
+import { Menu, X } from "lucide-react";
 import { cn } from "@/lib/utils";
+import {
+    NavigationMenu,
+    NavigationMenuContent,
+    NavigationMenuItem,
+    NavigationMenuLink,
+    NavigationMenuList,
+    NavigationMenuTrigger,
+    navigationMenuTriggerStyle,
+} from "@/components/ui/navigation-menu";
+import { Button, buttonVariants } from "@/components/ui/button";
 
 interface NavItem {
     title: string;
@@ -45,83 +55,164 @@ const navItems: NavItem[] = [
     },
 ];
 
+const ListItem = React.forwardRef<
+    React.ElementRef<"a">,
+    React.ComponentPropsWithoutRef<"a">
+>(({ className, title, children, ...props }, ref) => {
+    return (
+        <li>
+            <NavigationMenuLink asChild>
+                <a
+                    ref={ref}
+                    className={cn(
+                        "block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground",
+                        className
+                    )}
+                    {...props}
+                >
+                    <div className="text-sm font-medium leading-none">{title}</div>
+                    <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
+                        {children}
+                    </p>
+                </a>
+            </NavigationMenuLink>
+        </li>
+    );
+});
+ListItem.displayName = "ListItem";
+
 export default function Header() {
     const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
-    const [openDropdown, setOpenDropdown] = React.useState<string | null>(null);
+    const [isScrolled, setIsScrolled] = React.useState(false);
+    const [isOverFooter, setIsOverFooter] = React.useState(false);
 
-    const toggleDropdown = (title: string) => {
-        setOpenDropdown(openDropdown === title ? null : title);
-    };
+    React.useEffect(() => {
+        const handleScroll = () => {
+            setIsScrolled(window.scrollY > 20);
+
+
+            // Check footer intersection
+            const footer = document.querySelector('footer');
+            if (footer) {
+                const rect = footer.getBoundingClientRect();
+                // If footer is approaching the top (approx navbar height + buffer)
+                // Use smaller threshold to ensure valid overlap before switching
+                setIsOverFooter(rect.top <= 20);
+            }
+        };
+        window.addEventListener("scroll", handleScroll);
+        return () => window.removeEventListener("scroll", handleScroll);
+    }, []);
 
     return (
-        <header className="sticky top-0 z-50 w-full border-b bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/80">
-            <nav className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
+        <header
+            className={cn(
+                "fixed top-0 z-50 w-full transition-all duration-300 flex justify-center",
+                isScrolled ? "pt-4" : "py-6"
+            )}
+        >
+            <nav
+                className={cn(
+                    "flex items-center justify-between px-4 sm:px-6 lg:px-8 transition-all duration-500 ease-in-out",
+                    isOverFooter
+                        ? "w-[90%] max-w-6xl bg-white/50 backdrop-blur-xl shadow-lg border border-white/20 rounded-full py-3"
+                        : isScrolled
+                            ? "w-[90%] max-w-6xl bg-white/500 backdrop-blur-xl shadow-lg border border-white/20 rounded-full py-3"
+                            : "w-full max-w-7xl bg-transparent py-2"
+                )}
+            >
                 {/* Logo */}
                 <div className="flex lg:flex-1">
-                    <Link href="/" className="flex items-center gap-2">
-                        <div className="h-10 w-10 rounded-full bg-brand-blue flex items-center justify-center text-white font-bold">
-                            P
+                    <Link href="/" className="flex items-center gap-3 group">
+                        <div className="relative h-10 w-10 overflow-hidden transition-transform duration-300 group-hover:scale-110">
+                            {/* Using standard img for now to ensure load, can switch to next/image if configured */}
+                            <img
+                                src="/images/logo/logo.png"
+                                alt="Logo Paroki"
+                                className="h-full w-full object-contain"
+                            />
                         </div>
                         <div className="hidden sm:block">
-                            <div className="text-sm font-bold text-brand-dark">Paroki Brayut</div>
-                            <div className="text-xs text-gray-600">Santo Yohanes Paulus II</div>
+                            <div className={cn(
+                                "text-sm font-bold transition-colors",
+                                isScrolled ? "text-brand-dark" : "text-white"
+                            )}>Paroki Brayut</div>
+                            <div className={cn(
+                                "text-xs transition-colors",
+                                isScrolled ? "text-gray-500" : "text-white/80"
+                            )}>Santo Yohanes Paulus II</div>
                         </div>
                     </Link>
                 </div>
 
                 {/* Desktop Navigation */}
                 <div className="hidden lg:flex lg:gap-x-8 lg:items-center">
-                    {navItems.map((item) => (
-                        <div key={item.title} className="relative group">
-                            {item.items ? (
-                                <div>
-                                    <button
-                                        className="flex items-center gap-1 text-sm font-medium text-gray-700 hover:text-brand-blue transition-colors"
-                                        onMouseEnter={() => setOpenDropdown(item.title)}
-                                    >
-                                        {item.title}
-                                        <ChevronDown className="h-4 w-4" />
-                                    </button>
-                                    {openDropdown === item.title && (
-                                        <div
-                                            className="absolute left-0 mt-2 w-56 rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 py-1"
-                                            onMouseLeave={() => setOpenDropdown(null)}
-                                        >
-                                            {item.items.map((subItem) => (
-                                                <Link
-                                                    key={subItem.href}
-                                                    href={subItem.href || "#"}
-                                                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-brand-cream hover:text-brand-blue transition-colors"
-                                                >
-                                                    {subItem.title}
-                                                </Link>
-                                            ))}
-                                        </div>
+                    <NavigationMenu>
+                        <NavigationMenuList>
+                            {navItems.map((item) => (
+                                <NavigationMenuItem key={item.title}>
+                                    {item.items ? (
+                                        <>
+                                            <NavigationMenuTrigger
+                                                className={cn(
+                                                    "bg-transparent focus:bg-white/10",
+                                                    isScrolled ? "text-brand-dark hover:bg-black/5" : "text-white hover:text-white hover:bg-white/10"
+                                                )}
+                                            >
+                                                {item.title}
+                                            </NavigationMenuTrigger>
+                                            <NavigationMenuContent>
+                                                <ul className="grid w-[400px] gap-3 p-4 md:w-[500px] md:grid-cols-2 lg:w-[600px]">
+                                                    {item.items.map((subItem) => (
+                                                        <ListItem
+                                                            key={subItem.title}
+                                                            title={subItem.title}
+                                                            href={subItem.href}
+                                                        >
+                                                        </ListItem>
+                                                    ))}
+                                                </ul>
+                                            </NavigationMenuContent>
+                                        </>
+                                    ) : (
+                                        <NavigationMenuLink asChild>
+                                            <Link
+                                                href={item.href || "#"}
+                                                className={cn(
+                                                    navigationMenuTriggerStyle(),
+                                                    "bg-transparent",
+                                                    isScrolled ? "text-brand-dark hover:bg-black/5" : "text-white hover:text-white hover:bg-white/10"
+                                                )}
+                                            >
+                                                {item.title}
+                                            </Link>
+                                        </NavigationMenuLink>
                                     )}
-                                </div>
-                            ) : (
-                                <Link
-                                    href={item.href || "#"}
-                                    className="text-sm font-medium text-gray-700 hover:text-brand-blue transition-colors"
-                                >
-                                    {item.title}
-                                </Link>
-                            )}
-                        </div>
-                    ))}
+                                </NavigationMenuItem>
+                            ))}
+                        </NavigationMenuList>
+                    </NavigationMenu>
                 </div>
 
                 {/* CTA Buttons */}
                 <div className="hidden lg:flex lg:flex-1 lg:justify-end lg:gap-x-3">
                     <Link
                         href="/jadwal-misa"
-                        className="rounded-full bg-brand-blue px-6 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-brand-darkBlue transition-colors"
+                        className={cn(
+                            buttonVariants({ variant: isScrolled ? "default" : "secondary", size: "sm" }),
+                            "rounded-full px-6 font-medium transition-all hover:scale-105"
+                        )}
                     >
                         Jadwal Misa
                     </Link>
                     <Link
                         href="/contact"
-                        className="rounded-full border border-brand-blue px-6 py-2.5 text-sm font-semibold text-brand-blue hover:bg-brand-cream transition-colors"
+                        className={cn(
+                            buttonVariants({ variant: isScrolled ? "outline" : "default", size: "sm" }),
+                            "rounded-full px-6 transition-all hover:scale-105", isScrolled
+                            ? "border-brand-dark text-brand-dark hover:bg-brand-gold hover:text-white"
+                            : "text-white bg-brand-gold hover:bg-white hover:text-brand-dark"
+                        )}
                     >
                         Donate Us
                     </Link>
@@ -129,9 +220,13 @@ export default function Header() {
 
                 {/* Mobile menu button */}
                 <div className="flex lg:hidden">
-                    <button
-                        type="button"
-                        className="-m-2.5 inline-flex items-center justify-center rounded-md p-2.5 text-gray-700"
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        className={cn(
+                            "-m-2.5 inline-flex items-center justify-center rounded-md p-2.5",
+                            isScrolled ? "text-brand-dark" : "text-white"
+                        )}
                         onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
                     >
                         <span className="sr-only">Toggle menu</span>
@@ -140,49 +235,36 @@ export default function Header() {
                         ) : (
                             <Menu className="h-6 w-6" aria-hidden="true" />
                         )}
-                    </button>
+                    </Button>
                 </div>
             </nav>
 
             {/* Mobile menu */}
             {mobileMenuOpen && (
-                <div className="lg:hidden border-t bg-white">
+                <div className="lg:hidden border-t bg-background absolute top-full w-full left-0 shadow-lg">
                     <div className="space-y-1 px-4 pb-3 pt-2">
                         {navItems.map((item) => (
                             <div key={item.title}>
                                 {item.items ? (
-                                    <div>
-                                        <button
-                                            onClick={() => toggleDropdown(item.title)}
-                                            className="flex w-full items-center justify-between rounded-md px-3 py-2 text-base font-medium text-gray-700 hover:bg-gray-50"
-                                        >
-                                            {item.title}
-                                            <ChevronDown
-                                                className={cn(
-                                                    "h-4 w-4 transition-transform",
-                                                    openDropdown === item.title && "rotate-180"
-                                                )}
-                                            />
-                                        </button>
-                                        {openDropdown === item.title && (
-                                            <div className="ml-4 space-y-1">
-                                                {item.items.map((subItem) => (
-                                                    <Link
-                                                        key={subItem.href}
-                                                        href={subItem.href || "#"}
-                                                        className="block rounded-md px-3 py-2 text-sm text-gray-600 hover:bg-brand-cream hover:text-brand-blue"
-                                                        onClick={() => setMobileMenuOpen(false)}
-                                                    >
-                                                        {subItem.title}
-                                                    </Link>
-                                                ))}
-                                            </div>
-                                        )}
+                                    <div className="space-y-2 py-2">
+                                        <div className="font-semibold text-foreground px-3">{item.title}</div>
+                                        <div className="pl-4 space-y-1 border-l ml-3">
+                                            {item.items.map((subItem) => (
+                                                <Link
+                                                    key={subItem.href}
+                                                    href={subItem.href || "#"}
+                                                    className="block rounded-md px-3 py-2 text-sm text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                                                    onClick={() => setMobileMenuOpen(false)}
+                                                >
+                                                    {subItem.title}
+                                                </Link>
+                                            ))}
+                                        </div>
                                     </div>
                                 ) : (
                                     <Link
                                         href={item.href || "#"}
-                                        className="block rounded-md px-3 py-2 text-base font-medium text-gray-700 hover:bg-gray-50"
+                                        className="block rounded-md px-3 py-2 text-base font-medium text-foreground hover:bg-accent hover:text-accent-foreground"
                                         onClick={() => setMobileMenuOpen(false)}
                                     >
                                         {item.title}
@@ -193,14 +275,14 @@ export default function Header() {
                         <div className="mt-4 space-y-2 border-t pt-4">
                             <Link
                                 href="/jadwal-misa"
-                                className="block rounded-full bg-brand-blue px-6 py-2.5 text-center text-sm font-semibold text-white hover:bg-brand-darkBlue"
+                                className={cn(buttonVariants({ variant: "default" }), "w-full rounded-full justify-center")}
                                 onClick={() => setMobileMenuOpen(false)}
                             >
                                 Jadwal Misa
                             </Link>
                             <Link
                                 href="/contact"
-                                className="block rounded-full border border-brand-blue px-6 py-2.5 text-center text-sm font-semibold text-brand-blue hover:bg-brand-cream"
+                                className={cn(buttonVariants({ variant: "outline" }), "w-full rounded-full justify-center border-primary text-primary")}
                                 onClick={() => setMobileMenuOpen(false)}
                             >
                                 Donate Us

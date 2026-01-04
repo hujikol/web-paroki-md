@@ -1,14 +1,11 @@
-import Link from "next/link";
 import { Metadata } from "next";
 import { getAllPosts } from "@/actions/posts";
 import { getChurchStatistics, getScheduleEvents } from "@/lib/data";
-import { getFormulir } from "@/actions/data";
-import PostCard from "@/components/blog/PostCard";
-import HeroCarousel from "@/components/home/HeroCarousel";
-import JadwalMisaPreview from "@/components/home/JadwalMisaPreview";
-import FormulirLinkSection from "@/components/home/FormulirLinkSection";
-import DonationSection from "@/components/home/DonationSection";
-import StatistikSection from "@/components/home/StatistikSection";
+import ImmersiveHero from "@/components/home/ImmersiveHero";
+import IdentitySection from "@/components/home/IdentitySection";
+import WorshipInvitation from "@/components/home/WorshipInvitation";
+import CommunityStories from "@/components/home/CommunityStories";
+import ImpactDonation from "@/components/home/ImpactDonation";
 
 export const metadata: Metadata = {
   title: "Beranda | Paroki Brayut Santo Yohanes Paulus II",
@@ -23,84 +20,52 @@ export const metadata: Metadata = {
   },
 };
 
+export const revalidate = 3600; // Revalidate every hour
+
 export default async function HomePage() {
-  let allPosts: Awaited<ReturnType<typeof getAllPosts>> = [];
-  let churchStats = null;
-  let upcomingEvents: any[] = [];
-  let formulirData: Awaited<ReturnType<typeof getFormulir>> = [];
+  const [allPosts, churchStats, upcomingEvents] = await Promise.all([
+    getAllPosts().catch(err => {
+      console.error("Failed to fetch posts:", err);
+      return [];
+    }),
+    getChurchStatistics().catch(err => {
+      console.error("Failed to fetch stats:", err);
+      return null; // Handle null gracefully in component
+    }),
+    getScheduleEvents().catch(err => {
+      console.error("Failed to fetch events:", err);
+      return [];
+    })
+  ]);
 
-  try {
-    allPosts = await getAllPosts();
-  } catch (error) {
-    console.error('Failed to fetch posts:', error);
-  }
-
-  try {
-    churchStats = await getChurchStatistics();
-  } catch (error) {
-    console.error('Failed to fetch stats:', error);
-  }
-
-  try {
-    upcomingEvents = await getScheduleEvents();
-  } catch (error) {
-    console.error('Failed to fetch events:', error);
-  }
-
-  try {
-    formulirData = await getFormulir();
-  } catch (error) {
-    console.error('Failed to fetch formulir:', error);
-  }
-
-  const featuredPosts = allPosts.filter((post) => post.published).slice(0, 3);
+  const publishedPosts = allPosts.filter((post) => post.published);
 
   return (
-    <div className="animate-fade-in">
-      {/* 1. Hero Section - Infinite Carousel */}
-      <HeroCarousel />
-
-      {/* 2. Jadwal Misa - Main church schedule + CTAs */}
-      <JadwalMisaPreview upcomingEvents={upcomingEvents} />
-
-      {/* 3. Formulir Gereja - CTA Section */}
-      <FormulirLinkSection formulirData={formulirData} />
-
-      {/* 4. Warta Paroki - Latest News */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        <div className="flex justify-between items-end mb-10 border-b border-gray-200 pb-4">
-          <div>
-            <span className="text-brand-blue font-bold tracking-wider uppercase text-sm">Update Terbaru</span>
-            <h2 className="text-3xl font-bold text-brand-dark mt-1">
-              Warta Paroki
-            </h2>
-          </div>
-          <Link
-            href="/artikel"
-            className="text-brand-blue hover:text-brand-darkBlue font-medium text-sm flex items-center gap-1 mb-1"
-          >
-            Lihat Semua <span aria-hidden="true">&rarr;</span>
-          </Link>
-        </div>
-
-        {featuredPosts.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {featuredPosts.map((post) => (
-              <PostCard key={post.slug} post={post} />
-            ))}
-          </div>
-        ) : (
-          <div className="text-center py-12 bg-white rounded-xl border border-dashed border-gray-300">
-            <p className="text-gray-500">Belum ada berita terbaru.</p>
-          </div>
-        )}
+    <main className="min-h-screen bg-brand-warm selection:bg-brand-gold selection:text-white">
+      {/* 1. The Hook: Emotional Immersive Hero */}
+      <section className="h-screen w-full">
+        <ImmersiveHero />
       </section>
 
-      {/* 5. Statistik Paroki */}
-      <StatistikSection stats={churchStats} />
+      {/* 2. The Identity: Who We Are & Exploration */}
+      <section className="min-h-screen w-full">
+        <IdentitySection />
+      </section>
 
-      {/* 6. Donation Section - New church building */}
-      <DonationSection />
-    </div>
+      {/* 3. The Invitation: Worship & Schedule */}
+      <section className="min-h-screen w-full">
+        <WorshipInvitation upcomingEvents={upcomingEvents} />
+      </section>
+
+      {/* 4. The Life: Community Stories (News) */}
+      <section className="min-h-screen w-full">
+        <CommunityStories posts={publishedPosts} />
+      </section>
+
+      {/* 5. The Impact: Building Vision (Donation) */}
+      <section>
+        <ImpactDonation />
+      </section>
+    </main>
   );
 }

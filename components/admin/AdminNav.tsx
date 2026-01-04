@@ -62,7 +62,7 @@ export default function AdminNav({ user }: AdminNavProps) {
   const handleSignOut = () => {
     setIsSignOutPending(true);
     startTransition(() => {
-      signOut({ callbackUrl: "/admin/login" });
+      signOut({ callbackUrl: "/admin" });
     });
   };
 

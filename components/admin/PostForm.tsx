@@ -10,8 +10,35 @@ import DeleteConfirmModal from "./DeleteConfirmModal";
 import StatusPill from "./StatusPill";
 import { Post, PostCategory } from "@/types/post";
 import { useLoading } from "./LoadingProvider";
-import { POST_CATEGORIES } from "@/lib/constants";
-import { Eye } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
+import {
+    Form,
+    FormControl,
+    FormField,
+    FormItem,
+    FormLabel,
+    FormMessage,
+} from "@/components/ui/form";
+import {
+    Popover,
+    PopoverContent,
+    PopoverTrigger,
+} from "@/components/ui/popover";
+import { Eye, ChevronLeft, ChevronDown, Check, X, Image as ImageIcon, Loader2 } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
 
 interface PostFormProps {
     post?: Post;
@@ -20,60 +47,76 @@ interface PostFormProps {
     categories: string[];
 }
 
+const formSchema = z.object({
+    title: z.string().min(1, "Title is required"),
+    description: z.string().optional(),
+    author: z.string(),
+    category: z.string(),
+    tags: z.array(z.string()),
+    content: z.any(),
+    banner: z.string().optional(),
+    published: z.boolean(),
+    metaTitle: z.string().optional(),
+    metaDescription: z.string().optional(),
+    metaKeywords: z.string().optional(),
+    ogImage: z.string().optional(),
+});
+
 export default function PostForm({ post, mode, user, categories: masterCategories }: PostFormProps) {
     const router = useRouter();
     const { startTransition } = useLoading();
-    const [formData, setFormData] = useState({
-        title: post?.frontmatter.title || "",
-        description: post?.frontmatter.description || "",
-        author: post?.frontmatter.author || "Admin Paroki",
-        tags: post?.frontmatter.tags || [],
-        category: post?.frontmatter.category || (masterCategories[0] || "umum") as PostCategory,
-        content: post?.content || { ops: [] },
-        banner: post?.frontmatter.banner || "",
-        published: post?.frontmatter.published || false,
-        // SEO Fields
-        metaTitle: post?.frontmatter.metaTitle || "",
-        metaDescription: post?.frontmatter.metaDescription || "",
-        metaKeywords: post?.frontmatter.metaKeywords || "",
-        ogImage: post?.frontmatter.ogImage || "",
+
+    // Form definition
+    const form = useForm<z.infer<typeof formSchema>>({
+        resolver: zodResolver(formSchema),
+        defaultValues: {
+            title: post?.frontmatter.title || "",
+            description: post?.frontmatter.description || "",
+            author: post?.frontmatter.author || user?.name || "Admin Paroki",
+            category: post?.frontmatter.category || (masterCategories[0] || "umum"),
+            tags: post?.frontmatter.tags || [],
+            content: post?.content || { ops: [] },
+            banner: post?.frontmatter.banner || "",
+            published: post?.frontmatter.published || false,
+            metaTitle: post?.frontmatter.metaTitle || "",
+            metaDescription: post?.frontmatter.metaDescription || "",
+            metaKeywords: Array.isArray(post?.frontmatter.metaKeywords)
+                ? post?.frontmatter.metaKeywords.join(", ")
+                : post?.frontmatter.metaKeywords || "",
+            ogImage: post?.frontmatter.ogImage || "",
+        },
     });
 
     const [tagInput, setTagInput] = useState("");
-
-    // removed local categories state fetching since passed via props
-    const [categories, setCategories] = useState<string[]>([]); // Keep for tags autocomplete if needed, but maybe better to avoid confusion? 
-    // Wait, getAllCategories() fetches tags essentially in the old system. 
-    // Let's rename the prop to masterCategories to avoid conflict.
-
+    const [categories, setCategories] = useState<string[]>([]);
     const [loadingCategories, setLoadingCategories] = useState(false);
     const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
-    // ...
-
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [showBannerPicker, setShowBannerPicker] = useState(false);
     const [showOgImagePicker, setShowOgImagePicker] = useState(false);
-    const [showPublishDropdown, setShowPublishDropdown] = useState(false);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
-    const dropdownRef = useRef<HTMLDivElement>(null);
     const categoryDropdownRef = useRef<HTMLDivElement>(null);
+
+    // Watch values for UI updates
+    const watchedTags = form.watch("tags");
+    const watchedBanner = form.watch("banner");
+    const watchedOgImage = form.watch("ogImage");
+    const watchedPublished = form.watch("published");
+    const watchedTitle = form.watch("title");
 
     // Close dropdown when clicking outside
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
-            if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-                setShowPublishDropdown(false);
-            }
             if (categoryDropdownRef.current && !categoryDropdownRef.current.contains(event.target as Node)) {
                 setShowCategoryDropdown(false);
             }
         };
-        if (showPublishDropdown || showCategoryDropdown) {
+        if (showCategoryDropdown) {
             document.addEventListener("mousedown", handleClickOutside);
         }
         return () => document.removeEventListener("mousedown", handleClickOutside);
-    }, [showPublishDropdown, showCategoryDropdown]);
+    }, [showCategoryDropdown]);
 
     // Fetch categories for suggestions
     useEffect(() => {
@@ -83,33 +126,37 @@ export default function PostForm({ post, mode, user, categories: masterCategorie
             .finally(() => setLoadingCategories(false));
     }, []);
 
-    const handleSubmit = async (publishStatus: boolean) => {
-        const hasContent = formData.content &&
-            (typeof formData.content === 'string' ? formData.content.trim() !== "" :
-                formData.content.ops && formData.content.ops.length > 0);
+    const onSubmit = async (values: z.infer<typeof formSchema>, publishStatus?: boolean) => {
+        // Validation check for empty content
+        const hasContent = values.content &&
+            (typeof values.content === 'string' ? values.content.trim() !== "" :
+                values.content.ops && values.content.ops.length > 0);
 
-        if (!formData.title || !hasContent) {
-            setError("Title and Content are required.");
+        if (!hasContent) {
+            setError("Content is required.");
             return;
         }
+
+        // Override published status if provided
+        const finalPublished = publishStatus !== undefined ? publishStatus : values.published;
 
         startTransition(async () => {
             setSaving(true);
             setError(null);
 
             // Logic to auto-save new categories if entered
-            for (const tag of formData.tags) {
+            for (const tag of values.tags) {
                 if (!categories.includes(tag)) {
-                    // Silently add new category
                     await addCategory(tag);
                 }
             }
 
             const data = {
-                ...formData,
-                // Use the first tag as the category, defaulting to "umum" if no tags
-                category: formData.category,
-                published: publishStatus,
+                ...values,
+                category: values.category as PostCategory,
+                description: values.description || "",
+                content: values.content,
+                published: finalPublished,
             };
 
             const result = mode === "create"
@@ -125,6 +172,12 @@ export default function PostForm({ post, mode, user, categories: masterCategorie
                 setError(result.error || "Failed to save post");
             }
         });
+    };
+
+    // Wrapper for Save/Publish buttons to force submit
+    const handleSaveAction = (publish: boolean) => {
+        form.setValue("published", publish);
+        form.handleSubmit((values) => onSubmit(values, publish))();
     };
 
     const handleDelete = () => {
@@ -150,215 +203,221 @@ export default function PostForm({ post, mode, user, categories: masterCategorie
 
     const addTag = (tag: string) => {
         const trimmed = tag.trim();
-        if (trimmed && !formData.tags.includes(trimmed)) {
-            setFormData({ ...formData, tags: [...formData.tags, trimmed] });
+        const currentTags = form.getValues("tags");
+        if (trimmed && !currentTags.includes(trimmed)) {
+            form.setValue("tags", [...currentTags, trimmed]);
         }
         setTagInput("");
     };
 
     const removeTag = (tag: string) => {
-        setFormData({
-            ...formData,
-            tags: formData.tags.filter((t) => t !== tag),
-        });
+        const currentTags = form.getValues("tags");
+        form.setValue("tags", currentTags.filter((t) => t !== tag));
     };
 
     return (
-        <form className="min-h-screen relative pb-20">
-            {/* Sticky Header with Actions */}
-            <div className="sticky top-0 z-40 bg-white py-4 pt-8 mb-8 flex justify-between items-center">
-                <div className="flex items-center gap-3">
-                    <StatusPill published={formData.published} />
-                    <h2 className="text-xl font-bold text-gray-800">
-                        {mode === "create" ? "Create New Post" : `Editing: ${formData.title}`}
-                    </h2>
-                </div>
-                <div className="flex items-center gap-2">
-                    <button
-                        type="button"
-                        onClick={() => router.back()}
-                        className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 hover:text-brand-blue focus:z-10 focus:ring-2 focus:ring-brand-blue/20 transition-all shadow-sm"
-                    >
-                        Back
-                    </button>
-
-                    {mode === "edit" && (
-                        <button
+        <Form {...form}>
+            <form className="min-h-screen relative pb-20">
+                {/* Sticky Header with Actions */}
+                <div className="sticky top-0 z-40 bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60 py-4 mb-8 border-b flex justify-between items-center">
+                    <div className="flex items-center gap-4">
+                        <Button
                             type="button"
-                            onClick={handleDelete}
-                            disabled={saving}
-                            className="px-4 py-2 text-sm font-medium text-white bg-red-600 border border-gray-200 rounded-lg hover:bg-red-700 focus:z-10 focus:ring-2 focus:ring-red-700/20 transition-all"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => router.back()}
+                            className="gap-2"
                         >
-                            Delete
-                        </button>
-                    )}
-
-                    <div className="inline-flex rounded-lg shadow-sm" role="group">
-
-                        <button
-                            type="button"
-                            onClick={() => handleSubmit(true)}
-                            disabled={saving}
-                            className={`px-4 py-2 text-sm font-medium text-white bg-brand-blue border border-brand-blue rounded-s-lg hover:bg-brand-darkBlue focus:z-10 focus:ring-2 focus:ring-brand-blue/20 transition-all`}
-                        >
-                            {saving ? "Saving..." : (formData.published ? "Update" : "Publish")}
-                        </button>
-
-                        <div className="relative" ref={dropdownRef}>
-                            <button
+                            <ChevronLeft className="h-4 w-4" />
+                            Back
+                        </Button>
+                        <div className="flex items-center gap-3">
+                            <StatusPill published={watchedPublished} />
+                            <h2 className="text-xl font-bold text-gray-800">
+                                {mode === "create" ? "Create New Post" : `Editing: ${watchedTitle}`}
+                            </h2>
+                        </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        {mode === "edit" && (
+                            <Button
                                 type="button"
-                                onClick={() => setShowPublishDropdown(!showPublishDropdown)}
+                                variant="destructive"
+                                onClick={handleDelete}
                                 disabled={saving}
-                                className="inline-flex items-center px-2 py-2 h-full text-sm font-medium text-white bg-brand-blue border-l border-white/20 rounded-e-lg hover:bg-brand-darkBlue focus:z-10 focus:ring-1 focus:ring-brand-blue/20 transition-all"
                             >
-                                <svg className="w-4 h-4 transition-transform duration-200" style={{ transform: showPublishDropdown ? 'rotate(180deg)' : 'rotate(0deg)' }} aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 10 6">
-                                    <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1" d="m1 2 3 3 3-3" />
-                                </svg>
-                            </button>
+                                Delete
+                            </Button>
+                        )}
 
-                            {showPublishDropdown && (
-                                <div className="absolute right-0 z-50 mt-2 w-48 bg-white divide-y divide-gray-100 rounded-lg shadow-xl ring-1 ring-black ring-opacity-5 animate-fade-in overflow-hidden">
-                                    <div className="py-1">
-                                        <button
-                                            type="button"
-                                            onClick={() => {
-                                                handleSubmit(false);
-                                                setShowPublishDropdown(false);
-                                            }}
-                                            className="flex items-center w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-brand-cream hover:bg-grey-100 transition-colors gap-2"
-                                        >
-                                            Save as Draft
-                                        </button>
-                                        <button
-                                            type="button"
-                                            onClick={() => {
-                                                // Use first tag as category for preview, or 'umum' fallback
-                                                const category = (formData.tags.length > 0 ? formData.tags[0].toLowerCase().replace(/\s+/g, '-') : 'umum');
-                                                const slug = post?.frontmatter.slug || (formData.title ? formData.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') : null);
+                        <div className="flex items-center rounded-md shadow-sm">
+                            <Button
+                                type="button"
+                                onClick={() => handleSaveAction(true)}
+                                disabled={saving}
+                                className="rounded-r-none border-r border-primary-foreground/20"
+                            >
+                                {saving ? (
+                                    <>
+                                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                        Saving...
+                                    </>
+                                ) : (watchedPublished ? "Update" : "Publish")}
+                            </Button>
+                            <Popover>
+                                <PopoverTrigger asChild>
+                                    <Button
+                                        variant="default"
+                                        className="rounded-l-none px-2"
+                                        disabled={saving}
+                                    >
+                                        <ChevronDown className="h-4 w-4" />
+                                    </Button>
+                                </PopoverTrigger>
+                                <PopoverContent align="end" className="w-[200px] p-1">
+                                    <Button
+                                        type="button"
+                                        variant="ghost"
+                                        className="w-full justify-start font-normal"
+                                        onClick={() => handleSaveAction(false)}
+                                    >
+                                        Save as Draft
+                                    </Button>
+                                    <Button
+                                        type="button"
+                                        variant="ghost"
+                                        className="w-full justify-start font-normal"
+                                        onClick={() => {
+                                            const tags = form.getValues("tags");
+                                            const category = (tags.length > 0 ? tags[0].toLowerCase().replace(/\s+/g, '-') : 'umum');
+                                            const title = form.getValues("title");
+                                            const slug = post?.frontmatter.slug || (title ? title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') : null);
 
-                                                if (slug) {
-                                                    window.open(`/artikel/${category}/${slug}`, '_blank');
-                                                } else {
-                                                    alert("Please enter a title to preview.");
-                                                }
-                                            }}
-                                            className="flex items-center w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-brand-cream hover:bg-grey-100 transition-colors gap-2"
-                                        >
-                                            <Eye className="w-4 h-4" /> Preview
-                                        </button>
-                                    </div>
-                                </div>
-                            )}
+                                            if (slug) {
+                                                window.open(`/artikel/${category}/${slug}`, '_blank');
+                                            } else {
+                                                alert("Please enter a title to preview.");
+                                            }
+                                        }}
+                                    >
+                                        <Eye className="mr-2 h-4 w-4" />
+                                        Preview
+                                    </Button>
+                                </PopoverContent>
+                            </Popover>
                         </div>
                     </div>
                 </div>
-            </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                <div className="md:col-span-2">
-                    {/* Main Content Area */}
-                    <div>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    <div className="md:col-span-2 space-y-6">
                         {error && (
-                            <div className="mb-4 p-4 bg-red-100 text-red-800 rounded-lg">
+                            <div className="p-4 bg-destructive/10 text-destructive rounded-lg border border-destructive/20 font-medium">
                                 {error}
                             </div>
                         )}
+
+                        <FormField
+                            control={form.control}
+                            name="content"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormControl>
+                                        <QuillEditor
+                                            value={field.value}
+                                            onChange={field.onChange}
+                                        />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
                     </div>
 
-                    <div>
-                        <div>
-                            <QuillEditor
-                                value={formData.content}
-                                onChange={(content) => setFormData({ ...formData, content })}
-                            />
-                        </div>
-                    </div>
-                </div>
+                    <div className="relative">
+                        <div className="sticky top-[100px] space-y-6">
+                            <div className="bg-white p-5 rounded-lg border shadow-sm space-y-4">
+                                <h3 className="font-semibold text-sm uppercase tracking-wider border-b pb-2">
+                                    Post Settings
+                                </h3>
 
-                <div className="relative">
-                    {/* Sticky Sidebar */}
-                    <div className="sticky top-[87px] space-y-6">
-
-                        <div className="bg-white p-5 rounded-lg border border-gray-200 shadow-sm">
-                            <h3 className="font-bold text-gray-900 uppercase text-xs tracking-wider border-b pb-2 mb-4">
-                                Post Settings
-                            </h3>
-
-                            <div className="space-y-4">
-                                <div>
-                                    <label className="block text-xs font-semibold uppercase text-gray-500 mb-1">Post Title</label>
-                                    <input
-                                        type="text"
-                                        value={formData.title}
-                                        onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                                        required
-                                        className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded text-sm focus:ring-1 focus:ring-brand-blue"
-                                        placeholder="Enter title here..."
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-xs font-semibold uppercase text-gray-500 mb-1">Description</label>
-                                    <textarea
-                                        value={formData.description}
-                                        onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                                        rows={3}
-                                        className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded text-sm focus:ring-1 focus:ring-brand-blue"
-                                        placeholder="Short summary..."
-                                    />
-                                </div>
-
-
-                                {/* Category Selection */}
-                                <div>
-                                    <label className="block text-xs font-semibold uppercase text-gray-500 mb-1">Category</label>
-                                    <select
-                                        value={formData.category as string}
-                                        onChange={(e) => setFormData({ ...formData, category: e.target.value as PostCategory })}
-                                        className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded text-sm focus:ring-1 focus:ring-brand-blue outline-none"
-                                    >
-                                        {masterCategories.map((cat) => (
-                                            <option key={cat} value={cat}>
-                                                {cat.charAt(0).toUpperCase() + cat.slice(1)}
-                                            </option>
-                                        ))}
-                                    </select>
-                                </div>
-
-                                <div className="space-y-3">
-                                    <label className="block text-xs font-semibold uppercase text-gray-500 mb-1">Tags (Keywords)</label>
-                                    <p className="text-[10px] text-gray-400 mb-2">
-                                        The first tag will be used as the primary category for the URL.
-                                    </p>
-
-                                    {/* Badges container */}
-                                    <div className="flex flex-wrap gap-2 mb-2">
-                                        {formData.tags.map((tag) => (
-                                            <span
-                                                key={tag}
-                                                className="inline-flex items-center gap-x-1 rounded-md bg-white px-2 py-1 text-xs font-medium text-gray-600 ring-1 ring-inset ring-gray-200"
-                                            >
-                                                {tag}
-                                                <button
-                                                    type="button"
-                                                    onClick={() => removeTag(tag)}
-                                                    className="group relative -mr-1 h-3.5 w-3.5 rounded-sm hover:bg-gray-500/20"
-                                                >
-                                                    <span className="sr-only">Remove</span>
-                                                    <svg viewBox="0 0 14 14" className="h-3.5 w-3.5 stroke-gray-600/50 group-hover:stroke-gray-600/75">
-                                                        <path d="M4 4l6 6m0-6l-6 6" />
-                                                    </svg>
-                                                </button>
-                                            </span>
-                                        ))}
-                                        {formData.tags.length === 0 && (
-                                            <span className="text-[10px] text-gray-400 italic">No tags selected</span>
+                                <div className="space-y-4">
+                                    <FormField
+                                        control={form.control}
+                                        name="title"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>Post Title</FormLabel>
+                                                <FormControl>
+                                                    <Input placeholder="Enter title here..." {...field} />
+                                                </FormControl>
+                                                <FormMessage />
+                                            </FormItem>
                                         )}
-                                    </div>
+                                    />
 
-                                    <div className="relative" ref={categoryDropdownRef}>
-                                        <div className="relative">
-                                            <input
-                                                type="text"
+                                    <FormField
+                                        control={form.control}
+                                        name="description"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>Description</FormLabel>
+                                                <FormControl>
+                                                    <Textarea placeholder="Short summary..." rows={3} {...field} />
+                                                </FormControl>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+
+                                    <FormField
+                                        control={form.control}
+                                        name="category"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>Category</FormLabel>
+                                                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                                    <FormControl>
+                                                        <SelectTrigger>
+                                                            <SelectValue placeholder="Select a category" />
+                                                        </SelectTrigger>
+                                                    </FormControl>
+                                                    <SelectContent>
+                                                        {masterCategories.map((cat) => (
+                                                            <SelectItem key={cat} value={cat}>
+                                                                {cat.charAt(0).toUpperCase() + cat.slice(1)}
+                                                            </SelectItem>
+                                                        ))}
+                                                    </SelectContent>
+                                                </Select>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+
+                                    <div className="space-y-2">
+                                        <Label>Tags (Keywords)</Label>
+                                        <p className="text-[10px] text-muted-foreground">
+                                            The first tag will be used as the primary category for the URL.
+                                        </p>
+
+                                        <div className="flex flex-wrap gap-2 mb-2">
+                                            {watchedTags.map((tag) => (
+                                                <Badge key={tag} variant="secondary" className="gap-1">
+                                                    {tag}
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => removeTag(tag)}
+                                                        className="rounded-full hover:bg-muted p-0.5 transition-colors"
+                                                    >
+                                                        <X className="h-3 w-3" />
+                                                    </button>
+                                                </Badge>
+                                            ))}
+                                        </div>
+
+                                        <div className="relative" ref={categoryDropdownRef}>
+                                            <Input
                                                 value={tagInput}
                                                 onFocus={() => setShowCategoryDropdown(true)}
                                                 onChange={(e) => {
@@ -372,49 +431,20 @@ export default function PostForm({ post, mode, user, categories: masterCategorie
                                                         setShowCategoryDropdown(false);
                                                     }
                                                 }}
-                                                className="w-full pl-3 pr-10 py-2 bg-gray-50 border border-gray-200 rounded text-sm focus:ring-1 focus:ring-brand-blue outline-none transition-all"
                                                 placeholder="Add tag..."
                                             />
-                                            <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1.5">
-                                                {loadingCategories && (
-                                                    <svg className="animate-spin h-3.5 w-3.5 text-brand-blue" fill="none" viewBox="0 0 24 24">
-                                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                                    </svg>
-                                                )}
-                                                <button
-                                                    type="button"
-                                                    onClick={() => {
-                                                        addTag(tagInput);
-                                                        setShowCategoryDropdown(false);
-                                                    }}
-                                                    className="p-1 text-gray-400 hover:text-brand-blue transition-colors"
-                                                >
-                                                    <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M12 4v16m8-8H4" />
-                                                    </svg>
-                                                </button>
-                                            </div>
-                                        </div>
 
-                                        {showCategoryDropdown && (
-                                            <div className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-xl max-h-48 overflow-y-auto animate-fade-in divide-y divide-gray-50 ring-1 ring-black ring-opacity-5">
-                                                {loadingCategories ? (
-                                                    <div className="p-4 text-center">
-                                                        <div className="animate-pulse flex items-center justify-center gap-2 text-gray-400 text-xs font-bold uppercase tracking-widest">
+                                            {showCategoryDropdown && (
+                                                <div className="absolute z-50 w-full mt-1 bg-popover text-popover-foreground border rounded-md shadow-md max-h-48 overflow-y-auto">
+                                                    {loadingCategories ? (
+                                                        <div className="p-2 text-center text-xs text-muted-foreground">
                                                             Searching...
                                                         </div>
-                                                    </div>
-                                                ) : (
-                                                    <>
-                                                        {categories
-                                                            .filter(cat =>
-                                                                !formData.tags.includes(cat) &&
-                                                                cat.toLowerCase().includes(tagInput.toLowerCase())
-                                                            ).length > 0 ? (
-                                                            categories
+                                                    ) : (
+                                                        <>
+                                                            {categories
                                                                 .filter(cat =>
-                                                                    !formData.tags.includes(cat) &&
+                                                                    !watchedTags.includes(cat) &&
                                                                     cat.toLowerCase().includes(tagInput.toLowerCase())
                                                                 )
                                                                 .map(cat => (
@@ -425,190 +455,195 @@ export default function PostForm({ post, mode, user, categories: masterCategorie
                                                                             addTag(cat);
                                                                             setShowCategoryDropdown(false);
                                                                         }}
-                                                                        className="w-full text-left px-4 py-2.5 text-sm hover:bg-brand-cream hover:text-brand-blue transition-colors flex items-center justify-between group"
+                                                                        className="w-full text-left px-3 py-2 text-sm hover:bg-accent hover:text-accent-foreground flex items-center justify-between"
                                                                     >
-                                                                        <span className="font-medium">{cat}</span>
-                                                                        <svg className="w-3.5 h-3.5 opacity-0 group-hover:opacity-100 transition-opacity text-brand-blue" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
-                                                                        </svg>
+                                                                        <span>{cat}</span>
                                                                     </button>
-                                                                ))
-                                                        ) : (
-                                                            <div className="p-4 text-center text-gray-400 text-xs italic">
-                                                                {tagInput ? `Press Enter to add "${tagInput}"` : "Search for tags"}
-                                                            </div>
-                                                        )}
-                                                    </>
-                                                )}
-                                            </div>
+                                                                ))}
+                                                        </>
+                                                    )}
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    <FormField
+                                        control={form.control}
+                                        name="author"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>Author</FormLabel>
+                                                <FormControl>
+                                                    <Input {...field} />
+                                                </FormControl>
+                                                <FormMessage />
+                                            </FormItem>
                                         )}
-                                    </div>
-                                </div>
-
-                                <div>
-                                    <label className="block text-xs font-semibold uppercase text-gray-500 mb-1">Author</label>
-                                    <input
-                                        type="text"
-                                        value={formData.author}
-                                        onChange={(e) => setFormData({ ...formData, author: e.target.value })}
-                                        className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded text-sm focus:ring-1 focus:ring-brand-blue"
                                     />
                                 </div>
                             </div>
-                        </div>
 
-                        <div className="bg-white p-5 rounded-lg border border-gray-200 shadow-sm">
-                            <h3 className="font-bold text-gray-900 uppercase text-xs tracking-wider border-b pb-2 mb-4">
-                                Featured Image
-                            </h3>
-                            <div className="space-y-3">
-                                {formData.banner ? (
-                                    <div className="relative group rounded-md overflow-hidden border border-gray-200">
-                                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                                        <img src={formData.banner} alt="Banner" className="w-full h-32 object-cover" />
-                                        <button
-                                            type="button"
-                                            onClick={() => setFormData({ ...formData, banner: "" })}
-                                            className="absolute top-1 right-1 bg-white text-red-600 p-1 rounded-full shadow-sm opacity-0 group-hover:opacity-100 transition-opacity"
-                                            title="Remove Banner"
-                                        >
-                                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                                            </svg>
-                                        </button>
-                                    </div>
-                                ) : (
-                                    <div
-                                        onClick={() => setShowBannerPicker(true)}
-                                        className="h-32 bg-gray-50 border-2 border-dashed border-gray-300 rounded-md flex flex-col items-center justify-center text-gray-400 text-sm hover:border-brand-blue hover:text-brand-blue cursor-pointer transition-colors"
-                                    >
-                                        <svg className="w-8 h-8 mb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                                        </svg>
-                                        Select Image
-                                    </div>
-                                )}
-
-                                {formData.banner && (
-                                    <button
-                                        type="button"
-                                        onClick={() => setShowBannerPicker(true)}
-                                        className="w-full py-2 text-xs font-medium text-brand-blue hover:underline"
-                                    >
-                                        Replace Image
-                                    </button>
-                                )}
-                            </div>
-                        </div>
-
-                        <div className="bg-white p-5 rounded-lg border border-gray-200 shadow-sm">
-                            <h3 className="font-bold text-gray-900 uppercase text-xs tracking-wider border-b pb-2 mb-4">SEO Settings</h3>
-                            <div className="space-y-4">
-                                <div>
-                                    <label className="block text-xs font-semibold uppercase text-gray-500 mb-1">Meta Title</label>
-                                    <input
-                                        type="text"
-                                        value={formData.metaTitle}
-                                        onChange={(e) => setFormData({ ...formData, metaTitle: e.target.value })}
-                                        className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded text-sm focus:ring-1 focus:ring-brand-blue"
-                                        placeholder="Leave empty to use post title"
-                                    />
-                                    <p className="text-[10px] text-gray-400 mt-1">Recommended: 50-60 characters</p>
-                                </div>
-                                <div>
-                                    <label className="block text-xs font-semibold uppercase text-gray-500 mb-1">Meta Description</label>
-                                    <textarea
-                                        value={formData.metaDescription}
-                                        onChange={(e) => setFormData({ ...formData, metaDescription: e.target.value })}
-                                        rows={3}
-                                        className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded text-sm focus:ring-1 focus:ring-brand-blue"
-                                        placeholder="Leave empty to use post description"
-                                    />
-                                    <p className="text-[10px] text-gray-400 mt-1">Recommended: 150-160 characters</p>
-                                </div>
-                                <div>
-                                    <label className="block text-xs font-semibold uppercase text-gray-500 mb-1">Meta Keywords</label>
-                                    <input
-                                        type="text"
-                                        value={formData.metaKeywords}
-                                        onChange={(e) => setFormData({ ...formData, metaKeywords: e.target.value })}
-                                        className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded text-sm focus:ring-1 focus:ring-brand-blue"
-                                        placeholder="keyword1, keyword2, keyword3"
-                                    />
-                                    <p className="text-[10px] text-gray-400 mt-1">Comma-separated keywords</p>
-                                </div>
-                                <div>
-                                    <label className="block text-xs font-semibold uppercase text-gray-500 mb-1">Open Graph Image</label>
-                                    {formData.ogImage ? (
-                                        <div className="relative group rounded-md overflow-hidden border border-gray-200">
+                            <div className="bg-white p-5 rounded-lg border shadow-sm space-y-4">
+                                <h3 className="font-semibold text-sm uppercase tracking-wider border-b pb-2">
+                                    Featured Image
+                                </h3>
+                                <div className="space-y-3">
+                                    {watchedBanner ? (
+                                        <div className="relative group rounded-md overflow-hidden border">
                                             {/* eslint-disable-next-line @next/next/no-img-element */}
-                                            <img src={formData.ogImage} alt="OG Image" className="w-full h-32 object-cover" />
-                                            <button
+                                            <img src={watchedBanner} alt="Banner" className="w-full h-32 object-cover" />
+                                            <Button
                                                 type="button"
-                                                onClick={() => setFormData({ ...formData, ogImage: "" })}
-                                                className="absolute top-1 right-1 bg-white text-red-600 p-1 rounded-full shadow-sm opacity-0 group-hover:opacity-100 transition-opacity"
-                                                title="Remove OG Image"
+                                                variant="destructive"
+                                                size="icon"
+                                                className="absolute top-1 right-1 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
+                                                onClick={() => form.setValue("banner", "")}
                                             >
-                                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                                                </svg>
-                                            </button>
+                                                <X className="h-3 w-3" />
+                                            </Button>
                                         </div>
                                     ) : (
                                         <div
-                                            onClick={() => setShowOgImagePicker(true)}
-                                            className="h-32 bg-gray-50 border-2 border-dashed border-gray-300 rounded-md flex flex-col items-center justify-center text-gray-400 text-sm hover:border-brand-blue hover:text-brand-blue cursor-pointer transition-colors"
+                                            onClick={() => setShowBannerPicker(true)}
+                                            className="h-32 border-2 border-dashed rounded-md flex flex-col items-center justify-center text-muted-foreground text-sm hover:border-primary hover:text-primary cursor-pointer transition-colors bg-muted/50"
                                         >
-                                            <svg className="w-8 h-8 mb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                                            </svg>
-                                            Select OG Image
+                                            <ImageIcon className="h-8 w-8 mb-1" />
+                                            Select Image
                                         </div>
                                     )}
-                                    {formData.ogImage && (
-                                        <button
+
+                                    {watchedBanner && (
+                                        <Button
                                             type="button"
-                                            onClick={() => setShowOgImagePicker(true)}
-                                            className="w-full mt-2 py-2 text-xs font-medium text-brand-blue hover:underline"
+                                            variant="link"
+                                            size="sm"
+                                            className="w-full h-auto p-0"
+                                            onClick={() => setShowBannerPicker(true)}
                                         >
                                             Replace Image
-                                        </button>
+                                        </Button>
                                     )}
-                                    <p className="text-[10px] text-gray-400 mt-1">Leave empty to use banner image</p>
+                                </div>
+                            </div>
+
+                            <div className="bg-white p-5 rounded-lg border shadow-sm space-y-4">
+                                <h3 className="font-semibold text-sm uppercase tracking-wider border-b pb-2">
+                                    SEO Settings
+                                </h3>
+                                <div className="space-y-4">
+                                    <FormField
+                                        control={form.control}
+                                        name="metaTitle"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>Meta Title</FormLabel>
+                                                <FormControl>
+                                                    <Input placeholder="Leave empty to use post title" {...field} />
+                                                </FormControl>
+                                                <p className="text-[10px] text-muted-foreground">Recommended: 50-60 characters</p>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+                                    <FormField
+                                        control={form.control}
+                                        name="metaDescription"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>Meta Description</FormLabel>
+                                                <FormControl>
+                                                    <Textarea placeholder="Leave empty to use post description" rows={3} {...field} />
+                                                </FormControl>
+                                                <p className="text-[10px] text-muted-foreground">Recommended: 150-160 characters</p>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+                                    <FormField
+                                        control={form.control}
+                                        name="metaKeywords"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>Meta Keywords</FormLabel>
+                                                <FormControl>
+                                                    <Input placeholder="keyword1, keyword2, keyword3" {...field} />
+                                                </FormControl>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+
+                                    <div className="space-y-2">
+                                        <Label>Open Graph Image</Label>
+                                        {watchedOgImage ? (
+                                            <div className="relative group rounded-md overflow-hidden border">
+                                                {/* eslint-disable-next-line @next/next/no-img-element */}
+                                                <img src={watchedOgImage} alt="OG Image" className="w-full h-32 object-cover" />
+                                                <Button
+                                                    type="button"
+                                                    variant="destructive"
+                                                    size="icon"
+                                                    className="absolute top-1 right-1 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
+                                                    onClick={() => form.setValue("ogImage", "")}
+                                                >
+                                                    <X className="h-3 w-3" />
+                                                </Button>
+                                            </div>
+                                        ) : (
+                                            <div
+                                                onClick={() => setShowOgImagePicker(true)}
+                                                className="h-32 border-2 border-dashed rounded-md flex flex-col items-center justify-center text-muted-foreground text-sm hover:border-primary hover:text-primary cursor-pointer transition-colors bg-muted/50"
+                                            >
+                                                <ImageIcon className="h-8 w-8 mb-1" />
+                                                Select OG Image
+                                            </div>
+                                        )}
+                                        {watchedOgImage && (
+                                            <Button
+                                                type="button"
+                                                variant="link"
+                                                size="sm"
+                                                className="w-full h-auto p-0"
+                                                onClick={() => setShowOgImagePicker(true)}
+                                            >
+                                                Replace Image
+                                            </Button>
+                                        )}
+                                        <p className="text-[10px] text-muted-foreground">Leave empty to use banner image</p>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
-            </div>
 
-            <MediaPickerModal
-                isOpen={showBannerPicker}
-                onClose={() => setShowBannerPicker(false)}
-                onSelect={(path) => {
-                    setFormData({ ...formData, banner: path });
-                    setShowBannerPicker(false);
-                }}
-                initialTab="banner"
-            />
-            <MediaPickerModal
-                isOpen={showOgImagePicker}
-                onClose={() => setShowOgImagePicker(false)}
-                onSelect={(path) => {
-                    setFormData({ ...formData, ogImage: path });
-                    setShowOgImagePicker(false);
-                }}
-                initialTab="banner"
-            />
-            <DeleteConfirmModal
-                isOpen={showDeleteModal}
-                onClose={() => setShowDeleteModal(false)}
-                onConfirm={handleConfirmDelete}
-                title="Delete Post"
-                message={`Are you sure you want to delete "${formData.title}"? This action cannot be undone and the post will be permanently removed from the website.`}
-                loading={saving}
-            />
-        </form>
+                <MediaPickerModal
+                    isOpen={showBannerPicker}
+                    onClose={() => setShowBannerPicker(false)}
+                    onSelect={(path) => {
+                        form.setValue("banner", path);
+                        setShowBannerPicker(false);
+                    }}
+                    initialTab="banner"
+                />
+                <MediaPickerModal
+                    isOpen={showOgImagePicker}
+                    onClose={() => setShowOgImagePicker(false)}
+                    onSelect={(path) => {
+                        form.setValue("ogImage", path);
+                        setShowOgImagePicker(false);
+                    }}
+                    initialTab="banner"
+                />
+                <DeleteConfirmModal
+                    isOpen={showDeleteModal}
+                    onClose={() => setShowDeleteModal(false)}
+                    onConfirm={handleConfirmDelete}
+                    title="Delete Post"
+                    message={`Are you sure you want to delete "${watchedTitle}"? This action cannot be undone and the post will be permanently removed from the website.`}
+                    loading={saving}
+                />
+            </form>
+        </Form>
     );
 }
-

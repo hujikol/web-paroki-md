@@ -1,16 +1,28 @@
 import type { Metadata } from "next";
-import { Rubik } from "next/font/google";
+import { Rubik, Libre_Baskerville } from "next/font/google";
 import "./globals.css";
+import SmoothScroll from "@/components/providers/SmoothScroll";
 
 const rubik = Rubik({
   subsets: ["latin"],
   variable: "--font-rubik",
 });
 
+const libre = Libre_Baskerville({
+  subsets: ["latin"],
+  weight: ["400", "700"],
+  variable: "--font-libre",
+});
+
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXTAUTH_URL!),
   title: "Paroki Brayut",
   description: "Website Resmi Paroki Brayut - Santo Yohanes Paulus II",
+  icons: {
+    icon: "/favicons/logo.png",
+    shortcut: "/favicons/logo.png",
+    apple: "/favicons/logo.png",
+  },
 };
 
 export default function RootLayout({
@@ -20,8 +32,8 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${rubik.variable} font-rubik bg-brand-cream text-brand-dark antialiased`} suppressHydrationWarning>
-        {children}
+      <body className={`${rubik.variable} ${libre.variable} font-rubik bg-brand-warm text-brand-dark antialiased`} suppressHydrationWarning>
+        <SmoothScroll>{children}</SmoothScroll>
       </body>
     </html>
   );
