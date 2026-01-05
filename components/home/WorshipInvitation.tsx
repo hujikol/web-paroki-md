@@ -45,11 +45,11 @@ export default function WorshipInvitation({ upcomingEvents = [] }: WorshipInvita
                     {mainSchedule.map((item, idx) => (
                         <motion.div
                             key={idx}
-                            initial={{ opacity: 0, y: 30 }}
+                            initial={{ opacity: 0, y: 20 }}
                             whileInView={{ opacity: 1, y: 0 }}
-                            viewport={{ once: true }}
-                            transition={{ duration: 0.5, delay: idx * 0.1 + 0.2 }}
-                            className="bg-brand-warm p-10 rounded-3xl text-center group transition-all duration-300"
+                            viewport={{ once: true, margin: "-50px" }}
+                            transition={{ duration: 0.7, delay: idx * 0.1, ease: [0.21, 0.47, 0.32, 0.98] }}
+                            className="bg-brand-warm p-10 rounded-3xl text-center group transition-colors duration-300"
                         >
                             <div className="w-16 h-16 mx-auto bg-white rounded-full flex items-center justify-center mb-6 shadow-sm transition-colors">
                                 <Clock className="h-8 w-8 text-brand-gold" />

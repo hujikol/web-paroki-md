@@ -105,8 +105,8 @@ export default function Footer() {
 
                     {/* Quick Links */}
                     <div>
-                        <h4 className="font-bold text-lg mb-6 uppercase tracking-wider text-white">Jelajahi</h4>
-                        <ul className="space-y-4">
+                        <h4 className="font-bold text-lg mb-4 uppercase tracking-wider text-white">Jelajahi</h4>
+                        <ul className="space-y-2">
                             {[
                                 { label: 'Profil Gereja', href: '/profil' },
                                 { label: 'Jadwal Misa', href: '/jadwal-misa' },

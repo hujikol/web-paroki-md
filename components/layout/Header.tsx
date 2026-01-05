@@ -129,7 +129,7 @@ export default function Header() {
                     isOverFooter && !mobileMenuOpen
                         ? "w-[95%] md:w-[90%] max-w-6xl bg-white/90 backdrop-blur-xl shadow-sm border border-white/20 rounded-full py-3"
                         : isScrolled && !mobileMenuOpen
-                            ? "w-[95%] md:w-[90%] max-w-6xl bg-white/500 backdrop-blur-xl shadow-sm border border-white/20 rounded-full py-3"
+                            ? "w-[95%] md:w-[90%] max-w-6xl backdrop-blur-xl shadow-sm border border-white/20 rounded-full py-3"
                             : "w-full max-w-7xl bg-transparent py-4"
                 )}
             >
