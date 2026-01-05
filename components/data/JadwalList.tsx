@@ -44,7 +44,7 @@ export default function JadwalList({ initialEvents, categories }: { initialEvent
         linkUrl: "https://forms.google.com/example"
     };
 
-    const eventsWithDummy = [dummyEvent, ...initialEvents];
+    const eventsWithDummy = useMemo(() => [dummyEvent, ...initialEvents], [initialEvents]);
 
     // Calculate Category Counts (Global)
     const categoryCounts = useMemo(() => {

@@ -133,7 +133,7 @@ export default function UMKMList({ initialUMKM, categories }: UMKMListProps) {
                                     </div>
                                     {umkm.description && (
                                         <p className="text-gray-500 text-xs italic line-clamp-3 leading-relaxed pl-6.5 border-l-2 border-gray-100 pl-2">
-                                            "{umkm.description}"
+                                            &quot;{umkm.description}&quot;
                                         </p>
                                     )}
                                 </div>
