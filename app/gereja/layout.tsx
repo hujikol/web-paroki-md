@@ -8,7 +8,7 @@ export default function GerejaLayout({
     children: React.ReactNode;
 }) {
     return (
-        <div className="min-h-screen bg-brand-cream flex flex-col font-rubik">
+        <div className="min-h-screen bg-brand-warm flex flex-col font-rubik">
             <Header />
             <main className="flex-grow">
                 {children}
