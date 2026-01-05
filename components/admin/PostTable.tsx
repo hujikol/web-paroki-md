@@ -7,7 +7,8 @@ import { PostMetadata } from "@/types/post";
 import StatusPill from "./StatusPill";
 import { useRouter } from "next/navigation";
 import { useLoading } from "./LoadingProvider";
-import { Eye, Pencil, Trash2, Filter } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Eye, Pencil, Trash2, Filter, Search } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -52,13 +53,21 @@ export default function PostTable({ posts, hidePagination = false }: PostTablePr
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState<string>("5");
   const [categoryFilter, setCategoryFilter] = useState("all");
+  const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
 
   // Get unique categories for filter dropdown
-  const categories = Array.from(new Set(posts.flatMap(p => [p.category, ...(p.tags || [])]))).filter(Boolean).sort();
+  const categories = Array.from(new Set(posts.flatMap(p => p.categories || []))).filter(Boolean).sort();
 
   const filteredPosts = posts.filter(post => {
-    if (categoryFilter === "all") return true;
-    return post.tags?.includes(categoryFilter) || post.category === categoryFilter;
+    const matchesSearch = post.title.toLowerCase().includes(search.toLowerCase());
+    const matchesCategory = categoryFilter === "all" || (post.categories?.includes(categoryFilter));
+
+    if (statusFilter === "all") return matchesSearch && matchesCategory;
+    if (statusFilter === "published") return matchesSearch && matchesCategory && post.published;
+    if (statusFilter === "draft") return matchesSearch && matchesCategory && !post.published;
+
+    return matchesSearch && matchesCategory;
   });
 
   const effectiveItemsPerPage = itemsPerPage === "all" ? filteredPosts.length : parseInt(itemsPerPage);
@@ -96,13 +105,31 @@ export default function PostTable({ posts, hidePagination = false }: PostTablePr
 
   return (
     <div className="bg-card rounded-lg border shadow-sm">
-      <div className="p-4 border-b flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <Filter className="h-4 w-4 text-muted-foreground" />
-          <span className="text-sm font-medium text-muted-foreground">Filter Category:</span>
+      <div className="p-4 border-b flex flex-col sm:flex-row gap-4 items-center justify-between">
+        <div className="relative w-full sm:w-72">
+          <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Search posts..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="pl-8 h-9"
+          />
+        </div>
+        <div className="flex items-center gap-2 w-full sm:w-auto">
+          <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <SelectTrigger className="w-[130px] h-9 text-xs">
+              <SelectValue placeholder="Status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Status</SelectItem>
+              <SelectItem value="published">Published</SelectItem>
+              <SelectItem value="draft">Draft</SelectItem>
+            </SelectContent>
+          </Select>
+
           <Select value={categoryFilter} onValueChange={handleCategoryFilterChange}>
-            <SelectTrigger className="w-[180px] h-8 text-xs">
-              <SelectValue placeholder="All Categories" />
+            <SelectTrigger className="w-[150px] h-9 text-xs">
+              <SelectValue placeholder="Category" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Categories</SelectItem>
@@ -134,7 +161,7 @@ export default function PostTable({ posts, hidePagination = false }: PostTablePr
                 </TableCell>
               </TableRow>
             ) : paginatedPosts.map((post) => {
-              const displayCategories = post.tags && post.tags.length > 0 ? post.tags : (post.category ? [post.category] : []);
+              const displayCategories = post.categories || [];
               const firstCategory = displayCategories[0] || "Uncategorized";
               const otherCategoriesCount = displayCategories.length > 1 ? displayCategories.length - 1 : 0;
               const otherCategoriesTitle = displayCategories.slice(1).join(", ");

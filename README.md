@@ -162,7 +162,7 @@ Visit:
 
 1. Sign in at `/admin`
 2. Click "Create New Post"
-3. Fill in title, description, author, tags
+3. Fill in title, description, author, categories
 4. Upload a banner image (optional)
 5. Write content in Markdown
 6. Click "Save Draft" or "Publish"
@@ -221,7 +221,7 @@ slug: "hello-world"
 description: "My first blog post"
 publishedAt: "2024-01-15T10:00:00Z"
 author: "John Doe"
-tags: ["intro", "meta"]
+categories: ["intro", "meta"]
 banner: "/images/banners/hello-world.webp"
 published: true
 ---

@@ -72,12 +72,12 @@ export default function PostHeader({ frontmatter, readingTime }: PostHeaderProps
 
           {/* Categories / Tags */}
           <div className="flex flex-wrap justify-center gap-3">
-            {frontmatter.categories.map((tag) => (
+            {frontmatter.categories.map((category) => (
               <span
-                key={tag}
+                key={category}
                 className="px-5 py-2 bg-white text-brand-blue text-xs md:text-sm font-bold uppercase tracking-widest rounded-full shadow-md"
               >
-                {tag}
+                {category}
               </span>
             ))}
           </div>

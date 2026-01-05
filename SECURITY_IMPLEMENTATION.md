@@ -76,7 +76,7 @@ Permissions-Policy: camera=(), microphone=(), geolocation=()
 - **Title**: Max 200 chars
 - **Description**: Max 500 chars
 - **Slug**: Max 100 chars, lowercase alphanumeric + hyphens
-- **Tags**: Max 10 tags, 50 chars each
+- **Categories**: Max 10 categories, 50 chars each
 
 ### File Upload Security
 - **Type validation**: Images only (MIME type check)
