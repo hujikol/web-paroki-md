@@ -5,7 +5,7 @@ import { useRef, useEffect, useState } from "react";
 import Image from "next/image";
 import { Building2, Copy, ArrowDown, Wallet, Smartphone } from "lucide-react";
 import { toast } from "sonner";
-import { Progress } from "@/components/ui/progress";
+import { QRCodeSVG } from "qrcode.react";
 
 // Number counting animation component
 interface CounterProps {
@@ -234,12 +234,12 @@ export default function ImpactDonation() {
                                     <div className="flex flex-col md:flex-row gap-8 items-center">
                                         {/* QR Code Section */}
                                         <div className="flex-1 flex flex-col items-center border-b md:border-b-0 md:border-r border-dashed border-gray-200 pb-8 md:pb-0 md:pr-8 w-full md:w-auto">
-                                            <div className="relative w-48 h-48 bg-white p-2 border border-gray-100 rounded-xl mb-4">
-                                                <Image
-                                                    src="/images/gallery/qr_code.png"
-                                                    alt="QRIS"
-                                                    fill
-                                                    className="object-contain"
+                                            <div className="relative w-48 h-48 bg-white p-2 border border-gray-100 rounded-xl mb-4 shadow-sm hover:shadow-md transition-shadow">
+                                                <QRCodeSVG
+                                                    value={process.env.NEXT_PUBLIC_QR_CODE || ""}
+                                                    size={192} // 48 * 4 = 192 (w-48)
+                                                    level="H"
+                                                    className="w-full h-full object-contain"
                                                 />
                                             </div>
                                             <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">Scan QRIS</p>

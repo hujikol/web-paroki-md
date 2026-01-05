@@ -21,7 +21,7 @@ export default async function UMKMPage() {
             <PageHeader
                 title="Data UMKM"
                 subtitle="Direktori Usaha Umat Paroki"
-                image="https://images.unsplash.com/photo-1556740758-90de374c126c?q=80&w=2070&auto=format&fit=crop"
+                image="https://images.unsplash.com/photo-1514425263458-109317cc1321?q=80&w=2070&auto=format&fit=crop"
                 align="center"
             />
 
@@ -30,9 +30,9 @@ export default async function UMKMPage() {
                 <GradientActionCard
                     title="Daftarkan Usaha Anda"
                     description="Dukung perekonomian umat dengan mendaftarkan usaha Anda di direktori UMKM Paroki. Silakan hubungi sekretariat atau ketua lingkungan untuk pendaftaran."
-                    actioLabel="Hubungi Sekretariat"
+                    actionLabel="Hubungi Sekretariat"
                     actionLink="https://wa.me/6281234567890"
-                    icon={Store}
+                    icon={<Store className="h-8 w-8 text-brand-dark" />}
                 />
 
                 <UMKMList initialUMKM={umkmList} categories={categories.umkm} />

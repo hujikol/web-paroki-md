@@ -3,7 +3,8 @@
 import { Building2, Copy, Smartphone, CheckCircle2 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { toast } from "sonner";
-import Image from "next/image";
+import { QRCodeSVG } from "qrcode.react";
+import GradientActionCard from "@/components/ui/GradientActionCard";
 
 export default function DonationInfo() {
     const handleCopy = (text: string) => {
@@ -69,11 +70,13 @@ export default function DonationInfo() {
                     <div className="bg-white p-8 rounded-2xl shadow-lg border border-gray-200 text-center relative overflow-hidden group hover:border-brand-blue transition-colors">
                         <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-brand-blue to-brand-gold"></div>
 
-                        <div className="mb-6 relative w-64 h-64 mx-auto bg-gray-100 rounded-xl flex items-center justify-center border-2 border-dashed border-gray-300 group-hover:border-brand-blue/30 transition-colors">
-                            <div className="text-gray-400 text-sm font-medium flex flex-col items-center gap-2">
-                                <Smartphone className="h-8 w-8 opacity-50" />
-                                <span>QRIS Code Area</span>
-                            </div>
+                        <div className="mb-6 relative w-72 h-72 mx-auto bg-white rounded-xl flex items-center justify-center p-2 border border-gray-100 group-hover:border-brand-blue/30 transition-colors shadow-sm">
+                            <QRCodeSVG
+                                value={process.env.NEXT_PUBLIC_QR_CODE || ""}
+                                size={280}
+                                level="H"
+                                className="object-contain" // Use contain to ensure it fits and scans
+                            />
                         </div>
 
                         <p className="font-bold text-gray-900 mb-1 text-lg">PGPM Paroki Santo Yohanes Paulus II</p>
@@ -82,23 +85,14 @@ export default function DonationInfo() {
                 </div>
             </div>
 
-            {/* Confirmation Section */}
-            <div className="bg-gradient-to-br from-brand-blue/5 to-brand-gold/5 rounded-3xl p-8 md:p-12 text-center mt-12 border border-brand-blue/10">
-                <h2 className="text-2xl md:text-3xl font-bold text-brand-dark mb-4">Sudah Melakukan Transfer?</h2>
-                <p className="text-gray-600 max-w-2xl mx-auto mb-8 leading-relaxed">
-                    Terima kasih atas kemurahan hati Anda. Mohon lakukan konfirmasi agar donasi Anda dapat kami catat
-                    dan kami sampaikan laporan pertanggungjawabannya.
-                </p>
-                <a
-                    href="https://wa.me/6281234567890?text=Berkah%20Dalem,%20saya%20sudah%20melakukan%20transfer%20donasi%20untuk%20pembangunan%20gereja%20sebesar%20Rp..."
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 bg-green-600 text-white px-8 py-4 rounded-full font-bold hover:bg-green-700 transition-all shadow-lg hover:shadow-green-600/30 transform hover:-translate-y-1"
-                >
-                    <CheckCircle2 className="h-5 w-5" />
-                    Konfirmasi via WhatsApp
-                </a>
-            </div>
+            <GradientActionCard
+                title="Sudah Melakukan Transfer?"
+                description="Terima kasih atas kemurahan hati Anda. Mohon lakukan konfirmasi agar donasi Anda dapat kami catat dan kami sampaikan laporan pertanggungjawabannya."
+                actionLabel="Konfirmasi via WhatsApp"
+                actionLink="https://wa.me/6281234567890?text=Berkah%20Dalem,%20saya%20sudah%20melakukan%20transfer%20donasi%20untuk%20pembangunan%20gereja%20sebesar%20Rp..."
+                icon={<CheckCircle2 className="h-8 w-8 text-brand-dark" />}
+                className="mt-12"
+            />
         </div>
     )
 }

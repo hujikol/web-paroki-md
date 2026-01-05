@@ -1,7 +1,8 @@
-import { Metadata } from "next";
-import { Church, MapPin, Users, Calendar } from "lucide-react";
-import { getChurchStatistics } from "@/lib/data";
 
+import { Metadata } from "next";
+import { Calendar } from "lucide-react";
+import { getChurchStatistics } from "@/lib/data";
+import StatsSection from "@/components/profil/StatsSection";
 import PageHeader from "@/components/layout/PageHeader";
 
 export const metadata: Metadata = {
@@ -38,72 +39,8 @@ export default async function ProfilPage() {
                     </div>
                 </section>
 
-                {/* Statistics Cards */}
-                <section>
-                    <h2 className="text-3xl font-bold text-brand-dark mb-6">Data Paroki</h2>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                        <div className="bg-white rounded-xl shadow-md border border-gray-200 p-6">
-                            <div className="flex items-center gap-4">
-                                <div className="rounded-full bg-brand-blue/10 p-3">
-                                    <Church className="h-8 w-8 text-brand-blue" />
-                                </div>
-                                <div>
-                                    <div className="text-3xl font-bold text-brand-dark">
-                                        {stats?.churches.toLocaleString('id-ID') || "5"}
-                                    </div>
-                                    <div className="text-sm text-gray-600">Gereja</div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="bg-white rounded-xl shadow-md border border-gray-200 p-6">
-                            <div className="flex items-center gap-4">
-                                <div className="rounded-full bg-brand-blue/10 p-3">
-                                    <MapPin className="h-8 w-8 text-brand-blue" />
-                                </div>
-                                <div>
-                                    <div className="text-3xl font-bold text-brand-dark">
-                                        {stats?.wards.toLocaleString('id-ID') || "--"}
-                                    </div>
-                                    <div className="text-sm text-gray-600">Lingkungan</div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="bg-white rounded-xl shadow-md border border-gray-200 p-6">
-                            <div className="flex items-center gap-4">
-                                <div className="rounded-full bg-brand-blue/10 p-3">
-                                    <Users className="h-8 w-8 text-brand-blue" />
-                                </div>
-                                <div>
-                                    <div className="text-3xl font-bold text-brand-dark">
-                                        {stats?.families.toLocaleString('id-ID') || "--"}
-                                    </div>
-                                    <div className="text-sm text-gray-600">Keluarga (KK)</div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="bg-white rounded-xl shadow-md border border-gray-200 p-6">
-                            <div className="flex items-center gap-4">
-                                <div className="rounded-full bg-brand-blue/10 p-3">
-                                    <Users className="h-8 w-8 text-brand-blue" />
-                                </div>
-                                <div>
-                                    <div className="text-3xl font-bold text-brand-dark">
-                                        {stats?.parishioners.toLocaleString('id-ID') || "--"}
-                                    </div>
-                                    <div className="text-sm text-gray-600">Umat</div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <p className="text-sm text-gray-500 mt-4">
-                        * Data statistik {stats?.lastUpdated
-                            ? `terakhir diperbarui: ${new Date(stats.lastUpdated).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}`
-                            : 'akan diperbarui dari sistem manajemen paroki'}
-                    </p>
-                </section>
+                {/* Statistics Cards - Client Component */}
+                <StatsSection stats={stats} />
 
                 {/* Visi & Misi */}
                 <section className="grid grid-cols-1 lg:grid-cols-2 gap-8">
