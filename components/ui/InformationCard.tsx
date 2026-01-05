@@ -13,14 +13,14 @@ export default function InformationCard({
     className
 }: InformationCardProps) {
     return (
-        <div className={cn("bg-brand-warm/50 rounded-xl border border-brand-blue/10 p-8", className)}>
-            <div className="flex items-center gap-2 mb-4">
-                <div className="p-2 bg-brand-blue/10 rounded-full">
-                    <Info className="h-6 w-6 text-brand-blue" />
+        <div className={cn("bg-blue-50 rounded-xl border border-brand-blue/10 p-8", className)}>
+            <div className="flex items-center gap-2">
+                <div className="p-2 bg-blue-100 rounded-full">
+                    <Info className="h-6 w-6 text-blue-500" />
                 </div>
-                <h3 className="text-xl font-bold font-sans text-brand-dark">{title}</h3>
+                <h3 className="text-xl font-bold font-sans text-blue-900">{title}</h3>
             </div>
-            <p className="text-blue-900 leading-relaxed">
+            <p className="text-blue-900 leading-relaxed pl-12">
                 {description}
             </p>
         </div>
