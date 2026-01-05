@@ -72,7 +72,7 @@ export default function DonationInfo() {
 
                         <div className="mb-6 relative w-72 h-72 mx-auto bg-white rounded-xl flex items-center justify-center p-2 border border-gray-100 group-hover:border-brand-blue/30 transition-colors shadow-sm">
                             <QRCodeSVG
-                                value={process.env.NEXT_PUBLIC_QR_CODE || ""}
+                                value={process.env.QR_CODE || ""}
                                 size={280}
                                 level="H"
                                 className="object-contain" // Use contain to ensure it fits and scans
