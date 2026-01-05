@@ -38,3 +38,5 @@ export interface PostMetadata {
   ogImage?: string;
   readingTime?: number;
 }
+
+export type PostCategory = string;

@@ -31,27 +31,13 @@ export default function JadwalList({ initialEvents, categories }: { initialEvent
     const currentDate = new Date();
     currentDate.setHours(0, 0, 0, 0);
 
-    // Inject Dummy Event for Testing
-    const dummyEvent: ScheduleEvent = {
-        id: "dummy-cta-test",
-        title: "Pendaftaran Lomba Paduan Suara (Dummy data)",
-        date: new Date().toISOString(),
-        time: "09:00",
-        location: "Aula Paroki",
-        description: "Lomba paduan suara antar wilayah dalam rangka HUT Paroki.",
-        category: "Kegiatan",
-        imageUrl: "https://images.unsplash.com/photo-1584448141569-69f342da535c?q=80&w=2070&auto=format&fit=crop",
-        linkUrl: "https://forms.google.com/example"
-    };
-
-    const eventsWithDummy = useMemo(() => [dummyEvent, ...initialEvents], [initialEvents]);
 
     // Calculate Category Counts (Global)
     const categoryCounts = useMemo(() => {
         const counts: Record<string, number> = { "all": 0 };
         categories.forEach(cat => counts[cat] = 0);
 
-        eventsWithDummy.forEach(event => {
+        initialEvents.forEach(event => {
             counts["all"]++;
             if (counts[event.category] !== undefined) {
                 counts[event.category]++;
@@ -62,7 +48,7 @@ export default function JadwalList({ initialEvents, categories }: { initialEvent
 
     // Filter Logic
     const filteredEvents = useMemo(() => {
-        return eventsWithDummy.filter((event) => {
+        return initialEvents.filter((event) => {
             const eventDate = new Date(event.date);
 
             // Category Filter

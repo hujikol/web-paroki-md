@@ -56,6 +56,8 @@ export default function JadwalClient({ initialData, categories }: { initialData:
             location: formData.get("location") as string,
             description: formData.get("description") as string,
             category: formData.get("category") as any,
+            imageUrl: formData.get("imageUrl") as string,
+            linkUrl: formData.get("linkUrl") as string,
         };
 
         const newData = editingItem
@@ -248,6 +250,27 @@ export default function JadwalClient({ initialData, categories }: { initialData:
                                             </option>
                                         ))}
                                     </select>
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Link Gambar (URL)</label>
+                                    <input
+                                        name="imageUrl"
+                                        defaultValue={editingItem?.imageUrl}
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-blue focus:border-brand-blue outline-none text-sm"
+                                        placeholder="https://..."
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Link Eksternal (URL)</label>
+                                    <input
+                                        name="linkUrl"
+                                        defaultValue={editingItem?.linkUrl}
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-blue focus:border-brand-blue outline-none text-sm"
+                                        placeholder="https://..."
+                                    />
                                 </div>
                             </div>
 
