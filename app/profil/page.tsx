@@ -1,7 +1,8 @@
 import { Metadata } from "next";
-import Image from "next/image";
 import { Church, MapPin, Users, Calendar } from "lucide-react";
 import { getChurchStatistics } from "@/lib/data";
+
+import PageHeader from "@/components/layout/PageHeader";
 
 export const metadata: Metadata = {
     title: "Profil & Selayang Pandang | Paroki Brayut",
@@ -12,26 +13,13 @@ export default async function ProfilPage() {
     const stats = await getChurchStatistics();
 
     return (
-        <div className="py-12">
-            {/* Hero Section */}
-            <section className="relative h-[400px] bg-brand-dark">
-                <Image
-                    src="https://images.unsplash.com/photo-1548625149-fc4a29cf7092?q=80&w=2072&auto=format&fit=crop"
-                    alt="Paroki Brayut"
-                    fill
-                    className="object-cover opacity-40"
-                />
-                <div className="relative z-10 h-full flex items-center justify-center text-center text-white">
-                    <div className="max-w-4xl px-4">
-                        <h1 className="text-4xl md:text-5xl font-bold mb-4">
-                            Paroki Brayut
-                        </h1>
-                        <p className="text-xl md:text-2xl font-light">
-                            Santo Yohanes Paulus II
-                        </p>
-                    </div>
-                </div>
-            </section>
+        <div className="min-h-screen pb-12">
+            <PageHeader
+                title="Profil Paroki Brayut"
+                subtitle="Santo Yohanes Paulus II"
+                image="https://images.unsplash.com/photo-1548625149-fc4a29cf7092?q=80&w=2072&auto=format&fit=crop"
+                align="left"
+            />
 
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-12">
                 {/* Selayang Pandang */}
