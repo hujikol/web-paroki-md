@@ -96,7 +96,7 @@ export default async function JadwalMisaPage() {
             <PageHeader
                 title="Jadwal Misa"
                 subtitle="Paroki Brayut Santo Yohanes Paulus II"
-                image="https://images.unsplash.com/photo-1438232992991-995b7058bbb3?q=80&w=2073&auto=format&fit=crop"
+                image="https://images.unsplash.com/photo-1470686164816-830d3688f62c?q=80&w=2073&auto=format&fit=crop"
                 align="center"
             />
 

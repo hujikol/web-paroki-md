@@ -22,7 +22,23 @@ export async function getScheduleEvents(): Promise<ScheduleEvent[]> {
     if (Array.isArray(data)) {
         // Sort by date/time if needed? Maybe nearest future first.
         // For now just return as is or sort by date asc
-        return data.sort((a: any, b: any) => new Date(`${a.date}T${a.time}`).getTime() - new Date(`${b.date}T${b.time}`).getTime());
+        const events = data.sort((a: any, b: any) => new Date(`${a.date}T${a.time}`).getTime() - new Date(`${b.date}T${b.time}`).getTime());
+        
+        // Inject dummy event for testing CTA
+        events.push({
+            id: "dummy-event-1",
+            title: "Festival Kuliner Paroki (Dummy)",
+            date: new Date().toISOString().split('T')[0], // Today
+            time: "09:00",
+            location: "Halaman Gereja",
+            category: "Wilayah",
+            description: "Festival kuliner tahunan.",
+            fileUrl: "",
+            imageUrl: "",
+            linkUrl: "https://example.com/register-festival"
+        });
+
+        return events;
     }
     return [];
   } catch (error) {

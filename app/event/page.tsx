@@ -20,7 +20,7 @@ export default async function EventPage() {
             <PageHeader
                 title="Event Paroki"
                 subtitle="Agenda Kegiatan & Warta Mingguan"
-                image="https://images.unsplash.com/photo-1511871893393-82e9c16b81e3?q=80&w=2070&auto=format&fit=crop"
+                image="https://images.unsplash.com/photo-1438232992991-995b7058bbb3?q=80&w=2070&auto=format&fit=crop"
                 align="center"
             />
 
@@ -29,8 +29,8 @@ export default async function EventPage() {
 
                 {/* Info Box */}
                 <InformationCard
-                    title="Informasi Perubahan Jadwal"
-                    description="Jadwal kegiatan dapat berubah sewaktu-waktu tanpa pemberitahuan sebelumnya. Untuk mendaftarkan atau mengusulkan kegiatan, silakan hubungi koordinator bidang terkait atau sekretariat. Informasi lebih detail akan diumumkan melalui warta paroki mingguan."
+                    title="Informasi Perubahan Event"
+                    description="Waktu dan detail event dapat berubah sewaktu-waktu tanpa pemberitahuan sebelumnya. Untuk mendaftarkan atau mengusulkan event, silakan hubungi koordinator bidang terkait atau sekretariat. Informasi lebih detail akan diumumkan melalui warta paroki mingguan."
                 />
             </div>
         </div>

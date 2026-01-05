@@ -1,14 +1,27 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { Calendar, Clock, MapPin, Filter, ChevronLeft, ChevronRight, ExternalLink } from "lucide-react";
+import { Calendar as CalendarIcon, Clock, MapPin, ChevronLeft, ChevronRight, ExternalLink, Maximize2 } from "lucide-react";
 import { ScheduleEvent } from "@/types/data";
-import { SCHEDULE_CATEGORY_COLORS } from "@/lib/constants";
 import { cn } from "@/lib/utils";
+import {
+    Popover,
+    PopoverContent,
+    PopoverTrigger,
+} from "@/components/ui/popover";
+import { Button } from "@/components/ui/button";
+import {
+    Dialog,
+    DialogContent,
+    DialogTrigger,
+    DialogTitle,
+} from "@/components/ui/dialog";
+import * as VisuallyHidden from "@radix-ui/react-visually-hidden";
 
 export default function JadwalList({ initialEvents, categories }: { initialEvents: ScheduleEvent[], categories: string[] }) {
     const [selectedCategory, setSelectedCategory] = useState("all");
-    const [selectedMonth, setSelectedMonth] = useState(new Date());
+    const [selectedDate, setSelectedDate] = useState(new Date());
+    const [pickerYear, setPickerYear] = useState(new Date().getFullYear());
 
     const months = [
         "Januari", "Februari", "Maret", "April", "Mei", "Juni",
@@ -16,21 +29,29 @@ export default function JadwalList({ initialEvents, categories }: { initialEvent
     ];
 
     const currentDate = new Date();
-    // Reset hours to compare dates only
     currentDate.setHours(0, 0, 0, 0);
 
-    // Calculate Category Counts
+    // Inject Dummy Event for Testing
+    const dummyEvent: ScheduleEvent = {
+        id: "dummy-cta-test",
+        title: "Pendaftaran Lomba Paduan Suara (Dummy data)",
+        date: new Date().toISOString(),
+        time: "09:00",
+        location: "Aula Paroki",
+        description: "Lomba paduan suara antar wilayah dalam rangka HUT Paroki.",
+        category: "Kegiatan",
+        imageUrl: "https://images.unsplash.com/photo-1584448141569-69f342da535c?q=80&w=2070&auto=format&fit=crop",
+        linkUrl: "https://forms.google.com/example"
+    };
+
+    const eventsWithDummy = [dummyEvent, ...initialEvents];
+
+    // Calculate Category Counts (Global)
     const categoryCounts = useMemo(() => {
         const counts: Record<string, number> = { "all": 0 };
         categories.forEach(cat => counts[cat] = 0);
 
-        initialEvents.forEach(event => {
-            const eventDate = new Date(event.date);
-            // Count based on current selected month? 
-            // Usually counts are global or filtered. 
-            // Requirements say "like in data umkm", which calculated based on current view usually or global.
-            // Let's count GLOBAL for simplicity or filtered? 
-            // UMKM was global count. Let's do global.
+        eventsWithDummy.forEach(event => {
             counts["all"]++;
             if (counts[event.category] !== undefined) {
                 counts[event.category]++;
@@ -41,7 +62,7 @@ export default function JadwalList({ initialEvents, categories }: { initialEvent
 
     // Filter Logic
     const filteredEvents = useMemo(() => {
-        return initialEvents.filter((event) => {
+        return eventsWithDummy.filter((event) => {
             const eventDate = new Date(event.date);
 
             // Category Filter
@@ -50,13 +71,13 @@ export default function JadwalList({ initialEvents, categories }: { initialEvent
             }
 
             // Month Filter
-            if (eventDate.getMonth() !== selectedMonth.getMonth() || eventDate.getFullYear() !== selectedMonth.getFullYear()) {
+            if (eventDate.getMonth() !== selectedDate.getMonth() || eventDate.getFullYear() !== selectedDate.getFullYear()) {
                 return false;
             }
 
             return true;
         });
-    }, [initialEvents, selectedCategory, selectedMonth]);
+    }, [initialEvents, selectedCategory, selectedDate]);
 
     const sortedEvents = [...filteredEvents].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 
@@ -65,49 +86,77 @@ export default function JadwalList({ initialEvents, categories }: { initialEvent
             {/* Filters */}
             <div className="flex flex-col md:flex-row gap-6 md:items-center justify-between">
 
-                {/* Month Filter - Simple & Modern */}
-                <div className="flex items-center gap-3 bg-white p-1.5 rounded-xl border border-gray-200 shadow-sm w-fit">
-                    <button
-                        onClick={() => {
-                            const newDate = new Date(selectedMonth);
-                            newDate.setMonth(newDate.getMonth() - 1);
-                            setSelectedMonth(newDate);
-                        }}
-                        className="p-2 hover:bg-gray-100 rounded-lg transition-colors text-gray-500 hover:text-brand-blue"
-                    >
-                        <ChevronLeft className="h-5 w-5" />
-                    </button>
-                    <div className="px-2 text-center">
-                        <span className="block text-sm font-bold text-gray-900 leading-tight">
-                            {months[selectedMonth.getMonth()]}
-                        </span>
-                        <span className="block text-xs text-brand-blue font-medium">
-                            {selectedMonth.getFullYear()}
-                        </span>
-                    </div>
-                    <button
-                        onClick={() => {
-                            const newDate = new Date(selectedMonth);
-                            newDate.setMonth(newDate.getMonth() + 1);
-                            setSelectedMonth(newDate);
-                        }}
-                        className="p-2 hover:bg-gray-100 rounded-lg transition-colors text-gray-500 hover:text-brand-blue"
-                    >
-                        <ChevronRight className="h-5 w-5" />
-                    </button>
-                </div>
+                {/* Month Year Picker */}
+                <Popover>
+                    <PopoverTrigger asChild>
+                        <Button
+                            variant="outline"
+                            className="w-[240px] justify-start text-left font-normal border-gray-200 shadow-sm h-12 rounded-xl hover:bg-white hover:border-brand-blue/50"
+                        >
+                            <CalendarIcon className="mr-2 h-4 w-4 text-brand-blue" />
+                            <span className="font-bold text-gray-700">
+                                {months[selectedDate.getMonth()]} {selectedDate.getFullYear()}
+                            </span>
+                        </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-80 p-0" align="start">
+                        <div className="p-4 space-y-4">
+                            <div className="flex items-center justify-between px-2">
+                                <button
+                                    onClick={() => setPickerYear(prev => prev - 1)}
+                                    className="p-1 hover:bg-gray-100 rounded-lg transition-colors"
+                                >
+                                    <ChevronLeft className="h-4 w-4" />
+                                </button>
+                                <div className="font-bold text-lg">{pickerYear}</div>
+                                <button
+                                    onClick={() => setPickerYear(prev => prev + 1)}
+                                    className="p-1 hover:bg-gray-100 rounded-lg transition-colors"
+                                >
+                                    <ChevronRight className="h-4 w-4" />
+                                </button>
+                            </div>
+                            <div className="grid grid-cols-3 gap-2">
+                                {months.map((month, index) => (
+                                    <button
+                                        key={month}
+                                        onClick={() => {
+                                            const newDate = new Date(selectedDate);
+                                            newDate.setFullYear(pickerYear);
+                                            newDate.setMonth(index);
+                                            setSelectedDate(newDate);
+                                        }}
+                                        className={cn(
+                                            "text-sm py-2 rounded-md transition-colors",
+                                            selectedDate.getMonth() === index && selectedDate.getFullYear() === pickerYear
+                                                ? "bg-brand-blue text-white font-bold"
+                                                : "hover:bg-gray-100 text-gray-700"
+                                        )}
+                                    >
+                                        {month.substring(0, 3)}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                    </PopoverContent>
+                </Popover>
 
-                {/* Category Filter - Scrollable & Small */}
+                {/* Category Filter */}
                 <div className="flex overflow-x-auto pb-2 -mx-4 px-4 md:mx-0 md:px-0 scrollbar-hide gap-2">
                     <button
                         onClick={() => setSelectedCategory("all")}
-                        className={`flex-shrink-0 px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wide transition-all flex items-center gap-2 border ${selectedCategory === "all"
-                            ? "bg-brand-blue text-white border-brand-blue"
-                            : "bg-white border-gray-200 text-gray-500 hover:border-brand-blue hover:text-brand-blue"
-                            }`}
+                        className={cn(
+                            "flex-shrink-0 px-4 py-2 rounded-full text-xs font-bold uppercase tracking-wide transition-all flex items-center gap-2 border",
+                            selectedCategory === "all"
+                                ? "bg-brand-dark text-white border-brand-dark"
+                                : "bg-white border-gray-200 text-gray-500 hover:border-brand-dark hover:text-brand-dark"
+                        )}
                     >
                         All
-                        <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${selectedCategory === "all" ? "bg-white/20 text-white" : "bg-gray-100 text-gray-500"}`}>
+                        <span className={cn(
+                            "text-[10px] px-1.5 py-0.5 rounded-full",
+                            selectedCategory === "all" ? "bg-white/20 text-white" : "bg-gray-100 text-gray-500"
+                        )}>
                             {categoryCounts["all"]}
                         </span>
                     </button>
@@ -115,13 +164,18 @@ export default function JadwalList({ initialEvents, categories }: { initialEvent
                         <button
                             key={category}
                             onClick={() => setSelectedCategory(category)}
-                            className={`flex-shrink-0 px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wide transition-all flex items-center gap-2 border ${selectedCategory === category
-                                ? "bg-brand-blue text-white border-brand-blue"
-                                : "bg-white border-gray-200 text-gray-500 hover:border-brand-blue hover:text-brand-blue"
-                                }`}
+                            className={cn(
+                                "flex-shrink-0 px-4 py-2 rounded-full text-xs font-bold uppercase tracking-wide transition-all flex items-center gap-2 border",
+                                selectedCategory === category
+                                    ? "bg-brand-dark text-white border-brand-dark"
+                                    : "bg-white border-gray-200 text-gray-500 hover:border-brand-dark hover:text-brand-dark"
+                            )}
                         >
                             {category}
-                            <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${selectedCategory === category ? "bg-white/20 text-white" : "bg-gray-100 text-gray-500"}`}>
+                            <span className={cn(
+                                "text-[10px] px-1.5 py-0.5 rounded-full",
+                                selectedCategory === category ? "bg-white/20 text-white" : "bg-gray-100 text-gray-500"
+                            )}>
                                 {categoryCounts[category] || 0}
                             </span>
                         </button>
@@ -140,25 +194,56 @@ export default function JadwalList({ initialEvents, categories }: { initialEvent
                             return (
                                 <div
                                     key={activity.id}
-                                    className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden flex flex-col h-full hover:shadow-lg hover:border-brand-blue/30 transition-all duration-300 group"
+                                    className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden flex flex-col h-full hover:shadow-lg hover:border-brand-blue/30 transition-all duration-300 group"
                                 >
-                                    {/* Image / Gradient Header */}
-                                    <div className={`h-48 relative overflow-hidden ${hasImage ? "bg-gray-100" : "bg-gradient-to-br from-brand-blue/5 to-purple-50"}`}>
+                                    {/* Image / Gradient Header - UPDATED WITH DIALOG AND OVERLAY */}
+                                    <div className={cn(
+                                        "h-64 relative overflow-hidden",
+                                        hasImage ? "bg-gray-100" : "bg-gradient-to-br from-brand-blue/5 to-purple-50"
+                                    )}>
                                         {hasImage ? (
-                                            /* eslint-disable-next-line @next/next/no-img-element */
-                                            <img
-                                                src={activity.imageUrl}
-                                                alt={activity.title}
-                                                className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-                                            />
+                                            <Dialog>
+                                                <DialogTrigger asChild>
+                                                    <div className="w-full h-full relative group/image cursor-pointer">
+                                                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                                                        <img
+                                                            src={activity.imageUrl}
+                                                            alt={activity.title}
+                                                            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                                                        />
+                                                        {/* Overlay Button */}
+                                                        <div className="absolute inset-0 bg-black/0 group-hover/image:bg-black/20 transition-all duration-300 flex items-center justify-center">
+                                                            <div className="bg-white/90 backdrop-blur-sm p-3 rounded-full opacity-0 translate-y-2 group-hover/image:opacity-100 group-hover/image:translate-y-0 transition-all duration-300 shadow-lg transform scale-90 group-hover/image:scale-100">
+                                                                <Maximize2 className="h-5 w-5 text-brand-dark" />
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </DialogTrigger>
+                                                <DialogContent className="max-w-4xl max-h-[90vh] p-0 overflow-hidden bg-transparent border-none shadow-none flex items-center justify-center [&>button]:text-white [&>button]:bg-black/50 [&>button]:hover:bg-black/70 [&>button]:rounded-full [&>button]:p-2 [&>button]:top-4 [&>button]:right-4 [&>button>svg]:h-6 [&>button>svg]:w-6">
+                                                    <VisuallyHidden.Root>
+                                                        <DialogTitle>{activity.title}</DialogTitle>
+                                                    </VisuallyHidden.Root>
+
+                                                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                                                    <img
+                                                        src={activity.imageUrl}
+                                                        alt={activity.title}
+                                                        className="w-full h-auto max-h-[85vh] object-contain rounded-lg shadow-2xl"
+                                                    />
+                                                </DialogContent>
+                                            </Dialog>
                                         ) : (
                                             <div className="absolute inset-0 flex items-center justify-center opacity-10">
-                                                <Calendar className="h-24 w-24 text-brand-blue" />
+                                                <CalendarIcon className="h-24 w-24 text-brand-blue" />
                                             </div>
                                         )}
 
-                                        <div className="absolute top-4 right-4 z-10">
-                                            <span className={`px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider shadow-sm ${SCHEDULE_CATEGORY_COLORS[activity.category.toLowerCase()] || "bg-white text-gray-700"} `}>
+                                        <div className="absolute top-4 right-4 z-10 pointer-events-none">
+                                            <span className={cn(
+                                                "px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-wider shadow-sm bg-white/90 backdrop-blur-md",
+                                                // Simplified category coloring or keep existing
+                                                "text-brand-dark"
+                                            )}>
                                                 {activity.category}
                                             </span>
                                         </div>
@@ -167,7 +252,7 @@ export default function JadwalList({ initialEvents, categories }: { initialEvent
                                     {/* Content */}
                                     <div className="p-6 flex-1 flex flex-col">
                                         <div className="flex items-start justify-between gap-4 mb-3">
-                                            <div className="text-xs text-brand-blue font-bold tracking-wide uppercase bg-brand-blue/5 px-2 py-1 rounded-md">
+                                            <div className="text-xs text-brand-blue font-bold tracking-wide uppercase bg-brand-blue/5 px-2.5 py-1 rounded-md">
                                                 {new Date(activity.date).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}
                                             </div>
                                             {isPast && (
@@ -177,18 +262,18 @@ export default function JadwalList({ initialEvents, categories }: { initialEvent
                                             )}
                                         </div>
 
-                                        <h3 className="text-xl font-bold text-brand-dark mb-3 line-clamp-2 leading-tight group-hover:text-brand-blue transition-colors">
+                                        <h3 className="text-xl font-bold text-brand-dark mb-4 line-clamp-2 leading-tight group-hover:text-brand-blue transition-colors">
                                             {activity.title}
                                         </h3>
 
-                                        <div className="space-y-2 mb-6 text-sm text-gray-600 font-medium">
-                                            <div className="flex items-center gap-2">
+                                        <div className="space-y-3 mb-8 text-sm text-gray-600 font-medium">
+                                            <div className="flex items-center gap-3">
                                                 <Clock className="h-4 w-4 text-brand-blue/60 flex-shrink-0" />
                                                 <span>
                                                     {activity.time ? activity.time : 'Waktu belum ditentukan'}
                                                 </span>
                                             </div>
-                                            <div className="flex items-center gap-2">
+                                            <div className="flex items-center gap-3">
                                                 <MapPin className="h-4 w-4 text-brand-blue/60 flex-shrink-0" />
                                                 <span className="line-clamp-1">{activity.location}</span>
                                             </div>
@@ -200,9 +285,9 @@ export default function JadwalList({ initialEvents, categories }: { initialEvent
                                                     href={activity.linkUrl}
                                                     target="_blank"
                                                     rel="noopener noreferrer"
-                                                    className="w-full inline-flex items-center justify-center gap-2 bg-brand-dark text-white font-semibold py-2.5 rounded-lg hover:bg-brand-blue transition-all group-hover:shadow-md"
+                                                    className="w-full inline-flex items-center justify-center gap-2 bg-brand-dark text-white font-semibold py-3 rounded-xl hover:bg-brand-blue transition-all group-hover:shadow-md"
                                                 >
-                                                    Detail Event <ExternalLink className="h-3 w-3" />
+                                                    Detail Event <ExternalLink className="h-4 w-4" />
                                                 </a>
                                             ) : null}
                                         </div>
@@ -212,10 +297,12 @@ export default function JadwalList({ initialEvents, categories }: { initialEvent
                         })}
                     </div>
                 ) : (
-                    <div className="text-center py-20 bg-gray-50 rounded-2xl border border-dashed border-gray-200">
-                        <Calendar className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-                        <h3 className="font-bold text-gray-900 mb-1">Belum ada event</h3>
-                        <p className="text-gray-500 text-sm">Tidak ada kegiatan di bulan {months[selectedMonth.getMonth()]}.</p>
+                    <div className="text-center py-24 bg-gray-50 rounded-3xl border border-dashed border-gray-200">
+                        <div className="bg-white p-4 rounded-full shadow-sm w-fit mx-auto mb-4">
+                            <CalendarIcon className="h-8 w-8 text-gray-400" />
+                        </div>
+                        <h3 className="font-bold text-gray-900 mb-1 text-lg">Belum ada event</h3>
+                        <p className="text-gray-500">Tidak ada kegiatan di bulan {months[selectedDate.getMonth()]} {selectedDate.getFullYear()}.</p>
                     </div>
                 )}
             </section>

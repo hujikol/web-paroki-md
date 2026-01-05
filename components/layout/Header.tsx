@@ -47,7 +47,7 @@ const navItems: NavItem[] = [
         title: "Informasi",
         items: [
             { title: "Warta Paroki", href: "/artikel/warta-paroki" },
-            { title: "Jadwal Kegiatan", href: "/data/jadwal" },
+            { title: "Event", href: "/event" },
             { title: "Formulir Gereja", href: "/data/formulir" },
         ],
     },
