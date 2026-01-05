@@ -29,7 +29,7 @@ export default function PostHeader({ frontmatter, readingTime }: PostHeaderProps
   const randomGradient = gradients[frontmatter.slug.length % gradients.length];
 
   return (
-    <header className="relative w-full min-h-[50vh] flex items-center justify-center overflow-hidden">
+    <header className="relative w-full min-h-[85vh] flex items-center justify-center overflow-hidden">
       {/* Background */}
       <div className={cn("absolute inset-0 z-0", !frontmatter.banner && randomGradient)}>
         {frontmatter.banner && (
@@ -46,16 +46,29 @@ export default function PostHeader({ frontmatter, readingTime }: PostHeaderProps
       </div>
 
       {/* Content */}
-      <div className="relative z-10 container mx-auto px-4 py-20 text-center">
+      <div className="relative z-10 w-full px-4 pt-40 pb-20 text-center">
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, ease: "easeOut" }}
-          className="max-w-4xl mx-auto space-y-8"
+          className="w-full mx-auto space-y-8"
         >
-          <h1 className="font-serif text-4xl md:text-5xl lg:text-7xl font-bold text-white leading-tight drop-shadow-lg">
-            {frontmatter.title}
-          </h1>
+          {/* Dynamic Title Sizing */}
+          {(() => {
+            const length = frontmatter.title.length;
+            let sizeClass = "text-4xl md:text-5xl lg:text-7xl"; // Default (Short)
+            if (length > 60) sizeClass = "text-2xl md:text-4xl lg:text-5xl"; // Long
+            else if (length > 30) sizeClass = "text-3xl md:text-5xl lg:text-6xl"; // Medium
+
+            return (
+              <h1 className={cn(
+                "font-serif font-bold text-white leading-tight drop-shadow-lg mx-auto min-w-[90%] md:max-w-[70%]",
+                sizeClass
+              )}>
+                {frontmatter.title}
+              </h1>
+            );
+          })()}
 
           {/* Categories / Tags */}
           <div className="flex flex-wrap justify-center gap-3">

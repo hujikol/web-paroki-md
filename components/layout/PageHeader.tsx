@@ -22,8 +22,8 @@ export default function PageHeader({
     return (
         <div
             className={cn(
-                "relative w-full overflow-hidden bg-brand-warm pb-16 md:pt-40 md:pb-24",
-                image && "text-white min-h-[40vh] flex items-center",
+                "relative w-full overflow-hidden bg-brand-warm min-h-[50vh] flex items-center",
+                image && "text-white",
                 className
             )}
         >
