@@ -1,6 +1,6 @@
 import { Metadata } from "next";
-import Image from "next/image";
-import { BookOpen, Calendar } from "lucide-react";
+import { Calendar } from "lucide-react";
+import PageHeader from "@/components/layout/PageHeader";
 
 export const metadata: Metadata = {
     title: "Sejarah Gereja | Paroki Brayut",
@@ -9,19 +9,13 @@ export const metadata: Metadata = {
 
 export default function SejarahPage() {
     return (
-        <div className="py-12">
-            {/* Hero */}
-            <section className="bg-gradient-to-r from-brand-blue to-brand-darkBlue text-white py-16">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="flex items-center gap-3 mb-4">
-                        <BookOpen className="h-10 w-10" />
-                        <div>
-                            <h1 className="text-4xl md:text-5xl font-bold">Sejarah Gereja</h1>
-                            <p className="text-blue-100 mt-2">Perjalanan Iman Paroki Brayut</p>
-                        </div>
-                    </div>
-                </div>
-            </section>
+        <div className="pb-12">
+            <PageHeader
+                title="Sejarah Gereja"
+                subtitle="Perjalanan Iman Paroki Brayut"
+                image="https://images.unsplash.com/photo-1580826237584-fda5b612e1bc?q=80&w=2070&auto=format&fit=crop"
+                align="center"
+            />
 
             <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
                 <div className="prose prose-lg max-w-none">

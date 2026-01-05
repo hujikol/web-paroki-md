@@ -5,6 +5,7 @@ import { getFile, listFiles, commitFiles, deleteFile } from "@/lib/github/operat
 import { parseContent, stringifyContent } from "@/lib/content/parser";
 import { validateFrontmatter, generateSlug } from "@/lib/content/validator";
 import { PostMetadata, PostFrontmatter } from "@/types/post";
+import { calculateReadingTime } from "@/lib/utils";
 
 export async function getAllPosts(): Promise<PostMetadata[]> {
   const files = await listFiles("posts");
@@ -31,17 +32,7 @@ export async function getAllPosts(): Promise<PostMetadata[]> {
   );
 }
 
-function calculateReadingTime(content: any): number {
-  try {
-    const text = typeof content === 'string' ? content : JSON.stringify(content);
-    // Remove HTML tags and special chars roughly
-    const cleanText = text.replace(/<[^>]*>/g, '').replace(/[^\w\s]|_/g, "").replace(/\s+/g, " ");
-    const words = cleanText.split(" ").length;
-    return Math.max(1, Math.ceil(words / 200));
-  } catch (e) {
-    return 1;
-  }
-}
+
 
 export async function getPostBySlug(slug: string) {
   const files = await listFiles("posts");
