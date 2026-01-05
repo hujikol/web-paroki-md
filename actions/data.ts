@@ -33,6 +33,8 @@ export interface JadwalEvent {
   location: string;
   description: string;
   category: "liturgi" | "kegiatan" | "rapat" | "lainnya";
+  imageUrl?: string; // Poster/Flyer
+  linkUrl?: string; // Registration or details link
 }
 
 // UMKM Actions
@@ -246,6 +248,59 @@ export async function saveFormulir(data: Formulir[]) {
     );
     revalidatePath("/layanan/formulir"); // Assumption, will verify
     revalidatePath("/admin/data/formulir");
+    return { success: true };
+  } catch (error: any) {
+    return { success: false, error: error.message };
+  }
+}
+
+// Jadwal Misa Actions
+const JADWAL_MISA_FILE = "jadwal-misa.json";
+
+export interface MassTimeSlot {
+  day: string;
+  times: string[];
+  notes?: string;
+}
+
+export interface ChurchUnit {
+  id: string;
+  name: string;
+  location: string;
+  schedules: MassTimeSlot[];
+}
+
+export interface SpecialMassEvent {
+  id: string;
+  name: string;
+  time: string;
+  location: string;
+  description: string;
+}
+
+export interface JadwalMisaData {
+  churches: ChurchUnit[];
+  specialMasses: SpecialMassEvent[];
+}
+
+export async function getJadwalMisa(): Promise<JadwalMisaData | null> {
+  const content = await getFile(JADWAL_MISA_FILE);
+  if (!content) return null;
+  try {
+    return JSON.parse(content);
+  } catch (e) {
+    return null;
+  }
+}
+
+export async function saveJadwalMisa(data: JadwalMisaData) {
+  try {
+    await commitFiles(
+      [{ path: JADWAL_MISA_FILE, content: JSON.stringify(data, null, 2) }],
+      `Update jadwal misa data`
+    );
+    revalidatePath("/jadwal-misa");
+    revalidatePath("/admin/data/jadwal-misa");
     return { success: true };
   } catch (error: any) {
     return { success: false, error: error.message };

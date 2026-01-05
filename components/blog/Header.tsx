@@ -20,7 +20,7 @@ export default function Header() {
   ];
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 bg-brand-cream/90 backdrop-blur-md border-b border-gray-200">
+    <header className="fixed top-0 left-0 right-0 z-50 bg-brand-warm/90 backdrop-blur-md border-b border-gray-200">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-20">
           {/* Logo / Brand */}
@@ -44,9 +44,8 @@ export default function Header() {
               <Link
                 key={link.href}
                 href={link.href}
-                className={`text-sm font-medium transition-colors hover:text-brand-blue ${
-                  pathname === link.href ? "text-brand-blue" : "text-gray-600"
-                }`}
+                className={`text-sm font-medium transition-colors hover:text-brand-blue ${pathname === link.href ? "text-brand-blue" : "text-gray-600"
+                  }`}
               >
                 {link.name}
               </Link>
@@ -107,11 +106,10 @@ export default function Header() {
                 key={link.href}
                 href={link.href}
                 onClick={() => setIsMobileMenuOpen(false)}
-                className={`block text-base font-medium transition-colors ${
-                  pathname === link.href
+                className={`block text-base font-medium transition-colors ${pathname === link.href
                     ? "text-brand-blue"
                     : "text-gray-600 hover:text-brand-blue"
-                }`}
+                  }`}
               >
                 {link.name}
               </Link>

@@ -144,7 +144,7 @@ export default function CommunityStories({ posts }: CommunityStoriesProps) {
                                             className="object-cover transition-transform duration-700 group-hover:scale-105"
                                         />
                                     ) : (
-                                        <div className="absolute inset-0 bg-brand-cream flex items-center justify-center text-brand-gold/20">
+                                        <div className="absolute inset-0 bg-brand-warm flex items-center justify-center text-brand-gold/20">
                                             <span className="font-serif text-6xl italic">P</span>
                                         </div>
                                     )}

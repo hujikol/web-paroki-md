@@ -219,7 +219,7 @@ export default function Header() {
                         Jadwal Misa
                     </Link>
                     <Link
-                        href="/contact"
+                        href="/donasi"
                         className={cn(
                             buttonVariants({ variant: isScrolled ? "outline" : "default", size: "sm" }),
                             "rounded-full px-6 transition-all hover:scale-105", isScrolled
@@ -349,7 +349,7 @@ export default function Header() {
                                 Jadwal Misa
                             </Link>
                             <Link
-                                href="/contact"
+                                href="/donasi"
                                 className={cn(buttonVariants({ variant: "outline" }), "w-full rounded-full py-6 text-lg border-brand-dark text-brand-dark")}
                                 onClick={() => setMobileMenuOpen(false)}
                             >

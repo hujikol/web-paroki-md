@@ -14,7 +14,7 @@ export default function DonationSection() {
     };
 
     return (
-        <section className="py-24 bg-brand-cream/30">
+        <section className="py-24 bg-brand-warm/30">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
                     {/* Left Side - Content */}

@@ -35,7 +35,7 @@ export default function PostCard({ post }: PostCardProps) {
             {post.tags.slice(0, 3).map((tag) => (
               <span
                 key={tag}
-                className="px-3 py-1 bg-brand-cream text-brand-blue text-xs font-medium rounded-full"
+                className="px-3 py-1 bg-brand-warm text-brand-blue text-xs font-medium rounded-full"
               >
                 {tag}
               </span>

@@ -14,6 +14,8 @@ export interface ScheduleEvent {
   location: string;
   description: string;
   category: string;
+  imageUrl?: string;
+  linkUrl?: string;
 }
 
 export interface UMKM {
