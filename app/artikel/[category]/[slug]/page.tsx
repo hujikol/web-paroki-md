@@ -1,6 +1,7 @@
 import { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getAllPosts, getPostBySlug } from "@/actions/posts";
+import { calculateReadingTime } from "@/lib/utils";
 import PostHeader from "@/components/blog/PostHeader";
 import PostContent from "@/components/blog/PostContent";
 import { PostCategory } from "@/types/post";
@@ -97,10 +98,25 @@ export default async function PostPage({ params }: Props) {
         notFound();
     }
 
+    const readingTime = calculateReadingTime(post.content);
+
     return (
-        <article className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-            <PostHeader frontmatter={post.frontmatter} />
-            <PostContent content={post.content} />
-        </article>
+        <>
+            <PostHeader frontmatter={post.frontmatter} readingTime={readingTime} />
+
+            <article className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+                {/* Description Quote */}
+                {post.frontmatter.description && (
+                    <div className="mb-12 max-w-3xl mx-auto text-center">
+                        <p className="text-xl md:text-2xl font-serif italic text-gray-500 leading-relaxed">
+                            {post.frontmatter.description}
+                        </p>
+                        <div className="h-1 w-20 bg-brand-gold mx-auto mt-8 rounded-full opacity-40" />
+                    </div>
+                )}
+
+                <PostContent content={post.content} />
+            </article>
+        </>
     );
 }

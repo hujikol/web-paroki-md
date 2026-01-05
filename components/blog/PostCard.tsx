@@ -52,7 +52,11 @@ export default function PostCard({ post }: PostCardProps) {
 
           <div className="flex items-center justify-between text-xs text-gray-500 mt-auto pt-4 border-t border-gray-100">
             <span className="font-medium text-brand-dark">{post.author}</span>
-            <time dateTime={post.publishedAt}>{formattedDate}</time>
+            <div className="flex items-center gap-3">
+              <time dateTime={post.publishedAt}>{formattedDate}</time>
+              <span className="w-1 h-1 rounded-full bg-gray-300"></span>
+              <span>{post.readingTime || 1} menit baca</span>
+            </div>
           </div>
         </div>
       </article>
