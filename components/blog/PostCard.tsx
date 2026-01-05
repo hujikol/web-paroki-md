@@ -13,8 +13,9 @@ export default function PostCard({ post }: PostCardProps) {
     day: "numeric",
   });
 
-  // Use the post category for the URL, fallback to 'umum'
-  const categorySlug = post.category || "umum";
+  // Use the first category for the URL, fallback to 'lainnya'
+  const primaryCategory = post.categories && post.categories.length > 0 ? post.categories[0] : "Lainnya";
+  const categorySlug = primaryCategory.toLowerCase().trim().replace(/\s+/g, '-');
 
   return (
     <Link href={`/artikel/${categorySlug}/${post.slug}`} className="group block h-full">
@@ -32,12 +33,12 @@ export default function PostCard({ post }: PostCardProps) {
 
         <div className="p-6 flex flex-col flex-grow">
           <div className="flex flex-wrap gap-2 mb-3">
-            {post.tags.slice(0, 3).map((tag) => (
+            {post.categories?.slice(0, 3).map((cat) => (
               <span
-                key={tag}
+                key={cat}
                 className="px-3 py-1 bg-brand-warm text-brand-blue text-xs font-medium rounded-full"
               >
-                {tag}
+                {cat}
               </span>
             ))}
           </div>

@@ -1,5 +1,3 @@
-export type PostCategory = "berita" | "event" | "gereja" | "kegiatan" | "wacana" | "warta-paroki" | "bacaan-harian" | "renungan" | "umum";
-
 export interface PostFrontmatter {
   title: string;
   slug: string;
@@ -7,8 +5,7 @@ export interface PostFrontmatter {
   publishedAt: string;
   updatedAt?: string;
   author: string;
-  tags: string[];
-  category: PostCategory;
+  categories: string[];
   banner?: string;
   published: boolean;
   // SEO Fields
@@ -31,8 +28,7 @@ export interface PostMetadata {
   publishedAt: string;
   updatedAt?: string;
   author: string;
-  tags: string[];
-  category: PostCategory;
+  categories: string[];
   banner?: string;
   published: boolean;
   // SEO Fields

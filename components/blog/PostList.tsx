@@ -47,13 +47,15 @@ export default function PostList({ initialPosts, defaultCategory = "Semua", cate
         counts["Semua"] = initialPosts.length;
 
         initialPosts.forEach(post => {
-            // Map post category to one of our display categories
-            const postCatRaw = post.category || "umum";
-            // Find matching display category (case insensitive comparison)
-            const match = displayCategories.find(dc => dc.toLowerCase() === postCatRaw.toLowerCase());
-            if (match) {
-                counts[match] = (counts[match] || 0) + 1;
-            }
+            const postCats = post.categories && post.categories.length > 0 ? post.categories : ["Lainnya"];
+
+            postCats.forEach(cat => {
+                // Find matching display category (case insensitive comparison)
+                const match = displayCategories.find(dc => dc.toLowerCase() === cat.toLowerCase());
+                if (match) {
+                    counts[match] = (counts[match] || 0) + 1;
+                }
+            });
         });
 
         return counts;
@@ -61,12 +63,13 @@ export default function PostList({ initialPosts, defaultCategory = "Semua", cate
 
     const filteredPosts = useMemo(() => {
         return initialPosts.filter((post) => {
-            const postCatRaw = post.category || "umum";
+            const postCats = post.categories && post.categories.length > 0 ? post.categories : ["Lainnya"];
 
             // Category Filter
             if (selectedCategory !== "Semua") {
-                // Compare case-insensitively
-                if (postCatRaw.toLowerCase() !== selectedCategory.toLowerCase()) {
+                // Check if any of the post's categories match the selected category
+                const matches = postCats.some(cat => cat.toLowerCase() === selectedCategory.toLowerCase());
+                if (!matches) {
                     return false;
                 }
             }

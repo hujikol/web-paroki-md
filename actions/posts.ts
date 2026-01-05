@@ -54,8 +54,7 @@ export async function createPost(formData: {
   title: string;
   description: string;
   author: string;
-  tags: string[];
-  category: string;
+  categories: string[];
   content: any;
   banner?: string;
   published?: boolean;
@@ -70,8 +69,7 @@ export async function createPost(formData: {
       description: formData.description || "",
       publishedAt: now,
       author: formData.author,
-      tags: formData.tags,
-      category: formData.category as any,
+      categories: formData.categories,
       banner: formData.banner,
       published: formData.published || false,
     };
@@ -107,8 +105,7 @@ export async function updatePost(
     title: string;
     description: string;
     author: string;
-    tags: string[];
-    category: string;
+    categories: string[];
     content: any;
     banner?: string;
     published?: boolean;
@@ -135,8 +132,7 @@ export async function updatePost(
       title: formData.title,
       description: formData.description,
       author: formData.author,
-      tags: formData.tags,
-      category: formData.category as any,
+      categories: formData.categories,
       banner: formData.banner,
       published: formData.published || false,
       updatedAt: new Date().toISOString(),

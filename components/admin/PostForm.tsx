@@ -9,7 +9,7 @@ import QuillEditor from "./QuillEditor";
 import MediaPickerModal from "./MediaPickerModal";
 import DeleteConfirmModal from "./DeleteConfirmModal";
 import StatusPill from "./StatusPill";
-import { Post, PostCategory } from "@/types/post";
+import { Post } from "@/types/post";
 import { useLoading } from "./LoadingProvider";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -52,8 +52,7 @@ const formSchema = z.object({
     title: z.string().min(1, "Title is required"),
     description: z.string().optional(),
     author: z.string(),
-    category: z.string(),
-    tags: z.array(z.string()),
+    categories: z.array(z.string()).min(1, "At least one category is required"),
     content: z.any(),
     banner: z.string().optional(),
     published: z.boolean(),
@@ -74,8 +73,7 @@ export default function PostForm({ post, mode, user, categories: masterCategorie
             title: post?.frontmatter.title || "",
             description: post?.frontmatter.description || "",
             author: post?.frontmatter.author || user?.name || "Admin Paroki",
-            category: post?.frontmatter.category || (masterCategories[0] || "umum"),
-            tags: post?.frontmatter.tags || [],
+            categories: post?.frontmatter.categories || [],
             content: post?.content || { ops: [] },
             banner: post?.frontmatter.banner || "",
             published: post?.frontmatter.published || false,
@@ -88,8 +86,8 @@ export default function PostForm({ post, mode, user, categories: masterCategorie
         },
     });
 
-    const [tagInput, setTagInput] = useState("");
-    const [categories, setCategories] = useState<string[]>([]);
+    const [categoryInput, setCategoryInput] = useState("");
+    const [existingCategories, setExistingCategories] = useState<string[]>([]);
     const [loadingCategories, setLoadingCategories] = useState(false);
     const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
     const [saving, setSaving] = useState(false);
@@ -100,7 +98,7 @@ export default function PostForm({ post, mode, user, categories: masterCategorie
     const categoryDropdownRef = useRef<HTMLDivElement>(null);
 
     // Watch values for UI updates
-    const watchedTags = form.watch("tags");
+    const watchedCategories = form.watch("categories");
     const watchedBanner = form.watch("banner");
     const watchedOgImage = form.watch("ogImage");
     const watchedPublished = form.watch("published");
@@ -123,7 +121,7 @@ export default function PostForm({ post, mode, user, categories: masterCategorie
     useEffect(() => {
         setLoadingCategories(true);
         getAllCategories()
-            .then(setCategories)
+            .then(setExistingCategories)
             .finally(() => setLoadingCategories(false));
     }, []);
 
@@ -146,15 +144,17 @@ export default function PostForm({ post, mode, user, categories: masterCategorie
             setError(null);
 
             // Logic to auto-save new categories if entered
-            for (const tag of values.tags) {
-                if (!categories.includes(tag)) {
-                    await addCategory(tag);
+            for (const cat of values.categories) {
+                // Normalize for check
+                const normalized = cat.trim();
+                const exists = existingCategories.some(existing => existing.toLowerCase() === normalized.toLowerCase());
+                if (!exists) {
+                    await addCategory(normalized);
                 }
             }
 
             const data = {
                 ...values,
-                category: values.category as PostCategory,
                 description: values.description || "",
                 content: values.content,
                 published: finalPublished,
@@ -202,18 +202,21 @@ export default function PostForm({ post, mode, user, categories: masterCategorie
         });
     };
 
-    const addTag = (tag: string) => {
-        const trimmed = tag.trim();
-        const currentTags = form.getValues("tags");
-        if (trimmed && !currentTags.includes(trimmed)) {
-            form.setValue("tags", [...currentTags, trimmed]);
+    const addCategoryItem = (cat: string) => {
+        const trimmed = cat.trim();
+        const currentCategories = form.getValues("categories");
+        // Case-insensitive duplicate check
+        const exists = currentCategories.some(c => c.toLowerCase() === trimmed.toLowerCase());
+
+        if (trimmed && !exists) {
+            form.setValue("categories", [...currentCategories, trimmed]);
         }
-        setTagInput("");
+        setCategoryInput("");
     };
 
-    const removeTag = (tag: string) => {
-        const currentTags = form.getValues("tags");
-        form.setValue("tags", currentTags.filter((t) => t !== tag));
+    const removeCategoryItem = (cat: string) => {
+        const currentCategories = form.getValues("categories");
+        form.setValue("categories", currentCategories.filter((c) => c !== cat));
     };
 
     return (
@@ -289,8 +292,9 @@ export default function PostForm({ post, mode, user, categories: masterCategorie
                                         variant="ghost"
                                         className="w-full justify-start font-normal"
                                         onClick={() => {
-                                            const tags = form.getValues("tags");
-                                            const category = (tags.length > 0 ? tags[0].toLowerCase().replace(/\s+/g, '-') : 'umum');
+                                            const cats = form.getValues("categories");
+                                            // Ensure we grab the first one and kebab-case it
+                                            const category = (cats.length > 0 ? cats[0].trim().toLowerCase().replace(/\s+/g, '-') : 'lainnya');
                                             const title = form.getValues("title");
                                             const slug = post?.frontmatter.slug || (title ? title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') : null);
 
@@ -371,44 +375,20 @@ export default function PostForm({ post, mode, user, categories: masterCategorie
                                         )}
                                     />
 
-                                    <FormField
-                                        control={form.control}
-                                        name="category"
-                                        render={({ field }) => (
-                                            <FormItem>
-                                                <FormLabel>Category</FormLabel>
-                                                <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                                    <FormControl>
-                                                        <SelectTrigger>
-                                                            <SelectValue placeholder="Select a category" />
-                                                        </SelectTrigger>
-                                                    </FormControl>
-                                                    <SelectContent>
-                                                        {masterCategories.map((cat) => (
-                                                            <SelectItem key={cat} value={cat}>
-                                                                {cat.charAt(0).toUpperCase() + cat.slice(1)}
-                                                            </SelectItem>
-                                                        ))}
-                                                    </SelectContent>
-                                                </Select>
-                                                <FormMessage />
-                                            </FormItem>
-                                        )}
-                                    />
-
+                                    {/* Categories */}
                                     <div className="space-y-2">
-                                        <Label>Tags (Keywords)</Label>
+                                        <Label>Categories</Label>
                                         <p className="text-[10px] text-muted-foreground">
-                                            The first tag will be used as the primary category for the URL.
+                                            The first category will be used as the primary URL channel.
                                         </p>
 
                                         <div className="flex flex-wrap gap-2 mb-2">
-                                            {watchedTags.map((tag) => (
-                                                <Badge key={tag} variant="secondary" className="gap-1">
-                                                    {tag}
+                                            {watchedCategories.map((cat) => (
+                                                <Badge key={cat} variant="secondary" className="gap-1">
+                                                    {cat}
                                                     <button
                                                         type="button"
-                                                        onClick={() => removeTag(tag)}
+                                                        onClick={() => removeCategoryItem(cat)}
                                                         className="rounded-full hover:bg-muted p-0.5 transition-colors"
                                                     >
                                                         <X className="h-3 w-3" />
@@ -419,20 +399,20 @@ export default function PostForm({ post, mode, user, categories: masterCategorie
 
                                         <div className="relative" ref={categoryDropdownRef}>
                                             <Input
-                                                value={tagInput}
+                                                value={categoryInput}
                                                 onFocus={() => setShowCategoryDropdown(true)}
                                                 onChange={(e) => {
-                                                    setTagInput(e.target.value);
+                                                    setCategoryInput(e.target.value);
                                                     setShowCategoryDropdown(true);
                                                 }}
                                                 onKeyDown={(e) => {
                                                     if (e.key === 'Enter') {
                                                         e.preventDefault();
-                                                        addTag(tagInput);
+                                                        addCategoryItem(categoryInput);
                                                         setShowCategoryDropdown(false);
                                                     }
                                                 }}
-                                                placeholder="Add tag..."
+                                                placeholder="Add category..."
                                             />
 
                                             {showCategoryDropdown && (
@@ -443,17 +423,17 @@ export default function PostForm({ post, mode, user, categories: masterCategorie
                                                         </div>
                                                     ) : (
                                                         <>
-                                                            {categories
+                                                            {existingCategories
                                                                 .filter(cat =>
-                                                                    !watchedTags.includes(cat) &&
-                                                                    cat.toLowerCase().includes(tagInput.toLowerCase())
+                                                                    !watchedCategories.includes(cat) &&
+                                                                    cat.toLowerCase().includes(categoryInput.toLowerCase())
                                                                 )
                                                                 .map(cat => (
                                                                     <button
                                                                         key={cat}
                                                                         type="button"
                                                                         onClick={() => {
-                                                                            addTag(cat);
+                                                                            addCategoryItem(cat);
                                                                             setShowCategoryDropdown(false);
                                                                         }}
                                                                         className="w-full text-left px-3 py-2 text-sm hover:bg-accent hover:text-accent-foreground flex items-center justify-between"

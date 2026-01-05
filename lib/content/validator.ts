@@ -11,7 +11,7 @@ export const PostFrontmatterSchema = z.object({
   publishedAt: z.string().datetime("Invalid date format"),
   updatedAt: z.string().datetime("Invalid date format").optional(),
   author: z.string().min(1, "Author is required").max(100, "Author name too long"),
-  tags: z.array(z.string().max(50, "Tag too long")).max(10, "Too many tags").default([]),
+  categories: z.array(z.string().max(50, "Category too long")).min(1, "At least one category is required").default(["Lainnya"]),
   banner: z.string().max(500, "Banner path too long").optional(),
   published: z.boolean().default(false),
 });

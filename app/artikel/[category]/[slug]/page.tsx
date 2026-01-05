@@ -4,11 +4,10 @@ import { getAllPosts, getPostBySlug } from "@/actions/posts";
 import { calculateReadingTime } from "@/lib/utils";
 import PostHeader from "@/components/blog/PostHeader";
 import PostContent from "@/components/blog/PostContent";
-import { PostCategory } from "@/types/post";
 
 type Props = {
     params: Promise<{
-        category: PostCategory;
+        category: string;
         slug: string;
     }>;
 };
@@ -16,25 +15,18 @@ type Props = {
 export async function generateStaticParams() {
     const posts = await getAllPosts();
 
-    // Generate a path for each tag on each post
-    // This allows posts with multiple tags to be accessible from multiple category routes
+    // Generate a path for each category on each post
     const paths: { category: string; slug: string }[] = [];
 
     posts.forEach((post) => {
-        // If post has tags array, create a path for each tag
-        if (post.tags && Array.isArray(post.tags)) {
-            post.tags.forEach((tag: string) => {
+        if (post.categories && Array.isArray(post.categories)) {
+            post.categories.forEach((cat: string) => {
+                // Normalize category for URL: lowercase, kebab-case
+                const normalizedCat = cat.toLowerCase().trim().replace(/\s+/g, '-');
                 paths.push({
-                    category: tag.toLowerCase(),
+                    category: normalizedCat,
                     slug: post.slug,
                 });
-            });
-        }
-        // Fallback to single category if available
-        else if (post.category) {
-            paths.push({
-                category: post.category,
-                slug: post.slug,
             });
         }
     });
@@ -67,7 +59,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
             publishedTime: frontmatter.publishedAt,
             modifiedTime: frontmatter.updatedAt,
             authors: [frontmatter.author],
-            tags: frontmatter.tags,
+            tags: frontmatter.categories,
         },
         twitter: {
             card: "summary_large_image",
@@ -86,13 +78,13 @@ export default async function PostPage({ params }: Props) {
         notFound();
     }
 
-    // Verify the category matches one of the post's tags
-    const postTags = post.frontmatter.tags?.map((tag: string) => tag.toLowerCase()) || [];
-    const postCategory = post.frontmatter.category?.toLowerCase();
+    // Verify the category matches one of the post's categories
+    const postCategories = post.frontmatter.categories?.map((cat: string) =>
+        cat.toLowerCase().trim().replace(/\s+/g, '-')
+    ) || [];
 
-    // Check if the requested category matches either the tags or the single category
-    const isValidCategory = postTags.includes(category.toLowerCase()) ||
-        postCategory === category.toLowerCase();
+    // Check if the requested category URL param matches any of the post's normalized categories
+    const isValidCategory = postCategories.includes(category.toLowerCase());
 
     if (!isValidCategory) {
         notFound();
