@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Search, FileText } from "lucide-react";
 import { PostMetadata } from "@/types/post";
 import PostCard from "@/components/blog/PostCard";
@@ -12,13 +12,29 @@ interface PostListProps {
 }
 
 export default function PostList({ initialPosts, defaultCategory = "Semua", categories }: PostListProps) {
-    const [selectedCategory, setSelectedCategory] = useState(defaultCategory);
-    const [searchQuery, setSearchQuery] = useState("");
-
     const displayCategories = useMemo(() => {
         // Capitalize categories for display and standardizing
         return ["Semua", ...categories.map(c => c.charAt(0).toUpperCase() + c.slice(1))];
     }, [categories]);
+
+    // Find best match for defaultCategory in displayCategories
+    const initialCategory = useMemo(() => {
+        const match = displayCategories.find(c => c.toLowerCase() === defaultCategory.toLowerCase());
+        return match || "Semua";
+    }, [defaultCategory, displayCategories]);
+
+    const [selectedCategory, setSelectedCategory] = useState(initialCategory);
+    const [searchQuery, setSearchQuery] = useState("");
+
+    // Sync selectedCategory when defaultCategory prop changes (e.g. navigation)
+    useEffect(() => {
+        const match = displayCategories.find(c => c.toLowerCase() === defaultCategory.toLowerCase());
+        if (match) {
+            setSelectedCategory(match);
+        } else if (defaultCategory === "Semua") {
+            setSelectedCategory("Semua");
+        }
+    }, [defaultCategory, displayCategories]);
 
     // Calculate counts
     const categoryCounts = useMemo(() => {

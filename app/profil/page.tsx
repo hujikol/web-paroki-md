@@ -18,7 +18,7 @@ export default async function ProfilPage() {
             <PageHeader
                 title="Profil Paroki Brayut"
                 subtitle="Santo Yohanes Paulus II"
-                image="https://images.unsplash.com/photo-1548625149-fc4a29cf7092?q=80&w=2072&auto=format&fit=crop"
+                image="https://images.unsplash.com/photo-1569759276108-31b8e7e43e7b?q=80&w=2072&auto=format&fit=crop"
                 align="left"
             />
 

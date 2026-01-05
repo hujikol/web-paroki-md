@@ -34,7 +34,18 @@ export default async function CategoryPage({
     const masterCategories = await getMasterCategories();
 
     // Capitalize for display
-    const displayCategory = category.charAt(0).toUpperCase() + category.slice(1);
+    // Find matching category in master categories (handling kebab-case vs Title Case)
+    // 1. Un-slugify: "warta-paroki" -> "warta paroki"
+    const normalizedParam = category.replace(/-/g, " ").toLowerCase();
+
+    // 2. Find case-insensitive match in master list
+    const matchedCategory = masterCategories.post.find(
+        (cat) => cat.toLowerCase() === normalizedParam
+    );
+
+    // 3. Use matched category or fallback to Sentence case
+    const displayCategory = matchedCategory ||
+        category.charAt(0).toUpperCase() + category.slice(1).replace(/-/g, " ");
 
     return (
         <div className="pb-12">
