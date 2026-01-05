@@ -60,7 +60,7 @@ export default function SejarahPage() {
                     </div>
 
                     {/* Content Section */}
-                    <div className="bg-brand-cream rounded-xl p-8">
+                    <div className="bg-brand-warm rounded-xl p-8">
                         <p className="text-gray-700 italic">
                             Konten sejarah lengkap akan segera ditambahkan. Untuk informasi lebih lanjut,
                             silakan hubungi sekretariat paroki.

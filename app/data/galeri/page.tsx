@@ -45,8 +45,8 @@ export default function GaleriPage() {
                         <button
                             key={index}
                             className={`px-6 py-2.5 rounded-full font-medium transition-colors ${index === 0
-                                    ? "bg-brand-blue text-white shadow-md"
-                                    : "bg-white border border-gray-300 text-gray-700 hover:border-brand-blue hover:text-brand-blue"
+                                ? "bg-brand-blue text-white shadow-md"
+                                : "bg-white border border-gray-300 text-gray-700 hover:border-brand-blue hover:text-brand-blue"
                                 }`}
                         >
                             {category.name}
@@ -123,7 +123,7 @@ export default function GaleriPage() {
                 </section>
 
                 {/* Upload Info */}
-                <div className="bg-brand-cream rounded-xl border-2 border-brand-blue/20 p-8">
+                <div className="bg-brand-warm rounded-xl border-2 border-brand-blue/20 p-8">
                     <h3 className="text-xl font-bold text-brand-dark mb-4">Kontribusi Foto</h3>
                     <p className="text-gray-700 mb-4">
                         Jika Anda memiliki foto kegiatan paroki yang ingin dibagikan di galeri ini,

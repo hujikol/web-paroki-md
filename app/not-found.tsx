@@ -2,7 +2,7 @@ import Link from "next/link";
 
 export default function NotFound() {
   return (
-    <div className="min-h-screen bg-brand-cream flex items-center justify-center px-4 font-rubik">
+    <div className="min-h-screen bg-brand-warm flex items-center justify-center px-4 font-rubik">
       <div className="max-w-md w-full text-center space-y-8">
         <div className="relative">
           <h1 className="text-9xl font-extrabold text-brand-blue/20 tracking-tighter">
@@ -12,7 +12,7 @@ export default function NotFound() {
             Page Not Found
           </p>
         </div>
-        
+
         <div className="space-y-4">
           <p className="text-gray-600">
             Maaf, halaman yang Anda cari tidak dapat ditemukan atau telah dipindahkan.

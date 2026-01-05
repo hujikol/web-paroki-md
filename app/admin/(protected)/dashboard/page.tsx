@@ -217,7 +217,7 @@ export default async function AdminDashboard() {
                 upcomingEvents.slice(0, 5).map(event => (
                   <div key={event.id} className="p-4 hover:bg-gray-50 transition-colors">
                     <div className="flex items-start gap-4">
-                      <div className="flex-shrink-0 w-12 h-12 bg-brand-cream/50 rounded-lg flex flex-col items-center justify-center border border-brand-blue/10">
+                      <div className="flex-shrink-0 w-12 h-12 bg-brand-warm/50 rounded-lg flex flex-col items-center justify-center border border-brand-blue/10">
                         <span className="text-xs font-bold text-brand-blue uppercase">
                           {new Date(event.date).toLocaleDateString("id-ID", { month: 'short' })}
                         </span>

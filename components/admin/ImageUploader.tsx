@@ -111,7 +111,7 @@ const ImageUploader = forwardRef(({ type, onUploadComplete, onFilesChange }: Ima
         onDragLeave={() => setIsDragging(false)}
         onDrop={handleDrop}
         className={`border-2 border-dashed rounded-xl p-8 text-center transition-all ${isDragging
-          ? "border-brand-blue bg-brand-cream/50"
+          ? "border-brand-blue bg-brand-warm/50"
           : "border-gray-300 hover:border-brand-blue/50"
           }`}
       >
