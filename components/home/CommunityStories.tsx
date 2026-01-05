@@ -5,7 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { motion, useScroll, useTransform } from "framer-motion";
 import { useRef, useState } from "react";
-import { cn } from "@/lib/utils";
+import { cn, slugify } from "@/lib/utils";
 import { ArrowUpRight, ChevronLeft, ChevronRight } from "lucide-react";
 
 interface CommunityStoriesProps {
@@ -117,67 +117,75 @@ export default function CommunityStories({ posts }: CommunityStoriesProps) {
                     onMouseUp={handleMouseUp}
                     onMouseMove={handleMouseMove}
                 >
-                    {recentPosts.map((post, index) => (
-                        <motion.div
-                            key={post.slug}
-                            initial={{ opacity: 0, x: 50 }}
-                            whileInView={{ opacity: 1, x: 0 }}
-                            viewport={{ once: true, margin: "-50px" }}
-                            transition={{ delay: index * 0.1, duration: 0.7, ease: [0.21, 0.47, 0.32, 0.98] }}
-                            className="w-[85vw] md:w-[400px] lg:w-[450px] group cursor-pointer flex flex-col h-full shrink-0 snap-center select-none"
-                            onClickCapture={(e) => {
-                                if (isDragging) {
-                                    e.preventDefault();
-                                    e.stopPropagation();
-                                }
-                            }}
-                        >
-                            <Link href={`/artikel/${post.slug}`} className="block h-full pointer-events-none md:pointer-events-auto">
-                                {/* Image Container */}
-                                <div className="relative aspect-[4/3] w-full overflow-hidden rounded-[2rem] bg-gray-100 mb-6">
-                                    {post.banner ? (
-                                        <Image
-                                            src={post.banner}
-                                            alt={post.title}
-                                            fill
-                                            draggable={false}
-                                            className="object-cover transition-transform duration-700 group-hover:scale-105"
-                                        />
-                                    ) : (
-                                        <div className="absolute inset-0 bg-brand-warm flex items-center justify-center text-brand-gold/20">
-                                            <span className="font-serif text-6xl italic">P</span>
-                                        </div>
-                                    )}
+                    {recentPosts.map((post, index) => {
+                        const category = post.categories?.[0] || "Berita";
+                        const categorySlug = slugify(category);
 
-                                    {/* Floating Badge */}
-                                    <div className="absolute top-4 left-4 bg-brand-warm/90 backdrop-blur-sm px-4 py-2 rounded-full border border-brand-dark/5">
-                                        <span className="text-[10px] font-bold uppercase tracking-widest text-brand-dark">
-                                            {post.category || "Berita"}
-                                        </span>
-                                    </div>
-                                </div>
+                        return (
+                            <motion.div
+                                key={post.slug}
+                                initial={{ opacity: 0, x: 50 }}
+                                whileInView={{ opacity: 1, x: 0 }}
+                                viewport={{ once: true, margin: "-50px" }}
+                                transition={{ delay: index * 0.1, duration: 0.7, ease: [0.21, 0.47, 0.32, 0.98] }}
+                                className="w-[85vw] md:w-[400px] lg:w-[450px] group cursor-pointer flex flex-col h-full shrink-0 snap-center select-none"
+                                onClickCapture={(e) => {
+                                    if (isDragging) {
+                                        e.preventDefault();
+                                        e.stopPropagation();
+                                    }
+                                }}
+                            >
+                                <Link
+                                    href={`/artikel/${categorySlug}/${post.slug}`}
+                                    className="block h-full pointer-events-none md:pointer-events-auto"
+                                >
+                                    {/* Image Container */}
+                                    <div className="relative aspect-[4/3] w-full overflow-hidden rounded-[2rem] bg-gray-100 mb-6">
+                                        {post.banner ? (
+                                            <Image
+                                                src={post.banner}
+                                                alt={post.title}
+                                                fill
+                                                draggable={false}
+                                                className="object-cover transition-transform duration-700 group-hover:scale-105"
+                                            />
+                                        ) : (
+                                            <div className="absolute inset-0 bg-brand-warm flex items-center justify-center text-brand-gold/20">
+                                                <span className="font-serif text-6xl italic">P</span>
+                                            </div>
+                                        )}
 
-                                {/* Content */}
-                                <div className="flex-1 flex flex-col px-2">
-                                    <h3 className="font-serif text-2xl md:text-3xl text-brand-dark leading-tight mb-3 group-hover:text-brand-blue transition-colors text-balance">
-                                        {post.title.length > 56 ? post.title.slice(0, 56) + "..." : post.title}
-                                    </h3>
-
-                                    <div className="mt-auto flex items-center justify-between border-t border-brand-dark/10 pt-4">
-                                        <div className="flex flex-col gap-1">
-                                            <span className="text-xs font-bold uppercase tracking-widest text-gray-400">
-                                                {new Date(post.publishedAt).toLocaleDateString("id-ID", { month: 'long', year: 'numeric' })}
-                                            </span>
-                                            <span className="text-[10px] font-bold uppercase tracking-widest text-brand-gold">
-                                                {post.readingTime || 3} Menit Baca
+                                        {/* Floating Badge */}
+                                        <div className="absolute top-4 left-4 bg-brand-warm/90 backdrop-blur-sm px-4 py-2 rounded-full border border-brand-dark/5">
+                                            <span className="text-[10px] font-bold uppercase tracking-widest text-brand-dark">
+                                                {category}
                                             </span>
                                         </div>
-                                        <ArrowUpRight className="h-5 w-5 text-brand-dark opacity-0 group-hover:opacity-100 transition-opacity -translate-x-2 group-hover:translate-x-0 duration-300" />
                                     </div>
-                                </div>
-                            </Link>
-                        </motion.div>
-                    ))}
+
+                                    {/* Content */}
+                                    <div className="flex-1 flex flex-col px-2">
+                                        <h3 className="font-serif text-2xl md:text-3xl text-brand-dark leading-tight mb-3 group-hover:text-brand-blue transition-colors text-balance">
+                                            {post.title.length > 56 ? post.title.slice(0, 56) + "..." : post.title}
+                                        </h3>
+
+                                        <div className="mt-auto flex items-center justify-between border-t border-brand-dark/10 pt-4">
+                                            <div className="flex flex-col gap-1">
+                                                <span className="text-xs font-bold uppercase tracking-widest text-gray-400">
+                                                    {new Date(post.publishedAt).toLocaleDateString("id-ID", { month: 'long', year: 'numeric' })}
+                                                </span>
+                                                <span className="text-[10px] font-bold uppercase tracking-widest text-brand-gold">
+                                                    {post.readingTime || 3} Menit Baca
+                                                </span>
+                                            </div>
+                                            <ArrowUpRight className="h-5 w-5 text-brand-dark opacity-0 group-hover:opacity-100 transition-opacity -translate-x-2 group-hover:translate-x-0 duration-300" />
+                                        </div>
+                                    </div>
+                                </Link>
+                            </motion.div>
+                        );
+                    })}
 
                     {/* View All Card (End of List) */}
                     <div className="w-[300px] flex items-center justify-center shrink-0">
