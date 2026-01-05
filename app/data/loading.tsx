@@ -1,3 +1,1 @@
-import Loading from "@/app/artikel/loading";
-
-export default Loading;
+export { default } from "@/app/loading";

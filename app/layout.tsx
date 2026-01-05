@@ -25,6 +25,8 @@ export const metadata: Metadata = {
   },
 };
 
+import { GlobalLoader } from "@/components/ui/global-loader";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -33,6 +35,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`${rubik.variable} ${libre.variable} font-rubik bg-brand-warm text-brand-dark antialiased`} suppressHydrationWarning>
+        <GlobalLoader />
         <SmoothScroll>{children}</SmoothScroll>
       </body>
     </html>
