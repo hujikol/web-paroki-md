@@ -226,46 +226,101 @@ export default function ImpactDonation() {
                                 transition={{ delay: 0.3 }}
                                 className="lg:col-span-6 relative"
                             >
-                                <div className="border border-brand-dark/10 rounded-2xl p-8 md:p-12 relative bg-white shadow-sm">
-                                    {/* Corner Accents */}
-                                    <div className="absolute top-0 left-0 w-8 h-8 check-pattern border-t-2 border-l-2 border-brand-gold rounded-tl-2xl -mt-1 -ml-1" />
-                                    <div className="absolute bottom-0 right-0 w-8 h-8 check-pattern border-b-2 border-r-2 border-brand-gold rounded-br-2xl -mb-1 -mr-1" />
+                                <div className="relative overflow-hidden rounded-3xl border border-white/20 shadow-xl group/card">
+                                    {/* Animated Background */}
+                                    <div className="absolute inset-0 bg-brand-warm/50" />
 
-                                    <div className="flex flex-col md:flex-row gap-8 items-center">
-                                        {/* QR Code Section */}
-                                        <div className="flex-1 flex flex-col items-center border-b md:border-b-0 md:border-r border-dashed border-gray-200 pb-8 md:pb-0 md:pr-8 w-full md:w-auto">
-                                            <div className="relative w-48 h-48 bg-white p-2 border border-gray-100 rounded-xl mb-4 shadow-sm hover:shadow-md transition-shadow">
-                                                <QRCodeSVG
-                                                    value={process.env.NEXT_PUBLIC_QR_CODE || ""}
-                                                    size={192} // 48 * 4 = 192 (w-48)
-                                                    level="H"
-                                                    className="w-full h-full object-contain"
-                                                />
-                                            </div>
-                                            <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">Scan QRIS</p>
-                                        </div>
+                                    <motion.div
+                                        animate={{
+                                            scale: [1, 1.2, 1],
+                                            rotate: [0, 90, 0],
+                                            x: [0, 100, 0],
+                                            y: [0, -50, 0]
+                                        }}
+                                        transition={{
+                                            duration: 4,
+                                            repeat: Infinity,
+                                            repeatType: "reverse",
+                                            ease: "linear"
+                                        }}
+                                        className="absolute -top-[50%] -left-[20%] w-[100%] h-[100%] rounded-full bg-brand-blue/20 blur-[80px]"
+                                    />
 
-                                        {/* Bank List Section */}
-                                        <div className="flex-1 w-full space-y-4">
-                                            {[
-                                                { name: "Bank Mandiri", number: "137-00-1632682-5" },
-                                                { name: "Bank BRI", number: "7307-01-015723-53-5" },
-                                                { name: "Bank BCA", number: "846-703-0862" },
-                                            ].map((bank, i) => (
-                                                <div
-                                                    key={i}
-                                                    onClick={() => handleCopy(bank.number)}
-                                                    className="group flex flex-col p-4 rounded-xl border border-gray-100 hover:border-brand-blue hover:bg-brand-blue/5 transition-all cursor-pointer relative"
-                                                >
-                                                    <div className="flex justify-between items-center mb-1">
-                                                        <span className="font-bold text-gray-900 group-hover:text-brand-blue transition-colors">{bank.name}</span>
-                                                        <Copy className="h-3 w-3 text-gray-300 opacity-0 group-hover:opacity-100 transition-opacity" />
-                                                    </div>
-                                                    <span className="font-mono text-gray-500 group-hover:text-brand-dark transition-colors">{bank.number}</span>
+                                    <motion.div
+                                        animate={{
+                                            scale: [1, 1.3, 1],
+                                            rotate: [0, -60, 0],
+                                            x: [0, -80, 0],
+                                            y: [0, 60, 0]
+                                        }}
+                                        transition={{
+                                            duration: 3,
+                                            repeat: Infinity,
+                                            repeatType: "reverse",
+                                            ease: "linear"
+                                        }}
+                                        className="absolute top-[20%] -right-[20%] w-[80%] h-[80%] rounded-full bg-brand-gold/20 blur-[80px]"
+                                    />
+
+                                    <motion.div
+                                        animate={{
+                                            scale: [1, 1.1, 1],
+                                            x: [0, 40, 0],
+                                        }}
+                                        transition={{
+                                            duration: 4,
+                                            repeat: Infinity,
+                                            repeatType: "reverse",
+                                            ease: "easeInOut"
+                                        }}
+                                        className="absolute -bottom-[40%] left-[20%] w-[80%] h-[80%] rounded-full bg-blue-300/20 blur-[100px]"
+                                    />
+
+                                    {/* Glass Content Container */}
+                                    <div className="relative z-10 p-8 md:p-12 backdrop-blur-sm bg-white/10 h-full">
+                                        {/* Corner Accents */}
+                                        <div className="absolute top-0 left-0 w-8 h-8 check-pattern border-t-2 border-l-2 border-brand-gold rounded-tl-2xl -mt-1 -ml-1" />
+                                        <div className="absolute bottom-0 right-0 w-8 h-8 check-pattern border-b-2 border-r-2 border-brand-gold rounded-br-2xl -mb-1 -mr-1" />
+
+                                        <div className="flex flex-col md:flex-row gap-8 items-center">
+                                            {/* QR Code Section */}
+                                            <div className="flex-1 flex flex-col items-center border-b md:border-b-0 md:border-r border-dashed border-gray-200 pb-8 md:pb-0 md:pr-8 w-full md:w-auto">
+                                                <div className="relative w-48 h-48 bg-white p-2 border border-gray-100 rounded-xl mb-4 shadow-sm hover:shadow-md transition-shadow">
+                                                    <QRCodeSVG
+                                                        value={process.env.NEXT_PUBLIC_QR_CODE || ""}
+                                                        size={192} // 48 * 4 = 192 (w-48)
+                                                        level="H"
+                                                        className="w-full h-full object-contain"
+                                                    />
                                                 </div>
-                                            ))}
+                                                <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">Scan QRIS</p>
+                                            </div>
+
+                                            {/* Bank List Section */}
+                                            <div className="flex-1 w-full space-y-4">
+                                                {[
+                                                    { name: "Bank Mandiri", number: "137-00-1632682-5" },
+                                                    { name: "Bank BRI", number: "7307-01-015723-53-5" },
+                                                    { name: "Bank BCA", number: "846-703-0862" },
+                                                ].map((bank, i) => (
+                                                    <div
+                                                        key={i}
+                                                        onClick={() => handleCopy(bank.number)}
+                                                        className="group flex flex-col p-4 rounded-xl border border-gray-100 hover:border-brand-blue hover:bg-brand-blue/5 transition-all cursor-pointer relative bg-white/40 hover:bg-white/80"
+                                                    >
+                                                        <div className="flex justify-between items-center mb-1">
+                                                            <span className="font-bold text-gray-900 group-hover:text-brand-blue transition-colors">{bank.name}</span>
+                                                            <Copy className="h-3 w-3 text-gray-300 opacity-0 group-hover:opacity-100 transition-opacity" />
+                                                        </div>
+                                                        <span className="font-mono text-gray-500 group-hover:text-brand-dark transition-colors">{bank.number}</span>
+                                                    </div>
+                                                ))}
+                                            </div>
                                         </div>
                                     </div>
+
+                                    {/* Shine Effect Overlay */}
+                                    <div className="absolute inset-0 bg-gradient-to-tr from-white/0 via-white/20 to-transparent opacity-0 group-hover/card:opacity-100 transition-opacity duration-700 pointer-events-none" />
                                 </div>
                             </motion.div>
 
