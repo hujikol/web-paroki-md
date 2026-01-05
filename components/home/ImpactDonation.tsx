@@ -59,7 +59,7 @@ const Counter = ({ from, to, duration = 2, className, formatter }: CounterProps)
     return <span ref={nodeRef} className={className}>{formatter ? formatter(from) : from}</span>;
 }
 
-export default function ImpactDonation() {
+export default function ImpactDonation({ qrCodeValue }: { qrCodeValue?: string }) {
     const containerRef = useRef<HTMLDivElement>(null);
     const textRef = useRef<HTMLParagraphElement>(null);
     const { scrollYProgress } = useScroll({
@@ -287,7 +287,7 @@ export default function ImpactDonation() {
                                             <div className="flex-1 flex flex-col items-center border-b md:border-b-0 md:border-r border-dashed border-gray-200 pb-8 md:pb-0 md:pr-8 w-full md:w-auto">
                                                 <div className="relative w-48 h-48 bg-white p-2 border border-gray-100 rounded-xl mb-4 shadow-sm hover:shadow-md transition-shadow">
                                                     <QRCodeSVG
-                                                        value={process.env.QR_CODE || ""}
+                                                        value={qrCodeValue || ""}
                                                         size={192} // 48 * 4 = 192 (w-48)
                                                         level="H"
                                                         className="w-full h-full object-contain"

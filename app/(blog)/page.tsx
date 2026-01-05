@@ -64,7 +64,7 @@ export default async function HomePage() {
 
       {/* 5. The Impact: Building Vision (Donation) */}
       <section>
-        <ImpactDonation />
+        <ImpactDonation qrCodeValue={process.env.QR_CODE} />
       </section>
     </main>
   );

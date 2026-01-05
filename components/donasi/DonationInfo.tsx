@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import { QRCodeSVG } from "qrcode.react";
 import GradientActionCard from "@/components/ui/GradientActionCard";
 
-export default function DonationInfo() {
+export default function DonationInfo({ qrCodeValue }: { qrCodeValue?: string }) {
     const handleCopy = (text: string) => {
         navigator.clipboard.writeText(text);
         toast.success("Nomor rekening berhasil disalin");
@@ -72,7 +72,7 @@ export default function DonationInfo() {
 
                         <div className="mb-6 relative w-72 h-72 mx-auto bg-white rounded-xl flex items-center justify-center p-2 border border-gray-100 group-hover:border-brand-blue/30 transition-colors shadow-sm">
                             <QRCodeSVG
-                                value={process.env.QR_CODE || ""}
+                                value={qrCodeValue || ""}
                                 size={280}
                                 level="H"
                                 className="object-contain" // Use contain to ensure it fits and scans

@@ -33,7 +33,7 @@ export default function DonationPage() {
                 </div>
 
                 {/* Info Component */}
-                <DonationInfo />
+                <DonationInfo qrCodeValue={process.env.QR_CODE} />
             </div>
         </div>
     );
