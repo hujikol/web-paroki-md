@@ -61,14 +61,14 @@ export default function WorshipInvitation({ upcomingEvents = [] }: WorshipInvita
                     ))}
                 </div>
 
-                <div className="flex flex-col md:flex-row items-center justify-center gap-6">
+                <div className="flex flex-col md:flex-row items-center justify-center gap-12">
                     <Button variant="outline" className="rounded-full px-8 py-6 border-brand-dark text-brand-dark hover:bg-brand-dark hover:text-white transition-colors group" asChild>
                         <Link href="/jadwal-misa">
                             Jadwal Lengkap <ArrowRight className="ml-2 h-4 w-4 transform group-hover:translate-x-1 transition-transform" />
                         </Link>
                     </Button>
-                    <Button variant="ghost" className="rounded-full px-8 py-6 text-brand-dark hover:text-brand-blue hover:bg-brand-blue/5 transition-colors group" asChild>
-                        <Link href="/data/jadwal">
+                    <Button variant="outline" className="rounded-full px-8 py-6 border-brand-dark text-brand-dark hover:bg-brand-dark hover:text-white transition-colors group" asChild>
+                        <Link href="/event">
                             Agenda Kegiatan <ArrowRight className="ml-2 h-4 w-4 transform group-hover:translate-x-1 transition-transform" />
                         </Link>
                     </Button>

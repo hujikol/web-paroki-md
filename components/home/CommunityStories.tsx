@@ -39,19 +39,29 @@ export default function CommunityStories({ posts }: CommunityStoriesProps) {
     // Mouse Drag Handlers
     const handleMouseDown = (e: React.MouseEvent) => {
         if (!scrollContainerRef.current) return;
+        const container = scrollContainerRef.current;
         setIsDown(true);
         setIsDragging(false);
-        setStartX(e.pageX - scrollContainerRef.current.offsetLeft);
-        setScrollLeftPos(scrollContainerRef.current.scrollLeft);
+        setStartX(e.pageX - container.offsetLeft);
+        setScrollLeftPos(container.scrollLeft);
+
+        // Prevent text selection during drag
+        container.style.userSelect = 'none';
     };
 
     const handleMouseLeave = () => {
         setIsDown(false);
         setIsDragging(false);
+        if (scrollContainerRef.current) {
+            scrollContainerRef.current.style.userSelect = '';
+        }
     };
 
     const handleMouseUp = () => {
         setIsDown(false);
+        if (scrollContainerRef.current) {
+            scrollContainerRef.current.style.userSelect = '';
+        }
         // Small delay to ensure click events can check isDragging before it resets
         setTimeout(() => setIsDragging(false), 50);
     };
@@ -59,9 +69,17 @@ export default function CommunityStories({ posts }: CommunityStoriesProps) {
     const handleMouseMove = (e: React.MouseEvent) => {
         if (!isDown || !scrollContainerRef.current) return;
         e.preventDefault();
-        const x = e.pageX - scrollContainerRef.current.offsetLeft;
-        const walk = (x - startX) * 2; // Scroll speed multiplier
-        scrollContainerRef.current.scrollLeft = scrollLeftPos - walk;
+
+        const container = scrollContainerRef.current;
+        const x = e.pageX - container.offsetLeft;
+        const walk = (x - startX) * 1.5; // Scroll speed multiplier
+
+        // Use requestAnimationFrame for smoother scrolling
+        requestAnimationFrame(() => {
+            if (container) {
+                container.scrollLeft = scrollLeftPos - walk;
+            }
+        });
 
         // Mark as dragging if moved significantly
         if (Math.abs(x - startX) > 5) {
@@ -108,10 +126,16 @@ export default function CommunityStories({ posts }: CommunityStoriesProps) {
                 <div
                     ref={scrollContainerRef}
                     className={cn(
-                        "flex gap-8 overflow-x-auto pb-8 hide-scrollbar snap-x snap-mandatory px-4 md:pl-[calc((100vw-768px)/2+16px)] lg:pl-[calc((100vw-1024px)/2+16px)] xl:pl-[calc((100vw-1280px)/2+16px)] 2xl:pl-[calc((100vw-1536px)/2+16px)]",
+                        "flex gap-8 overflow-x-auto pb-8 hide-scrollbar px-4 md:pl-[calc((100vw-768px)/2+16px)] lg:pl-[calc((100vw-1024px)/2+16px)] xl:pl-[calc((100vw-1280px)/2+16px)] 2xl:pl-[calc((100vw-1536px)/2+16px)]",
+                        !isDown && "snap-x snap-mandatory",
                         "cursor-grab active:cursor-grabbing"
                     )}
-                    style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+                    style={{
+                        scrollbarWidth: 'none',
+                        msOverflowStyle: 'none',
+                        willChange: isDown ? 'scroll-position' : 'auto',
+                        touchAction: 'pan-x'
+                    }}
                     onMouseDown={handleMouseDown}
                     onMouseLeave={handleMouseLeave}
                     onMouseUp={handleMouseUp}

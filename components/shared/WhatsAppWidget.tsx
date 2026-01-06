@@ -23,7 +23,7 @@ export default function WhatsAppWidget() {
                     >
                         <Button
                             size="icon"
-                            className="h-14 w-14 rounded-full bg-green-500 hover:bg-green-600 shadow-lg transition-all hover:scale-110 active:scale-95"
+                            className="h-14 w-14 rounded-full bg-green-600 hover:bg-green-600 shadow-lg transition-all hover:scale-110 active:scale-95"
                             aria-label="Contact via WhatsApp"
                         >
                             <MessageCircle className="h-7 w-7 text-white" />

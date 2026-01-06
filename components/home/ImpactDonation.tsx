@@ -100,9 +100,9 @@ export default function ImpactDonation({ qrCodeValue }: { qrCodeValue?: string }
                     <div className="absolute inset-0 bg-gradient-to-r from-brand-dark/90 via-brand-dark/70 to-brand-dark/30" />
                 </div>
 
-                <div className="container mx-auto px-4 relative z-10 grid grid-cols-1 lg:grid-cols-2 gap-16 items-center h-full">
+                <div className="container mx-auto px-4 relative z-10 h-full flex items-center">
                     {/* Vision Text */}
-                    <div className="space-y-12">
+                    <div className="max-w-4xl space-y-12">
                         <div className="space-y-4">
                             <motion.span
                                 initial={{ opacity: 0, y: 20 }}
@@ -116,11 +116,11 @@ export default function ImpactDonation({ qrCodeValue }: { qrCodeValue?: string }
                                 className="font-serif text-4xl md:text-6xl text-white leading-[1.1]"
                                 style={{ opacity, x }}
                             >
-                                Membangun Rumah <br /><span className="italic text-brand-gold">Tuhan</span>, Membangun <br />Masa Depan.
+                                Membangun Rumah <span className="italic text-brand-gold">Tuhan</span>, <br />Membangun Masa Depan.
                             </motion.h2>
                         </div>
 
-                        <div className="space-y-6 text-lg md:text-xl leading-relaxed text-gray-200 max-w-xl">
+                        <div className="space-y-6 text-lg md:text-xl leading-relaxed text-gray-200 max-w-2xl">
                             <motion.p
                                 initial={{ opacity: 0, x: -20 }}
                                 whileInView={{ opacity: 1, x: 0 }}
@@ -165,9 +165,6 @@ export default function ImpactDonation({ qrCodeValue }: { qrCodeValue?: string }
                             </motion.div>
                         </div>
                     </div>
-
-                    {/* Right Side - Empty/Transparent to show image context more clearly if needed, or keeping spacing */}
-                    <div className="hidden lg:block" />
                 </div>
 
                 {/* Scroll Indicator */}
@@ -215,7 +212,7 @@ export default function ImpactDonation({ qrCodeValue }: { qrCodeValue?: string }
                                 <div className="pt-8 border-t border-gray-100">
                                     <p className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-2">Narahubung</p>
                                     <p className="font-bold text-brand-dark">Bpk. Marcus Budi Santosa</p>
-                                    <p className="font-mono text-brand-blue text-sm">(+62) 812-1555-752</p>
+                                    <p className="font-mono font-bold text-brand-blue text-sm">(+62) 812-1555-752</p>
                                 </div>
                             </motion.div>
 
@@ -338,7 +335,7 @@ export default function ImpactDonation({ qrCodeValue }: { qrCodeValue?: string }
                                 <div className="pt-8 border-t border-gray-100">
                                     <p className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-2">Narahubung</p>
                                     <p className="font-bold text-brand-dark">Romo B. Hanjar Krisnawan, Pr</p>
-                                    <p className="font-mono text-brand-blue text-sm">(+62) 813-9243-4199</p>
+                                    <p className="font-mono font-bold text-brand-blue text-sm">(+62) 813-9243-4199</p>
                                 </div>
                             </motion.div>
                         </div>
