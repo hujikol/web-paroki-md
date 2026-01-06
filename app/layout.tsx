@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Rubik, Libre_Baskerville } from "next/font/google";
 import "./globals.css";
 import SmoothScroll from "@/components/providers/SmoothScroll";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 
 const rubik = Rubik({
   subsets: ["latin"],
@@ -37,6 +38,7 @@ export default function RootLayout({
       <body className={`${rubik.variable} ${libre.variable} font-rubik bg-brand-warm text-brand-dark antialiased`} suppressHydrationWarning>
         <GlobalLoader />
         <SmoothScroll>{children}</SmoothScroll>
+        <SpeedInsights />
       </body>
     </html>
   );
