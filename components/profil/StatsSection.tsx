@@ -39,7 +39,7 @@ export default function StatsSection({ stats }: { stats: ChurchStatistics | null
                 viewport={{ once: true }}
                 className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"
             >
-                <motion.div variants={item} className="bg-white rounded-xl shadow-md border border-gray-200 p-6 hover:shadow-lg transition-shadow">
+                <motion.div variants={item} className="bg-white rounded-xl shadow-md border border-gray-200 p-6 transition-shadow">
                     <div className="flex items-center gap-4">
                         <div className="rounded-full bg-brand-blue/10 p-3">
                             <Church className="h-8 w-8 text-brand-blue" />
@@ -53,7 +53,7 @@ export default function StatsSection({ stats }: { stats: ChurchStatistics | null
                     </div>
                 </motion.div>
 
-                <motion.div variants={item} className="bg-white rounded-xl shadow-md border border-gray-200 p-6 hover:shadow-lg transition-shadow">
+                <motion.div variants={item} className="bg-white rounded-xl shadow-md border border-gray-200 p-6 transition-shadow">
                     <div className="flex items-center gap-4">
                         <div className="rounded-full bg-brand-blue/10 p-3">
                             <MapPin className="h-8 w-8 text-brand-blue" />
@@ -67,7 +67,7 @@ export default function StatsSection({ stats }: { stats: ChurchStatistics | null
                     </div>
                 </motion.div>
 
-                <motion.div variants={item} className="bg-white rounded-xl shadow-md border border-gray-200 p-6 hover:shadow-lg transition-shadow">
+                <motion.div variants={item} className="bg-white rounded-xl shadow-md border border-gray-200 p-6 transition-shadow">
                     <div className="flex items-center gap-4">
                         <div className="rounded-full bg-brand-blue/10 p-3">
                             <Users className="h-8 w-8 text-brand-blue" />
@@ -81,7 +81,7 @@ export default function StatsSection({ stats }: { stats: ChurchStatistics | null
                     </div>
                 </motion.div>
 
-                <motion.div variants={item} className="bg-white rounded-xl shadow-md border border-gray-200 p-6 hover:shadow-lg transition-shadow">
+                <motion.div variants={item} className="bg-white rounded-xl shadow-md border border-gray-200 p-6 transition-shadow">
                     <div className="flex items-center gap-4">
                         <div className="rounded-full bg-brand-blue/10 p-3">
                             <Users className="h-8 w-8 text-brand-blue" />
