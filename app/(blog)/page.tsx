@@ -6,6 +6,7 @@ import IdentitySection from "@/components/home/IdentitySection";
 import WorshipInvitation from "@/components/home/WorshipInvitation";
 import CommunityStories from "@/components/home/CommunityStories";
 import ImpactDonation from "@/components/home/ImpactDonation";
+import SectionNav from "@/components/home/SectionNav";
 
 export const metadata: Metadata = {
   title: "Beranda | Paroki Brayut Santo Yohanes Paulus II",
@@ -42,28 +43,31 @@ export default async function HomePage() {
 
   return (
     <main className="min-h-screen bg-brand-warm selection:bg-brand-gold selection:text-white">
+      {/* Section Navigation */}
+      <SectionNav />
+
       {/* 1. The Hook: Emotional Immersive Hero */}
-      <section className="h-screen w-full">
+      <section id="hero" className="h-screen w-full">
         <ImmersiveHero />
       </section>
 
       {/* 2. The Identity: Who We Are & Exploration */}
-      <section className="min-h-screen w-full">
+      <section id="identity" className="min-h-screen w-full">
         <IdentitySection />
       </section>
 
       {/* 3. The Invitation: Worship & Schedule */}
-      <section className="min-h-screen w-full">
+      <section id="worship" className="min-h-screen w-full">
         <WorshipInvitation upcomingEvents={upcomingEvents} />
       </section>
 
       {/* 4. The Life: Community Stories (News) */}
-      <section className="min-h-screen w-full">
+      <section id="stories" className="min-h-screen w-full">
         <CommunityStories posts={publishedPosts} />
       </section>
 
       {/* 5. The Impact: Building Vision (Donation) */}
-      <section>
+      <section id="donation">
         <ImpactDonation qrCodeValue={process.env.QR_CODE} />
       </section>
     </main>
