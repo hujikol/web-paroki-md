@@ -22,6 +22,7 @@ export default function JadwalList({ initialEvents, categories }: { initialEvent
     const [selectedCategory, setSelectedCategory] = useState("all");
     const [selectedDate, setSelectedDate] = useState(new Date());
     const [pickerYear, setPickerYear] = useState(new Date().getFullYear());
+    const [isPopoverOpen, setIsPopoverOpen] = useState(false);
 
     const months = [
         "Januari", "Februari", "Maret", "April", "Mei", "Juni",
@@ -67,22 +68,39 @@ export default function JadwalList({ initialEvents, categories }: { initialEvent
 
     const sortedEvents = [...filteredEvents].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 
+    // Generate consistent gradient for each event
+    const getGradientForEvent = (eventId: string) => {
+        const directions = [
+            "from-brand-blue/10 to-brand-gold/10",
+            "from-brand-gold/10 to-brand-blue/10",
+        ];
+        // Use event ID to generate consistent index
+        const hash = eventId.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+        return directions[hash % directions.length];
+    };
+
     return (
         <div className="space-y-8">
             {/* Filters */}
             <div className="flex flex-col md:flex-row gap-6 md:items-center justify-between">
 
                 {/* Month Year Picker */}
-                <Popover>
+                <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
                     <PopoverTrigger asChild>
                         <Button
                             variant="outline"
-                            className="w-[240px] justify-start text-left font-normal border-gray-200 shadow-sm h-12 rounded-xl hover:bg-white hover:border-brand-blue/50"
+                            className="rounded-full px-8 py-6 border-brand-dark text-brand-dark hover:bg-brand-dark hover:text-white transition-colors group gap-4"
                         >
-                            <CalendarIcon className="mr-2 h-4 w-4 text-brand-blue" />
-                            <span className="font-bold text-gray-700">
-                                {months[selectedDate.getMonth()]} {selectedDate.getFullYear()}
-                            </span>
+                            <div className="flex items-center">
+                                <CalendarIcon className="mr-2 h-4 w-4" />
+                                <span className="font-bold">
+                                    {months[selectedDate.getMonth()]} {selectedDate.getFullYear()}
+                                </span>
+                            </div>
+                            <ChevronRight className={cn(
+                                "h-4 w-4 transition-transform duration-200",
+                                isPopoverOpen ? "rotate-[270deg]" : "rotate-90"
+                            )} />
                         </Button>
                     </PopoverTrigger>
                     <PopoverContent className="w-80 p-0" align="start">
@@ -185,7 +203,8 @@ export default function JadwalList({ initialEvents, categories }: { initialEvent
                                     {/* Image / Gradient Header - UPDATED WITH DIALOG AND OVERLAY */}
                                     <div className={cn(
                                         "h-64 relative overflow-hidden",
-                                        hasImage ? "bg-gray-100" : "bg-gradient-to-br from-brand-blue/5 to-purple-50"
+                                        !hasImage && "bg-gradient-to-br",
+                                        !hasImage && getGradientForEvent(activity.id)
                                     )}>
                                         {hasImage ? (
                                             <Dialog>
@@ -220,7 +239,7 @@ export default function JadwalList({ initialEvents, categories }: { initialEvent
                                             </Dialog>
                                         ) : (
                                             <div className="absolute inset-0 flex items-center justify-center opacity-10">
-                                                <CalendarIcon className="h-24 w-24 text-brand-blue" />
+                                                <CalendarIcon className="h-12 w-12 text-brand-blue" />
                                             </div>
                                         )}
 
