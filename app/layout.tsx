@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Rubik, Libre_Baskerville } from "next/font/google";
+import Script from "next/script";
 import "./globals.css";
 import SmoothScroll from "@/components/providers/SmoothScroll";
 import { SpeedInsights } from "@vercel/speed-insights/next";
@@ -36,6 +37,11 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`${rubik.variable} ${libre.variable} font-rubik bg-brand-warm text-brand-dark antialiased`} suppressHydrationWarning>
+        <Script
+          src="https://cloud.umami.is/script.js"
+          data-website-id="c438390e-addf-46b3-8f5e-47f26dcaf8c3"
+          strategy="afterInteractive"
+        />
         <GlobalLoader />
         <SmoothScroll>{children}</SmoothScroll>
         <SpeedInsights />

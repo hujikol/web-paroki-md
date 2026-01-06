@@ -2,6 +2,7 @@ import DashboardLink from "@/components/admin/DashboardLink";
 import { getAllPosts } from "@/actions/posts";
 import { getUMKM, getJadwalKegiatan, getStatistik } from "@/actions/data";
 import PostTable from "@/components/admin/PostTable";
+import UmamiStats from "@/components/admin/UmamiStats";
 import {
   FileText,
   Store,
@@ -184,6 +185,9 @@ export default async function AdminDashboard() {
           </div>
         </div>
       </div>
+
+      {/* Website Analytics */}
+      <UmamiStats />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Recent Posts Column */}

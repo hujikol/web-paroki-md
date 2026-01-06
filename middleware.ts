@@ -21,11 +21,11 @@ export function middleware(request: NextRequest) {
   response.headers.set(
     "Content-Security-Policy",
     "default-src 'self'; " +
-    "script-src 'self' 'unsafe-eval' 'unsafe-inline'; " +
+    "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://cloud.umami.is; " +
     "style-src 'self' 'unsafe-inline'; " +
     "img-src 'self' data: https:; " +
     "font-src 'self' data:; " +
-    "connect-src 'self' https:; " +
+    "connect-src 'self' https: https://cloud.umami.is; " +
     "frame-src 'self' https://www.youtube.com https://youtube.com https://player.vimeo.com; " +
     "frame-ancestors 'none';"
   );
