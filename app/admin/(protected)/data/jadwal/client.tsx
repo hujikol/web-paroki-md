@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useTransition, useEffect, useCallback } from "react";
 import { JadwalEvent, saveJadwalKegiatan } from "@/actions/data";
 import { Plus, Pencil, Trash2, Search, Loader2, Calendar as CalendarIcon, Clock, MapPin } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -33,6 +33,17 @@ export default function JadwalClient({ initialData, categories }: { initialData:
     const [deleteTarget, setDeleteTarget] = useState<JadwalEvent | null>(null);
     const [saveConfirmOpen, setSaveConfirmOpen] = useState(false);
     const [pendingFormData, setPendingFormData] = useState<JadwalEvent | null>(null);
+    const [hasChanges, setHasChanges] = useState(false);
+    const [formValues, setFormValues] = useState({
+        title: "",
+        date: "",
+        time: "",
+        location: "",
+        description: "",
+        category: "",
+        imageUrl: "",
+        linkUrl: ""
+    });
     const router = useRouter();
 
     // Sort by date descending
@@ -42,6 +53,61 @@ export default function JadwalClient({ initialData, categories }: { initialData:
         item.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
         item.description.toLowerCase().includes(searchTerm.toLowerCase())
     );
+
+    // Check if form has changes compared to original
+    const checkForChanges = useCallback(() => {
+        if (!editingItem) {
+            // For new items, check if required fields have content
+            const hasContent = formValues.title.trim() !== "" || formValues.date !== "" || formValues.time !== "";
+            setHasChanges(hasContent);
+        } else {
+            // For editing, compare with original
+            const changed =
+                formValues.title !== (editingItem.title || "") ||
+                formValues.date !== (editingItem.date || "") ||
+                formValues.time !== (editingItem.time || "") ||
+                formValues.location !== (editingItem.location || "") ||
+                formValues.description !== (editingItem.description || "") ||
+                formValues.category !== (editingItem.category || "") ||
+                formValues.imageUrl !== (editingItem.imageUrl || "") ||
+                formValues.linkUrl !== (editingItem.linkUrl || "");
+            setHasChanges(changed);
+        }
+    }, [formValues, editingItem]);
+
+    useEffect(() => {
+        checkForChanges();
+    }, [checkForChanges]);
+
+    // Reset form when modal opens
+    useEffect(() => {
+        if (isModalOpen) {
+            if (editingItem) {
+                setFormValues({
+                    title: editingItem.title || "",
+                    date: editingItem.date || "",
+                    time: editingItem.time || "",
+                    location: editingItem.location || "",
+                    description: editingItem.description || "",
+                    category: editingItem.category || "",
+                    imageUrl: editingItem.imageUrl || "",
+                    linkUrl: editingItem.linkUrl || ""
+                });
+            } else {
+                setFormValues({
+                    title: "",
+                    date: "",
+                    time: "",
+                    location: "",
+                    description: "",
+                    category: categories[0] || "",
+                    imageUrl: "",
+                    linkUrl: ""
+                });
+            }
+            setHasChanges(false);
+        }
+    }, [isModalOpen, editingItem, categories]);
 
     const handleEdit = (item: JadwalEvent) => {
         setEditingItem(item);
@@ -69,18 +135,17 @@ export default function JadwalClient({ initialData, categories }: { initialData:
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        const formData = new FormData(e.currentTarget);
 
         const newItem: JadwalEvent = {
             id: editingItem?.id || uuidv4(),
-            title: formData.get("title") as string,
-            date: formData.get("date") as string,
-            time: formData.get("time") as string,
-            location: formData.get("location") as string,
-            description: formData.get("description") as string,
-            category: formData.get("category") as any,
-            imageUrl: formData.get("imageUrl") as string,
-            linkUrl: formData.get("linkUrl") as string,
+            title: formValues.title,
+            date: formValues.date,
+            time: formValues.time,
+            location: formValues.location,
+            description: formValues.description,
+            category: formValues.category as any,
+            imageUrl: formValues.imageUrl,
+            linkUrl: formValues.linkUrl,
         };
 
         // Show confirmation modal
@@ -226,8 +291,8 @@ export default function JadwalClient({ initialData, categories }: { initialData:
                             <Label htmlFor="title">Nama Kegiatan</Label>
                             <Input
                                 id="title"
-                                name="title"
-                                defaultValue={editingItem?.title}
+                                value={formValues.title}
+                                onChange={(e) => setFormValues({ ...formValues, title: e.target.value })}
                                 required
                                 placeholder="Contoh: Rapat Dewan Paroki"
                             />
@@ -239,8 +304,8 @@ export default function JadwalClient({ initialData, categories }: { initialData:
                                 <Input
                                     type="date"
                                     id="date"
-                                    name="date"
-                                    defaultValue={editingItem?.date}
+                                    value={formValues.date}
+                                    onChange={(e) => setFormValues({ ...formValues, date: e.target.value })}
                                     required
                                 />
                             </div>
@@ -249,8 +314,8 @@ export default function JadwalClient({ initialData, categories }: { initialData:
                                 <Input
                                     type="time"
                                     id="time"
-                                    name="time"
-                                    defaultValue={editingItem?.time}
+                                    value={formValues.time}
+                                    onChange={(e) => setFormValues({ ...formValues, time: e.target.value })}
                                     required
                                 />
                             </div>
@@ -261,15 +326,18 @@ export default function JadwalClient({ initialData, categories }: { initialData:
                                 <Label htmlFor="location">Lokasi</Label>
                                 <Input
                                     id="location"
-                                    name="location"
-                                    defaultValue={editingItem?.location}
+                                    value={formValues.location}
+                                    onChange={(e) => setFormValues({ ...formValues, location: e.target.value })}
                                     required
                                     placeholder="Tempat kegiatan"
                                 />
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="category">Kategori</Label>
-                                <Select name="category" defaultValue={editingItem?.category || categories[0] || ""}>
+                                <Select
+                                    value={formValues.category}
+                                    onValueChange={(val) => setFormValues({ ...formValues, category: val })}
+                                >
                                     <SelectTrigger>
                                         <SelectValue placeholder="Pilih kategori" />
                                     </SelectTrigger>
@@ -289,8 +357,8 @@ export default function JadwalClient({ initialData, categories }: { initialData:
                                 <Label htmlFor="imageUrl">Link Gambar (URL)</Label>
                                 <Input
                                     id="imageUrl"
-                                    name="imageUrl"
-                                    defaultValue={editingItem?.imageUrl}
+                                    value={formValues.imageUrl}
+                                    onChange={(e) => setFormValues({ ...formValues, imageUrl: e.target.value })}
                                     placeholder="https://..."
                                 />
                             </div>
@@ -298,8 +366,8 @@ export default function JadwalClient({ initialData, categories }: { initialData:
                                 <Label htmlFor="linkUrl">Link Eksternal (URL)</Label>
                                 <Input
                                     id="linkUrl"
-                                    name="linkUrl"
-                                    defaultValue={editingItem?.linkUrl}
+                                    value={formValues.linkUrl}
+                                    onChange={(e) => setFormValues({ ...formValues, linkUrl: e.target.value })}
                                     placeholder="https://..."
                                 />
                             </div>
@@ -309,8 +377,8 @@ export default function JadwalClient({ initialData, categories }: { initialData:
                             <Label htmlFor="description">Deskripsi</Label>
                             <Textarea
                                 id="description"
-                                name="description"
-                                defaultValue={editingItem?.description}
+                                value={formValues.description}
+                                onChange={(e) => setFormValues({ ...formValues, description: e.target.value })}
                                 rows={3}
                                 placeholder="Keterangan tambahan..."
                             />
@@ -326,7 +394,7 @@ export default function JadwalClient({ initialData, categories }: { initialData:
                             </Button>
                             <Button
                                 type="submit"
-                                disabled={isPending}
+                                disabled={isPending || !hasChanges}
                                 className="bg-blue-600 hover:bg-blue-700"
                             >
                                 {isPending ? (

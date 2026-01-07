@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useTransition, useEffect, useCallback } from "react";
 import { Wilayah, Lingkungan, saveWilayahLingkungan } from "@/actions/data";
 import { Plus, Pencil, Trash2, Search, ChevronDown, ChevronRight, User, Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -17,6 +17,22 @@ import {
     DialogTitle,
 } from "@/components/ui/dialog";
 
+type WilayahFormValues = {
+    name: string;
+    coordinator: string;
+    address: string;
+    email: string;
+    phone: string;
+};
+
+type LingkunganFormValues = {
+    name: string;
+    chief: string;
+    address: string;
+    email: string;
+    phone: string;
+};
+
 export default function WilayahClient({ initialData }: { initialData: Wilayah[] }) {
     const [data, setData] = useState<Wilayah[]>(initialData);
     const [isWilayahModalOpen, setIsWilayahModalOpen] = useState(false);
@@ -25,10 +41,18 @@ export default function WilayahClient({ initialData }: { initialData: Wilayah[] 
 
     // State for Wilayah Modal
     const [editingWilayah, setEditingWilayah] = useState<Wilayah | null>(null);
+    const [wilayahFormValues, setWilayahFormValues] = useState<WilayahFormValues>({
+        name: "", coordinator: "", address: "", email: "", phone: ""
+    });
+    const [hasWilayahChanges, setHasWilayahChanges] = useState(false);
 
     // State for Lingkungan Modal
     const [selectedWilayahId, setSelectedWilayahId] = useState<string | null>(null);
     const [editingLingkungan, setEditingLingkungan] = useState<Lingkungan | null>(null);
+    const [lingkunganFormValues, setLingkunganFormValues] = useState<LingkunganFormValues>({
+        name: "", chief: "", address: "", email: "", phone: ""
+    });
+    const [hasLingkunganChanges, setHasLingkunganChanges] = useState(false);
 
     // Expanded Wilayah State
     const [expandedWilayah, setExpandedWilayah] = useState<Set<string>>(new Set());
@@ -45,6 +69,77 @@ export default function WilayahClient({ initialData }: { initialData: Wilayah[] 
         item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         item.coordinator.toLowerCase().includes(searchTerm.toLowerCase())
     );
+
+    // Check Wilayah form changes
+    const checkWilayahChanges = useCallback(() => {
+        if (!editingWilayah) {
+            const hasContent = wilayahFormValues.name.trim() !== "";
+            setHasWilayahChanges(hasContent);
+        } else {
+            const changed =
+                wilayahFormValues.name !== (editingWilayah.name || "") ||
+                wilayahFormValues.coordinator !== (editingWilayah.coordinator || "") ||
+                wilayahFormValues.address !== (editingWilayah.address || "") ||
+                wilayahFormValues.email !== (editingWilayah.email || "") ||
+                wilayahFormValues.phone !== (editingWilayah.phone || "");
+            setHasWilayahChanges(changed);
+        }
+    }, [wilayahFormValues, editingWilayah]);
+
+    // Check Lingkungan form changes
+    const checkLingkunganChanges = useCallback(() => {
+        if (!editingLingkungan) {
+            const hasContent = lingkunganFormValues.name.trim() !== "";
+            setHasLingkunganChanges(hasContent);
+        } else {
+            const changed =
+                lingkunganFormValues.name !== (editingLingkungan.name || "") ||
+                lingkunganFormValues.chief !== (editingLingkungan.chief || "") ||
+                lingkunganFormValues.address !== (editingLingkungan.address || "") ||
+                lingkunganFormValues.email !== (editingLingkungan.email || "") ||
+                lingkunganFormValues.phone !== (editingLingkungan.phone || "");
+            setHasLingkunganChanges(changed);
+        }
+    }, [lingkunganFormValues, editingLingkungan]);
+
+    useEffect(() => { checkWilayahChanges(); }, [checkWilayahChanges]);
+    useEffect(() => { checkLingkunganChanges(); }, [checkLingkunganChanges]);
+
+    // Reset Wilayah form when modal opens
+    useEffect(() => {
+        if (isWilayahModalOpen) {
+            if (editingWilayah) {
+                setWilayahFormValues({
+                    name: editingWilayah.name || "",
+                    coordinator: editingWilayah.coordinator || "",
+                    address: editingWilayah.address || "",
+                    email: editingWilayah.email || "",
+                    phone: editingWilayah.phone || ""
+                });
+            } else {
+                setWilayahFormValues({ name: "", coordinator: "", address: "", email: "", phone: "" });
+            }
+            setHasWilayahChanges(false);
+        }
+    }, [isWilayahModalOpen, editingWilayah]);
+
+    // Reset Lingkungan form when modal opens
+    useEffect(() => {
+        if (isLingkunganModalOpen) {
+            if (editingLingkungan) {
+                setLingkunganFormValues({
+                    name: editingLingkungan.name || "",
+                    chief: editingLingkungan.chief || "",
+                    address: editingLingkungan.address || "",
+                    email: editingLingkungan.email || "",
+                    phone: editingLingkungan.phone || ""
+                });
+            } else {
+                setLingkunganFormValues({ name: "", chief: "", address: "", email: "", phone: "" });
+            }
+            setHasLingkunganChanges(false);
+        }
+    }, [isLingkunganModalOpen, editingLingkungan]);
 
     const toggleExpand = (id: string) => {
         const newExpanded = new Set(expandedWilayah);
@@ -78,19 +173,17 @@ export default function WilayahClient({ initialData }: { initialData: Wilayah[] 
 
     const handleSubmitWilayah = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        const formData = new FormData(e.currentTarget);
 
         const newItem: Wilayah = {
             id: editingWilayah?.id || uuidv4(),
-            name: formData.get("name") as string,
-            coordinator: formData.get("coordinator") as string,
-            address: formData.get("address") as string,
-            email: formData.get("email") as string,
-            phone: formData.get("phone") as string,
+            name: wilayahFormValues.name,
+            coordinator: wilayahFormValues.coordinator,
+            address: wilayahFormValues.address,
+            email: wilayahFormValues.email,
+            phone: wilayahFormValues.phone,
             lingkungan: editingWilayah?.lingkungan || []
         };
 
-        // Show save confirmation
         setPendingData({ type: 'wilayah', item: newItem, name: newItem.name });
         setSaveConfirmOpen(true);
     };
@@ -140,18 +233,16 @@ export default function WilayahClient({ initialData }: { initialData: Wilayah[] 
 
     const handleSubmitLingkungan = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        const formData = new FormData(e.currentTarget);
 
         const newItem: Lingkungan = {
             id: editingLingkungan?.id || uuidv4(),
-            name: formData.get("name") as string,
-            chief: formData.get("chief") as string,
-            address: formData.get("address") as string,
-            email: formData.get("email") as string,
-            phone: formData.get("phone") as string,
+            name: lingkunganFormValues.name,
+            chief: lingkunganFormValues.chief,
+            address: lingkunganFormValues.address,
+            email: lingkunganFormValues.email,
+            phone: lingkunganFormValues.phone,
         };
 
-        // Show save confirmation
         setPendingData({ type: 'lingkungan', item: newItem, name: newItem.name });
         setSaveConfirmOpen(true);
     };
@@ -329,18 +420,29 @@ export default function WilayahClient({ initialData }: { initialData: Wilayah[] 
                     <form onSubmit={handleSubmitWilayah} className="space-y-4">
                         <div className="space-y-2">
                             <Label htmlFor="name">Nama Wilayah</Label>
-                            <Input id="name" name="name" defaultValue={editingWilayah?.name} required placeholder="Contoh: Wilayah I" />
+                            <Input
+                                id="name"
+                                value={wilayahFormValues.name}
+                                onChange={(e) => setWilayahFormValues({ ...wilayahFormValues, name: e.target.value })}
+                                required
+                                placeholder="Contoh: Wilayah I"
+                            />
                         </div>
                         <div className="space-y-2">
                             <Label htmlFor="coordinator">Ketua Wilayah</Label>
-                            <Input id="coordinator" name="coordinator" defaultValue={editingWilayah?.coordinator} placeholder="Nama Ketua Wilayah" />
+                            <Input
+                                id="coordinator"
+                                value={wilayahFormValues.coordinator}
+                                onChange={(e) => setWilayahFormValues({ ...wilayahFormValues, coordinator: e.target.value })}
+                                placeholder="Nama Ketua Wilayah"
+                            />
                         </div>
                         <div className="space-y-2">
                             <Label htmlFor="address">Alamat (Opsional)</Label>
                             <Textarea
                                 id="address"
-                                name="address"
-                                defaultValue={editingWilayah?.address}
+                                value={wilayahFormValues.address}
+                                onChange={(e) => setWilayahFormValues({ ...wilayahFormValues, address: e.target.value })}
                                 placeholder="Alamat lengkap..."
                                 rows={2}
                             />
@@ -348,16 +450,27 @@ export default function WilayahClient({ initialData }: { initialData: Wilayah[] 
                         <div className="grid grid-cols-2 gap-4">
                             <div className="space-y-2">
                                 <Label htmlFor="email">Email (Opsional)</Label>
-                                <Input id="email" name="email" type="email" defaultValue={editingWilayah?.email} placeholder="email@contoh.com" />
+                                <Input
+                                    id="email"
+                                    type="email"
+                                    value={wilayahFormValues.email}
+                                    onChange={(e) => setWilayahFormValues({ ...wilayahFormValues, email: e.target.value })}
+                                    placeholder="email@contoh.com"
+                                />
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="phone">No. HP (Opsional)</Label>
-                                <Input id="phone" name="phone" defaultValue={editingWilayah?.phone} placeholder="08..." />
+                                <Input
+                                    id="phone"
+                                    value={wilayahFormValues.phone}
+                                    onChange={(e) => setWilayahFormValues({ ...wilayahFormValues, phone: e.target.value })}
+                                    placeholder="08..."
+                                />
                             </div>
                         </div>
                         <div className="flex justify-end gap-3 pt-2">
                             <Button type="button" variant="outline" onClick={() => setIsWilayahModalOpen(false)}>Batal</Button>
-                            <Button type="submit" disabled={isPending} className="bg-blue-600 hover:bg-blue-700">
+                            <Button type="submit" disabled={isPending || !hasWilayahChanges} className="bg-blue-600 hover:bg-blue-700">
                                 {isPending ? (
                                     <>
                                         <Loader2 className="h-4 w-4 animate-spin mr-2" />
@@ -381,18 +494,29 @@ export default function WilayahClient({ initialData }: { initialData: Wilayah[] 
                     <form onSubmit={handleSubmitLingkungan} className="space-y-4">
                         <div className="space-y-2">
                             <Label htmlFor="ling-name">Nama Lingkungan</Label>
-                            <Input id="ling-name" name="name" defaultValue={editingLingkungan?.name} required placeholder="Contoh: Lingkungan St. Petrus" />
+                            <Input
+                                id="ling-name"
+                                value={lingkunganFormValues.name}
+                                onChange={(e) => setLingkunganFormValues({ ...lingkunganFormValues, name: e.target.value })}
+                                required
+                                placeholder="Contoh: Lingkungan St. Petrus"
+                            />
                         </div>
                         <div className="space-y-2">
                             <Label htmlFor="chief">Ketua Lingkungan</Label>
-                            <Input id="chief" name="chief" defaultValue={editingLingkungan?.chief} placeholder="Nama Ketua Lingkungan" />
+                            <Input
+                                id="chief"
+                                value={lingkunganFormValues.chief}
+                                onChange={(e) => setLingkunganFormValues({ ...lingkunganFormValues, chief: e.target.value })}
+                                placeholder="Nama Ketua Lingkungan"
+                            />
                         </div>
                         <div className="space-y-2">
                             <Label htmlFor="ling-address">Alamat (Opsional)</Label>
                             <Textarea
                                 id="ling-address"
-                                name="address"
-                                defaultValue={editingLingkungan?.address}
+                                value={lingkunganFormValues.address}
+                                onChange={(e) => setLingkunganFormValues({ ...lingkunganFormValues, address: e.target.value })}
                                 placeholder="Alamat lengkap..."
                                 rows={2}
                             />
@@ -400,16 +524,27 @@ export default function WilayahClient({ initialData }: { initialData: Wilayah[] 
                         <div className="grid grid-cols-2 gap-4">
                             <div className="space-y-2">
                                 <Label htmlFor="ling-email">Email (Opsional)</Label>
-                                <Input id="ling-email" name="email" type="email" defaultValue={editingLingkungan?.email} placeholder="email@contoh.com" />
+                                <Input
+                                    id="ling-email"
+                                    type="email"
+                                    value={lingkunganFormValues.email}
+                                    onChange={(e) => setLingkunganFormValues({ ...lingkunganFormValues, email: e.target.value })}
+                                    placeholder="email@contoh.com"
+                                />
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="ling-phone">No. HP (Opsional)</Label>
-                                <Input id="ling-phone" name="phone" defaultValue={editingLingkungan?.phone} placeholder="08..." />
+                                <Input
+                                    id="ling-phone"
+                                    value={lingkunganFormValues.phone}
+                                    onChange={(e) => setLingkunganFormValues({ ...lingkunganFormValues, phone: e.target.value })}
+                                    placeholder="08..."
+                                />
                             </div>
                         </div>
                         <div className="flex justify-end gap-3 pt-2">
                             <Button type="button" variant="outline" onClick={() => setIsLingkunganModalOpen(false)}>Batal</Button>
-                            <Button type="submit" disabled={isPending} className="bg-blue-600 hover:bg-blue-700">
+                            <Button type="submit" disabled={isPending || !hasLingkunganChanges} className="bg-blue-600 hover:bg-blue-700">
                                 {isPending ? (
                                     <>
                                         <Loader2 className="h-4 w-4 animate-spin mr-2" />

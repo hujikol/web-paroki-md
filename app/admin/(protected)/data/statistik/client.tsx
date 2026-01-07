@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useTransition, useEffect, useCallback } from "react";
 import { StatistikData, saveStatistik } from "@/actions/data";
 import { Save, Loader2, Users, Home, MapPin, Church } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -19,7 +19,26 @@ export default function StatistikClient({ initialData }: { initialData: Statisti
 
     const [isPending, startTransition] = useTransition();
     const [saveConfirmOpen, setSaveConfirmOpen] = useState(false);
+    const [hasChanges, setHasChanges] = useState(false);
     const router = useRouter();
+
+    // Check for changes compared to initial data
+    const checkForChanges = useCallback(() => {
+        if (!initialData) {
+            setHasChanges(true);
+            return;
+        }
+        const changed =
+            data.churches !== initialData.churches ||
+            data.wards !== initialData.wards ||
+            data.families !== initialData.families ||
+            data.parishioners !== initialData.parishioners;
+        setHasChanges(changed);
+    }, [data, initialData]);
+
+    useEffect(() => {
+        checkForChanges();
+    }, [checkForChanges]);
 
     const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
@@ -109,7 +128,7 @@ export default function StatistikClient({ initialData }: { initialData: Statisti
 
                         <Button
                             type="submit"
-                            disabled={isPending}
+                            disabled={isPending || !hasChanges}
                             className="bg-blue-600 hover:bg-blue-700"
                         >
                             {isPending ? (

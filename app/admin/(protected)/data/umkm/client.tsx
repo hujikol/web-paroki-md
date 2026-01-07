@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useTransition, useEffect, useCallback } from "react";
 import { UMKMData, saveUMKM } from "@/actions/data";
 import { Plus, Pencil, Trash2, Search, Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -33,11 +33,69 @@ export default function UMKMClient({ initialData, categories }: { initialData: U
     const [deleteTarget, setDeleteTarget] = useState<UMKMData | null>(null);
     const [saveConfirmOpen, setSaveConfirmOpen] = useState(false);
     const [pendingFormData, setPendingFormData] = useState<UMKMData | null>(null);
+    const [hasChanges, setHasChanges] = useState(false);
+    const [formValues, setFormValues] = useState({
+        businessName: "",
+        owner: "",
+        type: "",
+        address: "",
+        phone: "",
+        description: ""
+    });
     const router = useRouter();
 
     const filteredData = data.filter(item =>
         item.businessName.toLowerCase().includes(searchTerm.toLowerCase())
     );
+
+    // Check if form has changes compared to original
+    const checkForChanges = useCallback(() => {
+        if (!editingItem) {
+            // For new items, check if any field has content
+            const hasContent = Object.values(formValues).some(v => v.trim() !== "");
+            setHasChanges(hasContent);
+        } else {
+            // For editing, compare with original
+            const changed =
+                formValues.businessName !== (editingItem.businessName || "") ||
+                formValues.owner !== (editingItem.owner || "") ||
+                formValues.type !== (editingItem.type || "") ||
+                formValues.address !== (editingItem.address || "") ||
+                formValues.phone !== (editingItem.phone || "") ||
+                formValues.description !== (editingItem.description || "");
+            setHasChanges(changed);
+        }
+    }, [formValues, editingItem]);
+
+    useEffect(() => {
+        checkForChanges();
+    }, [checkForChanges]);
+
+    // Reset form when modal opens
+    useEffect(() => {
+        if (isModalOpen) {
+            if (editingItem) {
+                setFormValues({
+                    businessName: editingItem.businessName || "",
+                    owner: editingItem.owner || "",
+                    type: editingItem.type || "",
+                    address: editingItem.address || "",
+                    phone: editingItem.phone || "",
+                    description: editingItem.description || ""
+                });
+            } else {
+                setFormValues({
+                    businessName: "",
+                    owner: "",
+                    type: categories[0] || "",
+                    address: "",
+                    phone: "",
+                    description: ""
+                });
+            }
+            setHasChanges(false);
+        }
+    }, [isModalOpen, editingItem, categories]);
 
     const handleEdit = (item: UMKMData) => {
         setEditingItem(item);
@@ -65,16 +123,15 @@ export default function UMKMClient({ initialData, categories }: { initialData: U
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        const formData = new FormData(e.currentTarget);
 
         const newItem: UMKMData = {
             id: editingItem?.id || uuidv4(),
-            businessName: formData.get("businessName") as string,
-            owner: formData.get("owner") as string,
-            type: formData.get("type") as any,
-            address: formData.get("address") as string,
-            phone: formData.get("phone") as string,
-            description: formData.get("description") as string
+            businessName: formValues.businessName,
+            owner: formValues.owner,
+            type: formValues.type as any,
+            address: formValues.address,
+            phone: formValues.phone,
+            description: formValues.description
         };
 
         // Show confirmation modal
@@ -203,8 +260,8 @@ export default function UMKMClient({ initialData, categories }: { initialData: U
                             <Label htmlFor="businessName">Nama Usaha</Label>
                             <Input
                                 id="businessName"
-                                name="businessName"
-                                defaultValue={editingItem?.businessName}
+                                value={formValues.businessName}
+                                onChange={(e) => setFormValues({ ...formValues, businessName: e.target.value })}
                                 required
                                 placeholder="Nama Usaha"
                             />
@@ -215,15 +272,18 @@ export default function UMKMClient({ initialData, categories }: { initialData: U
                                 <Label htmlFor="owner">Nama Pemilik</Label>
                                 <Input
                                     id="owner"
-                                    name="owner"
-                                    defaultValue={editingItem?.owner}
+                                    value={formValues.owner}
+                                    onChange={(e) => setFormValues({ ...formValues, owner: e.target.value })}
                                     required
                                     placeholder="Nama Pemilik"
                                 />
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="type">Jenis Usaha</Label>
-                                <Select name="type" defaultValue={editingItem?.type || categories[0] || ""}>
+                                <Select
+                                    value={formValues.type}
+                                    onValueChange={(val) => setFormValues({ ...formValues, type: val })}
+                                >
                                     <SelectTrigger>
                                         <SelectValue placeholder="Pilih jenis" />
                                     </SelectTrigger>
@@ -242,8 +302,8 @@ export default function UMKMClient({ initialData, categories }: { initialData: U
                             <Label htmlFor="phone">No. Telp / HP</Label>
                             <Input
                                 id="phone"
-                                name="phone"
-                                defaultValue={editingItem?.phone}
+                                value={formValues.phone}
+                                onChange={(e) => setFormValues({ ...formValues, phone: e.target.value })}
                                 placeholder="08..."
                             />
                         </div>
@@ -252,8 +312,8 @@ export default function UMKMClient({ initialData, categories }: { initialData: U
                             <Label htmlFor="address">Alamat</Label>
                             <Textarea
                                 id="address"
-                                name="address"
-                                defaultValue={editingItem?.address}
+                                value={formValues.address}
+                                onChange={(e) => setFormValues({ ...formValues, address: e.target.value })}
                                 rows={2}
                                 placeholder="Alamat lengkap usaha"
                             />
@@ -263,8 +323,8 @@ export default function UMKMClient({ initialData, categories }: { initialData: U
                             <Label htmlFor="description">Keterangan Tambahan</Label>
                             <Textarea
                                 id="description"
-                                name="description"
-                                defaultValue={editingItem?.description}
+                                value={formValues.description}
+                                onChange={(e) => setFormValues({ ...formValues, description: e.target.value })}
                                 rows={3}
                                 placeholder="Deskripsi singkat produk/jasa..."
                             />
@@ -280,7 +340,7 @@ export default function UMKMClient({ initialData, categories }: { initialData: U
                             </Button>
                             <Button
                                 type="submit"
-                                disabled={isPending}
+                                disabled={isPending || !hasChanges}
                                 className="bg-blue-600 hover:bg-blue-700"
                             >
                                 {isPending ? (

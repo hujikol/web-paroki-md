@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useTransition, useEffect, useCallback } from "react";
 import { Formulir, saveFormulir } from "@/actions/data";
 import { Plus, Pencil, Trash2, Search, Loader2, FileText, Link as LinkIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -33,11 +33,61 @@ export default function FormulirClient({ initialData, categories }: { initialDat
     const [deleteTarget, setDeleteTarget] = useState<Formulir | null>(null);
     const [saveConfirmOpen, setSaveConfirmOpen] = useState(false);
     const [pendingFormData, setPendingFormData] = useState<Formulir | null>(null);
+    const [hasChanges, setHasChanges] = useState(false);
+    const [formValues, setFormValues] = useState({
+        title: "",
+        url: "",
+        description: "",
+        category: ""
+    });
     const router = useRouter();
 
     const filteredData = data.filter(item =>
         item.title.toLowerCase().includes(searchTerm.toLowerCase())
     );
+
+    // Check if form has changes compared to original
+    const checkForChanges = useCallback(() => {
+        if (!editingItem) {
+            // For new items, check if required fields have content
+            const hasContent = formValues.title.trim() !== "" || formValues.url.trim() !== "";
+            setHasChanges(hasContent);
+        } else {
+            // For editing, compare with original
+            const changed =
+                formValues.title !== (editingItem.title || "") ||
+                formValues.url !== (editingItem.url || "") ||
+                formValues.description !== (editingItem.description || "") ||
+                formValues.category !== (editingItem.category || "");
+            setHasChanges(changed);
+        }
+    }, [formValues, editingItem]);
+
+    useEffect(() => {
+        checkForChanges();
+    }, [checkForChanges]);
+
+    // Reset form when modal opens
+    useEffect(() => {
+        if (isModalOpen) {
+            if (editingItem) {
+                setFormValues({
+                    title: editingItem.title || "",
+                    url: editingItem.url || "",
+                    description: editingItem.description || "",
+                    category: editingItem.category || ""
+                });
+            } else {
+                setFormValues({
+                    title: "",
+                    url: "",
+                    description: "",
+                    category: categories[0] || ""
+                });
+            }
+            setHasChanges(false);
+        }
+    }, [isModalOpen, editingItem, categories]);
 
     const handleEdit = (item: Formulir) => {
         setEditingItem(item);
@@ -65,14 +115,13 @@ export default function FormulirClient({ initialData, categories }: { initialDat
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        const formData = new FormData(e.currentTarget);
 
         const newItem: Formulir = {
             id: editingItem?.id || uuidv4(),
-            title: formData.get("title") as string,
-            url: formData.get("url") as string,
-            description: formData.get("description") as string,
-            category: formData.get("category") as any,
+            title: formValues.title,
+            url: formValues.url,
+            description: formValues.description,
+            category: formValues.category as any,
         };
 
         // Show confirmation modal
@@ -214,8 +263,8 @@ export default function FormulirClient({ initialData, categories }: { initialDat
                             <Label htmlFor="title">Judul Formulir</Label>
                             <Input
                                 id="title"
-                                name="title"
-                                defaultValue={editingItem?.title}
+                                value={formValues.title}
+                                onChange={(e) => setFormValues({ ...formValues, title: e.target.value })}
                                 required
                                 placeholder="Contoh: Formulir Pendaftaran Baptis"
                             />
@@ -227,8 +276,8 @@ export default function FormulirClient({ initialData, categories }: { initialDat
                                 <LinkIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                                 <Input
                                     id="url"
-                                    name="url"
-                                    defaultValue={editingItem?.url}
+                                    value={formValues.url}
+                                    onChange={(e) => setFormValues({ ...formValues, url: e.target.value })}
                                     required
                                     className="pl-10"
                                     placeholder="https://..."
@@ -238,7 +287,10 @@ export default function FormulirClient({ initialData, categories }: { initialDat
 
                         <div className="space-y-2">
                             <Label htmlFor="category">Kategori</Label>
-                            <Select name="category" defaultValue={editingItem?.category || categories[0] || ""}>
+                            <Select
+                                value={formValues.category}
+                                onValueChange={(val) => setFormValues({ ...formValues, category: val })}
+                            >
                                 <SelectTrigger>
                                     <SelectValue placeholder="Pilih kategori" />
                                 </SelectTrigger>
@@ -256,8 +308,8 @@ export default function FormulirClient({ initialData, categories }: { initialDat
                             <Label htmlFor="description">Keterangan</Label>
                             <Textarea
                                 id="description"
-                                name="description"
-                                defaultValue={editingItem?.description}
+                                value={formValues.description}
+                                onChange={(e) => setFormValues({ ...formValues, description: e.target.value })}
                                 rows={3}
                                 placeholder="Deskripsi singkat formulir..."
                             />
@@ -273,7 +325,7 @@ export default function FormulirClient({ initialData, categories }: { initialDat
                             </Button>
                             <Button
                                 type="submit"
-                                disabled={isPending}
+                                disabled={isPending || !hasChanges}
                                 className="bg-blue-600 hover:bg-blue-700"
                             >
                                 {isPending ? (

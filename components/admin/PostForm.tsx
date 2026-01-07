@@ -96,6 +96,7 @@ export default function PostForm({ post, mode, user, categories: masterCategorie
     const watchedOgImage = form.watch("ogImage");
     const watchedPublished = form.watch("published");
     const watchedTitle = form.watch("title");
+    const { isDirty } = form.formState;
 
     // Close dropdown when clicking outside
     useEffect(() => {
@@ -255,7 +256,7 @@ export default function PostForm({ post, mode, user, categories: masterCategorie
                                 <Button
                                     type="button"
                                     onClick={() => handleSaveAction(true)}
-                                    disabled={saving}
+                                    disabled={saving || (mode === "edit" && !isDirty)}
                                     size="sm"
                                     className="rounded-r-none bg-blue-600 hover:bg-blue-700"
                                 >
@@ -272,7 +273,7 @@ export default function PostForm({ post, mode, user, categories: masterCategorie
                                             type="button"
                                             size="sm"
                                             className="rounded-l-none px-2 bg-blue-600 hover:bg-blue-700 border-l border-blue-500"
-                                            disabled={saving}
+                                            disabled={saving || (mode === "edit" && !isDirty)}
                                         >
                                             <ChevronDown className="h-4 w-4" />
                                         </Button>
@@ -283,6 +284,7 @@ export default function PostForm({ post, mode, user, categories: masterCategorie
                                             variant="ghost"
                                             size="sm"
                                             className="w-full justify-start font-normal"
+                                            disabled={mode === "edit" && !isDirty}
                                             onClick={() => handleSaveAction(false)}
                                         >
                                             Save as Draft
