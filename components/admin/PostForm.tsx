@@ -7,7 +7,7 @@ import { createPost, updatePost, deletePost } from "@/actions/posts";
 import { getAllCategories, addCategory } from "@/actions/categories";
 import QuillEditor from "./QuillEditor";
 import MediaPickerModal from "./MediaPickerModal";
-import DeleteConfirmModal from "./DeleteConfirmModal";
+import ConfirmModal from "./ConfirmModal";
 import StatusPill from "./StatusPill";
 import { Post } from "@/types/post";
 import { useLoading } from "./LoadingProvider";
@@ -675,13 +675,15 @@ export default function PostForm({ post, mode, user, categories: masterCategorie
                     }}
                     initialTab="banner"
                 />
-                <DeleteConfirmModal
+                <ConfirmModal
                     isOpen={showDeleteModal}
                     onClose={() => setShowDeleteModal(false)}
                     onConfirm={handleConfirmDelete}
                     title="Delete Post"
                     message={`Are you sure you want to delete "${watchedTitle}"? This action cannot be undone and the post will be permanently removed from the website.`}
                     loading={saving}
+                    variant="destructive"
+                    confirmText="Delete"
                 />
             </form>
         </Form>

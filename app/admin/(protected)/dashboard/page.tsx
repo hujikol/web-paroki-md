@@ -50,6 +50,9 @@ export default async function AdminDashboard() {
 
   return (
     <div className="space-y-6 font-rubik">
+      {/* Website Analytics - Compact */}
+      <UmamiStats latestPosts={publishedPosts.slice(0, 10)} />
+
       {/* Compact Stats Grid */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <StatsCard
@@ -143,9 +146,6 @@ export default async function AdminDashboard() {
           </div>
         </div>
       </div>
-
-      {/* Website Analytics - Compact */}
-      <UmamiStats latestPosts={publishedPosts.slice(0, 10)} />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Recent Posts Column */}

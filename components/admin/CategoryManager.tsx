@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState } from "react";
 import { CategoryType, MasterCategoriesData, addCategory, deleteCategory, updateCategory } from "@/actions/master-categories";
 import { Plus, Trash2, Pencil, Loader2, Save, X } from "lucide-react";
 import ConfirmModal from "@/components/admin/ConfirmModal";
@@ -18,17 +18,18 @@ const SECTION_TITLES: Record<CategoryType, string> = {
 
 export default function CategoryManager({ initialData }: CategoryManagerProps) {
     const [data, setData] = useState<MasterCategoriesData>(initialData);
-    const [isPending, startTransition] = useTransition();
+    const [isProcessing, setIsProcessing] = useState(false);
     const [editingState, setEditingState] = useState<{ type: CategoryType; oldVal: string; newVal: string } | null>(null);
     const [newCategoryState, setNewCategoryState] = useState<{ type: CategoryType; val: string } | null>(null);
     const [deleteTarget, setDeleteTarget] = useState<{ type: CategoryType; val: string } | null>(null);
 
-    const handleAdd = (type: CategoryType) => {
+    const handleAdd = async (type: CategoryType) => {
         if (!newCategoryState || !newCategoryState.val.trim()) return;
 
         const newVal = newCategoryState.val.trim();
+        setIsProcessing(true);
 
-        startTransition(async () => {
+        try {
             const result = await addCategory(type, newVal);
             if (result.success) {
                 setData(prev => ({
@@ -39,14 +40,17 @@ export default function CategoryManager({ initialData }: CategoryManagerProps) {
             } else {
                 alert(result.error);
             }
-        });
+        } finally {
+            setIsProcessing(false);
+        }
     };
 
-    const handleDelete = () => {
+    const handleDelete = async () => {
         if (!deleteTarget) return;
         const { type, val } = deleteTarget;
 
-        startTransition(async () => {
+        setIsProcessing(true);
+        try {
             const result = await deleteCategory(type, val);
             if (result.success) {
                 setData(prev => ({
@@ -56,16 +60,20 @@ export default function CategoryManager({ initialData }: CategoryManagerProps) {
             } else {
                 alert(result.error);
             }
+            // Only close modal after operation completes
             setDeleteTarget(null);
-        });
+        } finally {
+            setIsProcessing(false);
+        }
     };
 
-    const handleUpdate = () => {
+    const handleUpdate = async () => {
         if (!editingState || !editingState.newVal.trim()) return;
 
         const { type, oldVal, newVal } = editingState;
 
-        startTransition(async () => {
+        setIsProcessing(true);
+        try {
             const result = await updateCategory(type, oldVal, newVal);
             if (result.success) {
                 setData(prev => ({
@@ -76,7 +84,9 @@ export default function CategoryManager({ initialData }: CategoryManagerProps) {
             } else {
                 alert(result.error);
             }
-        });
+        } finally {
+            setIsProcessing(false);
+        }
     };
 
     const renderSection = (type: CategoryType) => (
@@ -98,11 +108,12 @@ export default function CategoryManager({ initialData }: CategoryManagerProps) {
                                     onChange={(e) => setEditingState({ ...editingState, newVal: e.target.value })}
                                     className="flex-1 px-2 py-1 text-sm border border-blue-600 rounded outline-none"
                                     autoFocus
+                                    disabled={isProcessing}
                                 />
-                                <button onClick={handleUpdate} disabled={isPending} className="text-blue-600 hover:bg-blue-50 p-1 rounded">
+                                <button onClick={handleUpdate} disabled={isProcessing} className="text-blue-600 hover:bg-blue-50 p-1 rounded">
                                     <Save className="w-4 h-4" />
                                 </button>
-                                <button onClick={() => setEditingState(null)} disabled={isPending} className="text-slate-400 hover:text-slate-600 p-1 rounded">
+                                <button onClick={() => setEditingState(null)} disabled={isProcessing} className="text-slate-400 hover:text-slate-600 p-1 rounded">
                                     <X className="w-4 h-4" />
                                 </button>
                             </div>
@@ -138,17 +149,19 @@ export default function CategoryManager({ initialData }: CategoryManagerProps) {
                             placeholder="New category..."
                             className="flex-1 px-3 py-2 text-sm border border-slate-200 rounded-lg outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-600/10"
                             autoFocus
+                            disabled={isProcessing}
                             onKeyDown={(e) => e.key === 'Enter' && handleAdd(type)}
                         />
                         <button
                             onClick={() => handleAdd(type)}
-                            disabled={isPending || !newCategoryState.val.trim()}
+                            disabled={isProcessing || !newCategoryState.val.trim()}
                             className="px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 shadow-sm shadow-blue-600/20 disabled:opacity-50 disabled:shadow-none"
                         >
-                            {isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
+                            {isProcessing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
                         </button>
                         <button
                             onClick={() => setNewCategoryState(null)}
+                            disabled={isProcessing}
                             className="px-3 py-2 bg-white border border-slate-200 text-slate-600 rounded-lg hover:bg-slate-50"
                         >
                             <X className="w-4 h-4" />
@@ -178,12 +191,13 @@ export default function CategoryManager({ initialData }: CategoryManagerProps) {
             {/* Delete Confirmation */}
             <ConfirmModal
                 isOpen={!!deleteTarget}
-                onClose={() => setDeleteTarget(null)}
+                onClose={() => !isProcessing && setDeleteTarget(null)}
                 onConfirm={handleDelete}
                 title="Hapus Kategori"
                 description={`Apakah Anda yakin ingin menghapus kategori "${deleteTarget?.val}"? Tindakan ini tidak dapat dibatalkan.`}
                 confirmText="Hapus"
                 variant="destructive"
+                loading={isProcessing}
             />
         </>
     );

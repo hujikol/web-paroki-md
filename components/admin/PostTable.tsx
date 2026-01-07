@@ -134,7 +134,7 @@ export default function PostTable({ posts, hidePagination = false, showCreateBut
           {!hidePagination && (
             <>
               <Select value={categoryFilter} onValueChange={handleCategoryFilterChange}>
-                <SelectTrigger className="w-[130px] h-9 border-slate-200 text-sm">
+                <SelectTrigger className="w-[140px] h-9 py-2 border-slate-200 text-sm">
                   <SelectValue placeholder="Category" />
                 </SelectTrigger>
                 <SelectContent>

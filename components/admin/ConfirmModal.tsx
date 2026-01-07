@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import {
     AlertDialog,
     AlertDialogAction,
@@ -15,7 +16,7 @@ import { Loader2 } from "lucide-react";
 interface ConfirmModalProps {
     isOpen: boolean;
     onClose: () => void;
-    onConfirm: () => void;
+    onConfirm: () => void | Promise<void>;
     title: string;
     message?: string;
     description?: string;
@@ -37,34 +38,53 @@ export default function ConfirmModal({
     confirmVariant,
     variant = "default",
 }: ConfirmModalProps) {
+    const [isLoading, setIsLoading] = useState(false);
+
     // Support both message and description props
     const displayMessage = message || description || "";
     // Support both confirmVariant and variant props
     const buttonVariant = confirmVariant || variant;
 
+    // Combine loading states
+    const isBusy = loading || isLoading;
+
+    const handleConfirm = async (e: any) => {
+        e.preventDefault();
+        if (isBusy) return;
+
+        const result = onConfirm();
+
+        // If onConfirm returns a promise, we handle the loading state locally
+        if (result instanceof Promise) {
+            setIsLoading(true);
+            try {
+                await result;
+            } finally {
+                setIsLoading(false);
+            }
+        }
+    };
+
     return (
         <AlertDialog open={isOpen} onOpenChange={onClose}>
             <AlertDialogContent className="z-[100]">
                 <AlertDialogHeader>
-                    <AlertDialogTitle>{title}</AlertDialogTitle>
+                    <AlertDialogTitle className="font-rubik">{title}</AlertDialogTitle>
                     <AlertDialogDescription>
                         {displayMessage}
                     </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
-                    <AlertDialogCancel disabled={loading}>Batal</AlertDialogCancel>
+                    <AlertDialogCancel disabled={isBusy}>Batal</AlertDialogCancel>
                     <AlertDialogAction
-                        onClick={(e) => {
-                            e.preventDefault();
-                            onConfirm();
-                        }}
-                        disabled={loading}
+                        onClick={handleConfirm}
+                        disabled={isBusy}
                         className={buttonVariant === "destructive"
                             ? "bg-red-600 hover:bg-red-700 focus:ring-red-600"
                             : "bg-blue-600 hover:bg-blue-700 focus:ring-blue-600"
                         }
                     >
-                        {loading ? (
+                        {isBusy ? (
                             <>
                                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                                 Loading...
