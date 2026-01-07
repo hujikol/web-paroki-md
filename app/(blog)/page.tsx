@@ -39,7 +39,9 @@ export default async function HomePage() {
     })
   ]);
 
-  const publishedPosts = allPosts.filter((post) => post.published);
+  const publishedPosts = allPosts.filter((post) => {
+    return post.published && new Date(post.publishedAt) <= new Date();
+  });
 
   return (
     <main className="min-h-screen bg-brand-warm selection:bg-brand-gold selection:text-white">

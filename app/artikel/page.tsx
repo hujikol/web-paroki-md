@@ -11,7 +11,9 @@ export const metadata: Metadata = {
 
 export default async function ArtikelPage() {
     const allPosts = await getAllPosts();
-    const publishedPosts = allPosts.filter((post) => post.published);
+    const publishedPosts = allPosts.filter((post) => {
+        return post.published && new Date(post.publishedAt) <= new Date();
+    });
     const categories = await getMasterCategories();
 
     return (

@@ -30,7 +30,9 @@ export default async function CategoryPage({
 }) {
     const { category } = await params;
     const allPosts = await getAllPosts();
-    const publishedPosts = allPosts.filter((post) => post.published);
+    const publishedPosts = allPosts.filter((post) => {
+        return post.published && new Date(post.publishedAt) <= new Date();
+    });
     const masterCategories = await getMasterCategories();
 
     // Capitalize for display

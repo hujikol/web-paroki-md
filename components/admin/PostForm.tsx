@@ -28,11 +28,14 @@ import {
     PopoverContent,
     PopoverTrigger,
 } from "@/components/ui/popover";
-import { Eye, ChevronLeft, ChevronDown, X, Image as ImageIcon, Loader2, Settings, Search, FileImage } from "lucide-react";
+import { Eye, ChevronLeft, ChevronDown, X, Image as ImageIcon, Loader2, Settings, Search, FileImage, CalendarIcon } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
+import { format } from "date-fns";
+import { Calendar } from "@/components/ui/calendar";
+import { cn } from "@/lib/utils";
 
 interface PostFormProps {
     post?: Post;
@@ -43,12 +46,14 @@ interface PostFormProps {
 
 const formSchema = z.object({
     title: z.string().min(1, "Title is required"),
+    slug: z.string().optional(), // Optional for create (auto-generated), editable for edit
     description: z.string().optional(),
     author: z.string(),
     categories: z.array(z.string()).min(1, "At least one category is required"),
     content: z.any(),
     banner: z.string().optional(),
     published: z.boolean(),
+    publishedAt: z.date().optional(),
     metaTitle: z.string().optional(),
     metaDescription: z.string().optional(),
     metaKeywords: z.string().optional(),
@@ -64,12 +69,14 @@ export default function PostForm({ post, mode, user, categories: masterCategorie
         resolver: zodResolver(formSchema),
         defaultValues: {
             title: post?.frontmatter.title || "",
+            slug: post?.frontmatter.slug || "",
             description: post?.frontmatter.description || "",
             author: post?.frontmatter.author || user?.name || "Admin Paroki",
             categories: post?.frontmatter.categories || [],
             content: post?.content || { ops: [] },
             banner: post?.frontmatter.banner || "",
             published: post?.frontmatter.published || false,
+            publishedAt: post?.frontmatter.publishedAt ? new Date(post.frontmatter.publishedAt) : undefined,
             metaTitle: post?.frontmatter.metaTitle || "",
             metaDescription: post?.frontmatter.metaDescription || "",
             metaKeywords: Array.isArray(post?.frontmatter.metaKeywords)
@@ -152,6 +159,8 @@ export default function PostForm({ post, mode, user, categories: masterCategorie
                 description: values.description || "",
                 content: values.content,
                 published: finalPublished,
+                publishedAt: values.publishedAt ? values.publishedAt.toISOString() : undefined,
+                newSlug: values.slug, // Pass new slug for rename
             };
 
             const result = mode === "create"
@@ -289,27 +298,29 @@ export default function PostForm({ post, mode, user, categories: masterCategorie
                                         >
                                             Save as Draft
                                         </Button>
-                                        <Button
-                                            type="button"
-                                            variant="ghost"
-                                            size="sm"
-                                            className="w-full justify-start font-normal"
-                                            onClick={() => {
-                                                const cats = form.getValues("categories");
-                                                const category = (cats.length > 0 ? cats[0].trim().toLowerCase().replace(/\s+/g, '-') : 'lainnya');
-                                                const title = form.getValues("title");
-                                                const slug = post?.frontmatter.slug || (title ? title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') : null);
+                                        {mode === "edit" && (
+                                            <Button
+                                                type="button"
+                                                variant="ghost"
+                                                size="sm"
+                                                className="w-full justify-start font-normal"
+                                                onClick={() => {
+                                                    const cats = form.getValues("categories");
+                                                    const category = (cats.length > 0 ? cats[0].trim().toLowerCase().replace(/\s+/g, '-') : 'lainnya');
+                                                    const title = form.getValues("title");
+                                                    const slug = post?.frontmatter.slug || (title ? title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') : null);
 
-                                                if (slug) {
-                                                    window.open(`/artikel/${category}/${slug}`, '_blank');
-                                                } else {
-                                                    alert("Please enter a title to preview.");
-                                                }
-                                            }}
-                                        >
-                                            <Eye className="mr-2 h-4 w-4" />
-                                            Preview
-                                        </Button>
+                                                    if (slug) {
+                                                        window.open(`/artikel/${category}/${slug}`, '_blank');
+                                                    } else {
+                                                        alert("Please enter a title to preview.");
+                                                    }
+                                                }}
+                                            >
+                                                <Eye className="mr-2 h-4 w-4" />
+                                                Preview
+                                            </Button>
+                                        )}
                                     </PopoverContent>
                                 </Popover>
                             </div>
@@ -367,6 +378,28 @@ export default function PostForm({ post, mode, user, categories: masterCategorie
                                                         className="border-slate-200 focus-visible:ring-blue-500"
                                                     />
                                                 </FormControl>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+
+                                    {/* Slug Field */}
+                                    <FormField
+                                        control={form.control}
+                                        name="slug"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel className="text-slate-700">Slug (URL)</FormLabel>
+                                                <FormControl>
+                                                    <Input
+                                                        placeholder="post-url-slug"
+                                                        {...field}
+                                                        className="border-slate-200 focus-visible:ring-blue-500 font-mono text-sm"
+                                                    />
+                                                </FormControl>
+                                                <p className="text-[10px] text-slate-500 mt-1">
+                                                    {mode === "edit" ? "Warning: Changing the slug will change the post URL." : "Leave empty to auto-generate from title."}
+                                                </p>
                                                 <FormMessage />
                                             </FormItem>
                                         )}
@@ -496,6 +529,50 @@ export default function PostForm({ post, mode, user, categories: masterCategorie
                                         )}
                                     />
                                 </div>
+                                <FormField
+                                    control={form.control}
+                                    name="publishedAt"
+                                    render={({ field }) => (
+                                        <FormItem className="flex flex-col mt-4">
+                                            <FormLabel className="text-slate-700">Schedule Publish</FormLabel>
+                                            <Popover>
+                                                <PopoverTrigger asChild>
+                                                    <FormControl>
+                                                        <Button
+                                                            variant={"outline"}
+                                                            className={cn(
+                                                                "w-full pl-3 text-left font-normal border-slate-200",
+                                                                !field.value && "text-muted-foreground"
+                                                            )}
+                                                        >
+                                                            {field.value ? (
+                                                                format(field.value, "PPP")
+                                                            ) : (
+                                                                <span>Pick a date</span>
+                                                            )}
+                                                            <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                                        </Button>
+                                                    </FormControl>
+                                                </PopoverTrigger>
+                                                <PopoverContent className="w-auto p-0" align="start">
+                                                    <Calendar
+                                                        mode="single"
+                                                        selected={field.value}
+                                                        onSelect={field.onChange}
+                                                        disabled={(date) =>
+                                                            date < new Date(new Date().setHours(0, 0, 0, 0))
+                                                        }
+                                                        initialFocus
+                                                    />
+                                                </PopoverContent>
+                                            </Popover>
+                                            <FormMessage />
+                                            <p className="text-[10px] text-slate-500">
+                                                If set to a future date, post will be scheduled.
+                                            </p>
+                                        </FormItem>
+                                    )}
+                                />
                             </div>
 
                             {/* Featured Image Card */}
@@ -686,6 +763,6 @@ export default function PostForm({ post, mode, user, categories: masterCategorie
                     confirmText="Delete"
                 />
             </form>
-        </Form>
+        </Form >
     );
 }

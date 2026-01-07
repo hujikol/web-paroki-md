@@ -52,22 +52,27 @@ export async function getPostBySlug(slug: string) {
 
 export async function createPost(formData: {
   title: string;
+  slug?: string; // Optional custom slug
   description: string;
   author: string;
   categories: string[];
   content: any;
   banner?: string;
   published?: boolean;
+  publishedAt?: string;
 }) {
   try {
-    const slug = generateSlug(formData.title);
+    // Use custom slug if provided and not empty, otherwise generate from title
+    const slug = formData.slug?.trim() 
+      ? formData.slug.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')
+      : generateSlug(formData.title);
     const now = new Date().toISOString();
 
     const frontmatter: PostFrontmatter = {
       title: formData.title,
       slug,
       description: formData.description || "",
-      publishedAt: now,
+      publishedAt: formData.publishedAt || now, // Use provided date or now
       author: formData.author,
       categories: formData.categories,
       banner: formData.banner,
@@ -109,6 +114,8 @@ export async function updatePost(
     content: any;
     banner?: string;
     published?: boolean;
+    publishedAt?: string;
+    newSlug?: string; // New slug for renaming
   }
 ) {
   try {
@@ -127,14 +134,21 @@ export async function updatePost(
 
     const { frontmatter: existingFrontmatter } = parseContent(existingContent, item.path);
 
+    // Determine the new slug (normalized)
+    const finalSlug = formData.newSlug 
+      ? formData.newSlug.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')
+      : existingFrontmatter.slug;
+
     const updatedFrontmatter: PostFrontmatter = {
       ...existingFrontmatter,
       title: formData.title,
+      slug: finalSlug, // Update slug in frontmatter
       description: formData.description,
       author: formData.author,
       categories: formData.categories,
       banner: formData.banner,
       published: formData.published || false,
+      publishedAt: formData.publishedAt || existingFrontmatter.publishedAt,
       updatedAt: new Date().toISOString(),
     };
 
@@ -144,17 +158,39 @@ export async function updatePost(
     // Create updated content
     const fileContent = stringifyContent(updatedFrontmatter, formData.content);
 
-    // Commit to GitHub
-    await commitFiles(
-      [{ path: item.path, content: fileContent }],
-      `Update post: ${formData.title}`
-    );
+    // Check if slug changed (need to rename file)
+    const slugChanged = finalSlug !== existingFrontmatter.slug;
+    
+    if (slugChanged) {
+      // Get the date prefix from the old filename
+      const oldFilename = item.path.split('/').pop() || '';
+      const dateMatch = oldFilename.match(/^(\d{4}-\d{2}-\d{2})/);
+      const datePrefix = dateMatch ? dateMatch[1] : new Date().toISOString().split("T")[0];
+      
+      const newFilename = `posts/${datePrefix}-${finalSlug}.json`;
+      
+      // Delete old file and create new one
+      await deleteFile(item.path, `Rename post: ${existingFrontmatter.slug} -> ${finalSlug}`);
+      await commitFiles(
+        [{ path: newFilename, content: fileContent }],
+        `Update post: ${formData.title} (renamed)`
+      );
+    } else {
+      // Just update in place
+      await commitFiles(
+        [{ path: item.path, content: fileContent }],
+        `Update post: ${formData.title}`
+      );
+    }
 
     // Revalidate paths
     revalidatePath("/blog");
     revalidatePath(`/posts/${slug}`);
+    if (slugChanged) {
+      revalidatePath(`/posts/${finalSlug}`);
+    }
 
-    return { success: true, slug };
+    return { success: true, slug: finalSlug };
   } catch (error: any) {
     console.error("Error updating post:", error);
     return { success: false, error: error.message };

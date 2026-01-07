@@ -78,6 +78,11 @@ export default async function PostPage({ params }: Props) {
         notFound();
     }
 
+    // Check if post is published and not scheduled for future
+    if (!post.frontmatter.published || new Date(post.frontmatter.publishedAt) > new Date()) {
+        notFound();
+    }
+
     // Verify the category matches one of the post's categories
     const postCategories = post.frontmatter.categories?.map((cat: string) =>
         cat.toLowerCase().trim().replace(/\s+/g, '-')
