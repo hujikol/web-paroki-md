@@ -137,10 +137,10 @@ export default function StatistikClient({ initialData }: { initialData: Statisti
                                     Menyimpan...
                                 </>
                             ) : (
-                                <>
-                                    <Save className="h-4 w-4 mr-2" />
+                                <div className="flex items-center gap-2">
+                                    <Save className="h-4 w-4" />
                                     Simpan Perubahan
-                                </>
+                                </div>
                             )}
                         </Button>
                     </div>
