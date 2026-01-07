@@ -13,9 +13,6 @@ export default async function AdminFormulirPage() {
     const categories = await getMasterCategories();
 
     return (
-        <div className="space-y-6">
-            <h1 className="text-2xl font-bold text-gray-900">Kelola Formulir Gereja</h1>
-            <FormulirClient initialData={data} categories={categories.formulir} />
-        </div>
+        <FormulirClient initialData={data} categories={categories.formulir} />
     );
 }

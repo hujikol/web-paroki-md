@@ -2,12 +2,14 @@
 
 import { useState, useTransition } from "react";
 import { Wilayah, Lingkungan, saveWilayahLingkungan } from "@/actions/data";
-import { Plus, Pencil, Trash2, Search, ChevronDown, ChevronRight, User } from "lucide-react";
+import { Plus, Pencil, Trash2, Search, ChevronDown, ChevronRight, User, Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { v4 as uuidv4 } from "uuid";
 import ConfirmModal from "@/components/admin/ConfirmModal";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import {
     Dialog,
     DialogContent,
@@ -33,6 +35,8 @@ export default function WilayahClient({ initialData }: { initialData: Wilayah[] 
 
     // Confirmation Modal States
     const [deleteConfirm, setDeleteConfirm] = useState<{ type: 'wilayah' | 'lingkungan', id: string, name: string, parentId?: string } | null>(null);
+    const [saveConfirmOpen, setSaveConfirmOpen] = useState(false);
+    const [pendingData, setPendingData] = useState<{ type: 'wilayah' | 'lingkungan', item: Wilayah | Lingkungan, name: string } | null>(null);
 
     const [isPending, startTransition] = useTransition();
     const router = useRouter();
@@ -86,12 +90,23 @@ export default function WilayahClient({ initialData }: { initialData: Wilayah[] 
             lingkungan: editingWilayah?.lingkungan || []
         };
 
+        // Show save confirmation
+        setPendingData({ type: 'wilayah', item: newItem, name: newItem.name });
+        setSaveConfirmOpen(true);
+    };
+
+    const handleConfirmSaveWilayah = () => {
+        if (!pendingData || pendingData.type !== 'wilayah') return;
+        const newItem = pendingData.item as Wilayah;
+
         const newData = editingWilayah
             ? data.map(item => item.id === newItem.id ? newItem : item)
             : [...data, newItem];
 
         setData(newData);
         setIsWilayahModalOpen(false);
+        setSaveConfirmOpen(false);
+        setPendingData(null);
         saveData(newData);
     };
 
@@ -102,21 +117,18 @@ export default function WilayahClient({ initialData }: { initialData: Wilayah[] 
         setIsLingkunganModalOpen(true);
     };
 
-    const handleEditLingkungan = (wilayahId: string, item: Lingkungan) => {
+    const handleEditLingkungan = (wilayahId: string, lingkungan: Lingkungan) => {
         setSelectedWilayahId(wilayahId);
-        setEditingLingkungan(item);
+        setEditingLingkungan(lingkungan);
         setIsLingkunganModalOpen(true);
     };
 
-    const handleDeleteLingkungan = () => {
-        if (!deleteConfirm || deleteConfirm.type !== 'lingkungan' || !deleteConfirm.parentId) return;
+    const handleDeleteLingkungan = async () => {
+        if (!deleteConfirm || deleteConfirm.type !== 'lingkungan') return;
 
         const newData = data.map(w => {
             if (w.id === deleteConfirm.parentId) {
-                return {
-                    ...w,
-                    lingkungan: w.lingkungan.filter(l => l.id !== deleteConfirm.id)
-                };
+                return { ...w, lingkungan: w.lingkungan.filter(l => l.id !== deleteConfirm.id) };
             }
             return w;
         });
@@ -128,8 +140,6 @@ export default function WilayahClient({ initialData }: { initialData: Wilayah[] 
 
     const handleSubmitLingkungan = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        if (!selectedWilayahId) return;
-
         const formData = new FormData(e.currentTarget);
 
         const newItem: Lingkungan = {
@@ -141,19 +151,39 @@ export default function WilayahClient({ initialData }: { initialData: Wilayah[] 
             phone: formData.get("phone") as string,
         };
 
+        // Show save confirmation
+        setPendingData({ type: 'lingkungan', item: newItem, name: newItem.name });
+        setSaveConfirmOpen(true);
+    };
+
+    const handleConfirmSaveLingkungan = () => {
+        if (!pendingData || pendingData.type !== 'lingkungan' || !selectedWilayahId) return;
+        const newItem = pendingData.item as Lingkungan;
+
         const newData = data.map(w => {
             if (w.id === selectedWilayahId) {
-                const updatedLingkungan = editingLingkungan
+                const newLingkungan = editingLingkungan
                     ? w.lingkungan.map(l => l.id === newItem.id ? newItem : l)
                     : [...w.lingkungan, newItem];
-                return { ...w, lingkungan: updatedLingkungan };
+                return { ...w, lingkungan: newLingkungan };
             }
             return w;
         });
 
         setData(newData);
         setIsLingkunganModalOpen(false);
+        setSaveConfirmOpen(false);
+        setPendingData(null);
         saveData(newData);
+    };
+
+    const handleConfirmSave = () => {
+        if (!pendingData) return;
+        if (pendingData.type === 'wilayah') {
+            handleConfirmSaveWilayah();
+        } else {
+            handleConfirmSaveLingkungan();
+        }
     };
 
     const saveData = (newData: Wilayah[]) => {
@@ -248,17 +278,19 @@ export default function WilayahClient({ initialData }: { initialData: Wilayah[] 
                                     {wilayah.lingkungan.length > 0 ? (
                                         <div className="divide-y divide-slate-200/50">
                                             {wilayah.lingkungan.map((lingkungan) => (
-                                                <div key={lingkungan.id} className="py-3 flex items-center justify-between">
+                                                <div key={lingkungan.id} className="py-2.5 flex items-center justify-between">
                                                     <div>
-                                                        <div className="font-medium text-slate-800">{lingkungan.name}</div>
-                                                        <div className="text-sm text-slate-500">Ketua: {lingkungan.chief}</div>
+                                                        <p className="font-medium text-slate-800 text-sm">{lingkungan.name}</p>
+                                                        {lingkungan.chief && (
+                                                            <p className="text-xs text-slate-500">Ketua: {lingkungan.chief}</p>
+                                                        )}
                                                     </div>
-                                                    <div className="flex items-center gap-2">
+                                                    <div className="flex gap-1">
                                                         <Button
                                                             variant="ghost"
                                                             size="icon"
                                                             onClick={() => handleEditLingkungan(wilayah.id, lingkungan)}
-                                                            className="h-8 w-8 text-slate-400 hover:text-blue-600"
+                                                            className="h-7 w-7 text-slate-400 hover:text-blue-600 hover:bg-blue-50"
                                                         >
                                                             <Pencil className="h-3.5 w-3.5" />
                                                         </Button>
@@ -266,7 +298,7 @@ export default function WilayahClient({ initialData }: { initialData: Wilayah[] 
                                                             variant="ghost"
                                                             size="icon"
                                                             onClick={() => setDeleteConfirm({ type: 'lingkungan', id: lingkungan.id, name: lingkungan.name, parentId: wilayah.id })}
-                                                            className="h-8 w-8 text-slate-400 hover:text-red-600"
+                                                            className="h-7 w-7 text-slate-400 hover:text-red-600 hover:bg-red-50"
                                                         >
                                                             <Trash2 className="h-3.5 w-3.5" />
                                                         </Button>
@@ -275,9 +307,7 @@ export default function WilayahClient({ initialData }: { initialData: Wilayah[] 
                                             ))}
                                         </div>
                                     ) : (
-                                        <div className="py-4 text-center text-sm text-slate-500 italic">
-                                            Belum ada data lingkungan
-                                        </div>
+                                        <p className="py-4 text-center text-sm text-slate-400">Belum ada lingkungan</p>
                                     )}
                                 </div>
                             )}
@@ -297,38 +327,45 @@ export default function WilayahClient({ initialData }: { initialData: Wilayah[] 
                         <DialogTitle>{editingWilayah ? "Edit Wilayah" : "Tambah Wilayah"}</DialogTitle>
                     </DialogHeader>
                     <form onSubmit={handleSubmitWilayah} className="space-y-4">
-                        <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-1">Nama Wilayah</label>
-                            <Input name="name" defaultValue={editingWilayah?.name} required placeholder="Contoh: Wilayah I" />
+                        <div className="space-y-2">
+                            <Label htmlFor="name">Nama Wilayah</Label>
+                            <Input id="name" name="name" defaultValue={editingWilayah?.name} required placeholder="Contoh: Wilayah I" />
                         </div>
-                        <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-1">Ketua Wilayah</label>
-                            <Input name="coordinator" defaultValue={editingWilayah?.coordinator} placeholder="Nama Ketua Wilayah" />
+                        <div className="space-y-2">
+                            <Label htmlFor="coordinator">Ketua Wilayah</Label>
+                            <Input id="coordinator" name="coordinator" defaultValue={editingWilayah?.coordinator} placeholder="Nama Ketua Wilayah" />
                         </div>
-                        <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-1">Alamat (Opsional)</label>
-                            <textarea
+                        <div className="space-y-2">
+                            <Label htmlFor="address">Alamat (Opsional)</Label>
+                            <Textarea
+                                id="address"
                                 name="address"
                                 defaultValue={editingWilayah?.address}
-                                className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-sm resize-none"
                                 placeholder="Alamat lengkap..."
                                 rows={2}
                             />
                         </div>
                         <div className="grid grid-cols-2 gap-4">
-                            <div>
-                                <label className="block text-sm font-medium text-slate-700 mb-1">Email (Opsional)</label>
-                                <Input name="email" type="email" defaultValue={editingWilayah?.email} placeholder="email@contoh.com" />
+                            <div className="space-y-2">
+                                <Label htmlFor="email">Email (Opsional)</Label>
+                                <Input id="email" name="email" type="email" defaultValue={editingWilayah?.email} placeholder="email@contoh.com" />
                             </div>
-                            <div>
-                                <label className="block text-sm font-medium text-slate-700 mb-1">No. HP (Opsional)</label>
-                                <Input name="phone" defaultValue={editingWilayah?.phone} placeholder="08..." />
+                            <div className="space-y-2">
+                                <Label htmlFor="phone">No. HP (Opsional)</Label>
+                                <Input id="phone" name="phone" defaultValue={editingWilayah?.phone} placeholder="08..." />
                             </div>
                         </div>
                         <div className="flex justify-end gap-3 pt-2">
                             <Button type="button" variant="outline" onClick={() => setIsWilayahModalOpen(false)}>Batal</Button>
                             <Button type="submit" disabled={isPending} className="bg-blue-600 hover:bg-blue-700">
-                                {isPending ? "Menyimpan..." : "Simpan"}
+                                {isPending ? (
+                                    <>
+                                        <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                                        Menyimpan...
+                                    </>
+                                ) : (
+                                    "Simpan"
+                                )}
                             </Button>
                         </div>
                     </form>
@@ -342,38 +379,45 @@ export default function WilayahClient({ initialData }: { initialData: Wilayah[] 
                         <DialogTitle>{editingLingkungan ? "Edit Lingkungan" : "Tambah Lingkungan"}</DialogTitle>
                     </DialogHeader>
                     <form onSubmit={handleSubmitLingkungan} className="space-y-4">
-                        <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-1">Nama Lingkungan</label>
-                            <Input name="name" defaultValue={editingLingkungan?.name} required placeholder="Contoh: Lingkungan St. Petrus" />
+                        <div className="space-y-2">
+                            <Label htmlFor="ling-name">Nama Lingkungan</Label>
+                            <Input id="ling-name" name="name" defaultValue={editingLingkungan?.name} required placeholder="Contoh: Lingkungan St. Petrus" />
                         </div>
-                        <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-1">Ketua Lingkungan</label>
-                            <Input name="chief" defaultValue={editingLingkungan?.chief} placeholder="Nama Ketua Lingkungan" />
+                        <div className="space-y-2">
+                            <Label htmlFor="chief">Ketua Lingkungan</Label>
+                            <Input id="chief" name="chief" defaultValue={editingLingkungan?.chief} placeholder="Nama Ketua Lingkungan" />
                         </div>
-                        <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-1">Alamat (Opsional)</label>
-                            <textarea
+                        <div className="space-y-2">
+                            <Label htmlFor="ling-address">Alamat (Opsional)</Label>
+                            <Textarea
+                                id="ling-address"
                                 name="address"
                                 defaultValue={editingLingkungan?.address}
-                                className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-sm resize-none"
                                 placeholder="Alamat lengkap..."
                                 rows={2}
                             />
                         </div>
                         <div className="grid grid-cols-2 gap-4">
-                            <div>
-                                <label className="block text-sm font-medium text-slate-700 mb-1">Email (Opsional)</label>
-                                <Input name="email" type="email" defaultValue={editingLingkungan?.email} placeholder="email@contoh.com" />
+                            <div className="space-y-2">
+                                <Label htmlFor="ling-email">Email (Opsional)</Label>
+                                <Input id="ling-email" name="email" type="email" defaultValue={editingLingkungan?.email} placeholder="email@contoh.com" />
                             </div>
-                            <div>
-                                <label className="block text-sm font-medium text-slate-700 mb-1">No. HP (Opsional)</label>
-                                <Input name="phone" defaultValue={editingLingkungan?.phone} placeholder="08..." />
+                            <div className="space-y-2">
+                                <Label htmlFor="ling-phone">No. HP (Opsional)</Label>
+                                <Input id="ling-phone" name="phone" defaultValue={editingLingkungan?.phone} placeholder="08..." />
                             </div>
                         </div>
                         <div className="flex justify-end gap-3 pt-2">
                             <Button type="button" variant="outline" onClick={() => setIsLingkunganModalOpen(false)}>Batal</Button>
                             <Button type="submit" disabled={isPending} className="bg-blue-600 hover:bg-blue-700">
-                                {isPending ? "Menyimpan..." : "Simpan"}
+                                {isPending ? (
+                                    <>
+                                        <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                                        Menyimpan...
+                                    </>
+                                ) : (
+                                    "Simpan"
+                                )}
                             </Button>
                         </div>
                     </form>
@@ -386,13 +430,30 @@ export default function WilayahClient({ initialData }: { initialData: Wilayah[] 
                 onClose={() => setDeleteConfirm(null)}
                 onConfirm={deleteConfirm?.type === 'wilayah' ? handleDeleteWilayah : handleDeleteLingkungan}
                 title={`Hapus ${deleteConfirm?.type === 'wilayah' ? 'Wilayah' : 'Lingkungan'}`}
-                message={deleteConfirm?.type === 'wilayah'
+                description={deleteConfirm?.type === 'wilayah'
                     ? `Hapus "${deleteConfirm?.name}"? Semua lingkungan di dalamnya juga akan terhapus.`
                     : `Hapus "${deleteConfirm?.name}"? Data ini tidak dapat dikembalikan.`
                 }
                 loading={isPending}
                 confirmText="Hapus"
-                confirmVariant="destructive"
+                variant="destructive"
+            />
+
+            {/* Save Confirmation Modal */}
+            <ConfirmModal
+                isOpen={saveConfirmOpen}
+                onClose={() => {
+                    setSaveConfirmOpen(false);
+                    setPendingData(null);
+                }}
+                onConfirm={handleConfirmSave}
+                title={pendingData?.type === 'wilayah'
+                    ? (editingWilayah ? "Simpan Perubahan Wilayah" : "Tambah Wilayah")
+                    : (editingLingkungan ? "Simpan Perubahan Lingkungan" : "Tambah Lingkungan")
+                }
+                description={`Apakah Anda yakin ingin menyimpan "${pendingData?.name}"?`}
+                confirmText="Simpan"
+                loading={isPending}
             />
         </div>
     );

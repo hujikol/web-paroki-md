@@ -13,9 +13,6 @@ export default async function AdminUMKMPage() {
     const categories = await getMasterCategories();
 
     return (
-        <div className="space-y-6">
-            <h1 className="text-2xl font-bold text-gray-900">Kelola Data UMKM</h1>
-            <UMKMClient initialData={data} categories={categories.umkm} />
-        </div>
+        <UMKMClient initialData={data} categories={categories.umkm} />
     );
 }

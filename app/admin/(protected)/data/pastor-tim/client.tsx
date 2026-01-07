@@ -2,12 +2,14 @@
 
 import { useState, useTransition } from "react";
 import { PastorTimKerjaData, Pastor, TimKerja, savePastorTimKerja } from "@/actions/data";
-import { Plus, Pencil, Trash2, User, Users } from "lucide-react";
+import { Plus, Pencil, Trash2, User, Users, Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { v4 as uuidv4 } from "uuid";
 import ConfirmModal from "@/components/admin/ConfirmModal";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import {
     Dialog,
     DialogContent,
@@ -28,6 +30,10 @@ export default function PastorTimClient({ initialData }: { initialData: PastorTi
 
     // Delete Confirmation
     const [deleteConfirm, setDeleteConfirm] = useState<{ type: 'pastor' | 'tim', id: string, name: string } | null>(null);
+
+    // Save Confirmation
+    const [saveConfirmOpen, setSaveConfirmOpen] = useState(false);
+    const [pendingData, setPendingData] = useState<{ type: 'pastor' | 'tim', item: Pastor | TimKerja, name: string } | null>(null);
 
     const [isPending, startTransition] = useTransition();
     const router = useRouter();
@@ -61,6 +67,15 @@ export default function PastorTimClient({ initialData }: { initialData: PastorTi
             phone: formData.get("phone") as string,
         };
 
+        // Show save confirmation
+        setPendingData({ type: 'pastor', item: newItem, name: newItem.name });
+        setSaveConfirmOpen(true);
+    };
+
+    const handleConfirmSavePastor = () => {
+        if (!pendingData || pendingData.type !== 'pastor') return;
+        const newItem = pendingData.item as Pastor;
+
         const newPastors = editingPastor
             ? data.pastor.map(p => p.id === newItem.id ? newItem : p)
             : [...data.pastor, newItem];
@@ -68,6 +83,8 @@ export default function PastorTimClient({ initialData }: { initialData: PastorTi
         const newData = { ...data, pastor: newPastors };
         setData(newData);
         setIsPastorModalOpen(false);
+        setSaveConfirmOpen(false);
+        setPendingData(null);
         saveAll(newData);
     };
 
@@ -95,6 +112,15 @@ export default function PastorTimClient({ initialData }: { initialData: PastorTi
             phone: formData.get("phone") as string,
         };
 
+        // Show save confirmation
+        setPendingData({ type: 'tim', item: newItem, name: newItem.name });
+        setSaveConfirmOpen(true);
+    };
+
+    const handleConfirmSaveTim = () => {
+        if (!pendingData || pendingData.type !== 'tim') return;
+        const newItem = pendingData.item as TimKerja;
+
         const newTim = editingTim
             ? data.timKerja.map(t => t.id === newItem.id ? newItem : t)
             : [...data.timKerja, newItem];
@@ -102,6 +128,8 @@ export default function PastorTimClient({ initialData }: { initialData: PastorTi
         const newData = { ...data, timKerja: newTim };
         setData(newData);
         setIsTimModalOpen(false);
+        setSaveConfirmOpen(false);
+        setPendingData(null);
         saveAll(newData);
     };
 
@@ -112,6 +140,15 @@ export default function PastorTimClient({ initialData }: { initialData: PastorTi
         setData(newData);
         setDeleteConfirm(null);
         saveAll(newData);
+    };
+
+    const handleConfirmSave = () => {
+        if (!pendingData) return;
+        if (pendingData.type === 'pastor') {
+            handleConfirmSavePastor();
+        } else {
+            handleConfirmSaveTim();
+        }
     };
 
     return (
@@ -217,7 +254,7 @@ export default function PastorTimClient({ initialData }: { initialData: PastorTi
                             <thead className="bg-slate-50 text-slate-700 font-medium uppercase text-xs">
                                 <tr>
                                     <th className="px-4 py-3">Nama</th>
-                                    <th className="px-4 py-3">Bidang/Divisi</th>
+                                    <th className="px-4 py-3">Bidang</th>
                                     <th className="px-4 py-3">Peran</th>
                                     <th className="px-4 py-3 text-right">Aksi</th>
                                 </tr>
@@ -267,39 +304,48 @@ export default function PastorTimClient({ initialData }: { initialData: PastorTi
                         <DialogTitle>{editingPastor ? "Edit Pastor" : "Tambah Pastor"}</DialogTitle>
                     </DialogHeader>
                     <form onSubmit={handleSubmitPastor} className="space-y-4">
-                        <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-1">Nama Lengkap & Gelar</label>
-                            <Input name="name" defaultValue={editingPastor?.name} required />
+                        <div className="space-y-2">
+                            <Label htmlFor="pastor-name">Nama Lengkap & Gelar</Label>
+                            <Input id="pastor-name" name="name" defaultValue={editingPastor?.name} required />
                         </div>
-                        <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-1">Jabatan</label>
-                            <Input name="role" defaultValue={editingPastor?.role} required placeholder="Contoh: Pastor Paroki" />
+                        <div className="space-y-2">
+                            <Label htmlFor="pastor-role">Jabatan</Label>
+                            <Input id="pastor-role" name="role" defaultValue={editingPastor?.role} required placeholder="Contoh: Pastor Paroki" />
                         </div>
-                        <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-1">Kutipan / Quote (Opsional)</label>
-                            <textarea name="quote" defaultValue={editingPastor?.quote} placeholder="Kutipan inspiratif..." className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-sm resize-none" rows={2} />
+                        <div className="space-y-2">
+                            <Label htmlFor="pastor-quote">Kutipan / Quote (Opsional)</Label>
+                            <Textarea id="pastor-quote" name="quote" defaultValue={editingPastor?.quote} placeholder="Kutipan inspiratif..." rows={2} />
                         </div>
                         <div className="grid grid-cols-2 gap-4">
-                            <div>
-                                <label className="block text-sm font-medium text-slate-700 mb-1">Email (Opsional)</label>
-                                <Input name="email" type="email" defaultValue={editingPastor?.email} placeholder="email@contoh.com" />
+                            <div className="space-y-2">
+                                <Label htmlFor="pastor-email">Email (Opsional)</Label>
+                                <Input id="pastor-email" name="email" type="email" defaultValue={editingPastor?.email} placeholder="email@contoh.com" />
                             </div>
-                            <div>
-                                <label className="block text-sm font-medium text-slate-700 mb-1">No. HP (Opsional)</label>
-                                <Input name="phone" defaultValue={editingPastor?.phone} placeholder="08..." />
+                            <div className="space-y-2">
+                                <Label htmlFor="pastor-phone">No. HP (Opsional)</Label>
+                                <Input id="pastor-phone" name="phone" defaultValue={editingPastor?.phone} placeholder="08..." />
                             </div>
                         </div>
-                        <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-1">URL Foto (Opsional)</label>
-                            <Input name="imageUrl" defaultValue={editingPastor?.imageUrl} placeholder="https://..." />
+                        <div className="space-y-2">
+                            <Label htmlFor="pastor-image">URL Foto (Opsional)</Label>
+                            <Input id="pastor-image" name="imageUrl" defaultValue={editingPastor?.imageUrl} placeholder="https://..." />
                         </div>
-                        <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-1">Biografi Singkat (Opsional)</label>
-                            <textarea name="description" defaultValue={editingPastor?.description} rows={3} className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-sm resize-none" />
+                        <div className="space-y-2">
+                            <Label htmlFor="pastor-desc">Biografi Singkat (Opsional)</Label>
+                            <Textarea id="pastor-desc" name="description" defaultValue={editingPastor?.description} rows={3} />
                         </div>
                         <div className="flex justify-end gap-3 pt-2">
                             <Button type="button" variant="outline" onClick={() => setIsPastorModalOpen(false)}>Batal</Button>
-                            <Button type="submit" disabled={isPending} className="bg-blue-600 hover:bg-blue-700">{isPending ? "Menyimpan..." : "Simpan"}</Button>
+                            <Button type="submit" disabled={isPending} className="bg-blue-600 hover:bg-blue-700">
+                                {isPending ? (
+                                    <>
+                                        <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                                        Menyimpan...
+                                    </>
+                                ) : (
+                                    "Simpan"
+                                )}
+                            </Button>
                         </div>
                     </form>
                 </DialogContent>
@@ -312,35 +358,44 @@ export default function PastorTimClient({ initialData }: { initialData: PastorTi
                         <DialogTitle>{editingTim ? "Edit Anggota Tim" : "Tambah Anggota Tim"}</DialogTitle>
                     </DialogHeader>
                     <form onSubmit={handleSubmitTim} className="space-y-4">
-                        <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-1">Nama Lengkap</label>
-                            <Input name="name" defaultValue={editingTim?.name} required />
+                        <div className="space-y-2">
+                            <Label htmlFor="tim-name">Nama Lengkap</Label>
+                            <Input id="tim-name" name="name" defaultValue={editingTim?.name} required />
                         </div>
-                        <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-1">Bidang / Divisi</label>
-                            <Input name="division" defaultValue={editingTim?.division} required placeholder="Contoh: Sekretariat" />
+                        <div className="space-y-2">
+                            <Label htmlFor="tim-division">Bidang / Divisi</Label>
+                            <Input id="tim-division" name="division" defaultValue={editingTim?.division} required placeholder="Contoh: Sekretariat" />
                         </div>
-                        <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-1">Peran / Tugas</label>
-                            <Input name="role" defaultValue={editingTim?.role} required placeholder="Contoh: Staf Admin" />
+                        <div className="space-y-2">
+                            <Label htmlFor="tim-role">Peran / Tugas</Label>
+                            <Input id="tim-role" name="role" defaultValue={editingTim?.role} required placeholder="Contoh: Staf Admin" />
                         </div>
-                        <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-1">Kutipan / Quote (Opsional)</label>
-                            <textarea name="quote" defaultValue={editingTim?.quote} placeholder="Kutipan inspiratif..." className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-sm resize-none" rows={2} />
+                        <div className="space-y-2">
+                            <Label htmlFor="tim-quote">Kutipan / Quote (Opsional)</Label>
+                            <Textarea id="tim-quote" name="quote" defaultValue={editingTim?.quote} placeholder="Kutipan inspiratif..." rows={2} />
                         </div>
                         <div className="grid grid-cols-2 gap-4">
-                            <div>
-                                <label className="block text-sm font-medium text-slate-700 mb-1">Email (Opsional)</label>
-                                <Input name="email" type="email" defaultValue={editingTim?.email} placeholder="email@contoh.com" />
+                            <div className="space-y-2">
+                                <Label htmlFor="tim-email">Email (Opsional)</Label>
+                                <Input id="tim-email" name="email" type="email" defaultValue={editingTim?.email} placeholder="email@contoh.com" />
                             </div>
-                            <div>
-                                <label className="block text-sm font-medium text-slate-700 mb-1">No. HP (Opsional)</label>
-                                <Input name="phone" defaultValue={editingTim?.phone} placeholder="08..." />
+                            <div className="space-y-2">
+                                <Label htmlFor="tim-phone">No. HP (Opsional)</Label>
+                                <Input id="tim-phone" name="phone" defaultValue={editingTim?.phone} placeholder="08..." />
                             </div>
                         </div>
                         <div className="flex justify-end gap-3 pt-2">
                             <Button type="button" variant="outline" onClick={() => setIsTimModalOpen(false)}>Batal</Button>
-                            <Button type="submit" disabled={isPending} className="bg-blue-600 hover:bg-blue-700">{isPending ? "Menyimpan..." : "Simpan"}</Button>
+                            <Button type="submit" disabled={isPending} className="bg-blue-600 hover:bg-blue-700">
+                                {isPending ? (
+                                    <>
+                                        <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                                        Menyimpan...
+                                    </>
+                                ) : (
+                                    "Simpan"
+                                )}
+                            </Button>
                         </div>
                     </form>
                 </DialogContent>
@@ -352,10 +407,27 @@ export default function PastorTimClient({ initialData }: { initialData: PastorTi
                 onClose={() => setDeleteConfirm(null)}
                 onConfirm={deleteConfirm?.type === 'pastor' ? handleDeletePastor : handleDeleteTim}
                 title={`Hapus ${deleteConfirm?.type === 'pastor' ? 'Pastor' : 'Anggota Tim'}`}
-                message={`Hapus "${deleteConfirm?.name}"? Data ini tidak dapat dikembalikan.`}
+                description={`Hapus "${deleteConfirm?.name}"? Data ini tidak dapat dikembalikan.`}
                 loading={isPending}
                 confirmText="Hapus"
-                confirmVariant="destructive"
+                variant="destructive"
+            />
+
+            {/* Save Confirmation Modal */}
+            <ConfirmModal
+                isOpen={saveConfirmOpen}
+                onClose={() => {
+                    setSaveConfirmOpen(false);
+                    setPendingData(null);
+                }}
+                onConfirm={handleConfirmSave}
+                title={pendingData?.type === 'pastor'
+                    ? (editingPastor ? "Simpan Perubahan Pastor" : "Tambah Pastor")
+                    : (editingTim ? "Simpan Perubahan Tim" : "Tambah Anggota Tim")
+                }
+                description={`Apakah Anda yakin ingin menyimpan "${pendingData?.name}"?`}
+                confirmText="Simpan"
+                loading={isPending}
             />
         </div>
     );

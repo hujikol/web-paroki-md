@@ -13,9 +13,6 @@ export default async function AdminJadwalPage() {
     const categories = await getMasterCategories();
 
     return (
-        <div className="space-y-6">
-            <h1 className="text-2xl font-bold text-gray-900">Kelola Jadwal Kegiatan</h1>
-            <JadwalClient initialData={data} categories={categories.jadwal} />
-        </div>
+        <JadwalClient initialData={data} categories={categories.jadwal} />
     );
 }

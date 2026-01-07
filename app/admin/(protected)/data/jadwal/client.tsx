@@ -5,6 +5,24 @@ import { JadwalEvent, saveJadwalKegiatan } from "@/actions/data";
 import { Plus, Pencil, Trash2, Search, Loader2, Calendar as CalendarIcon, Clock, MapPin } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { v4 as uuidv4 } from "uuid";
+import ConfirmModal from "@/components/admin/ConfirmModal";
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
 
 export default function JadwalClient({ initialData, categories }: { initialData: JadwalEvent[], categories: string[] }) {
     const [data, setData] = useState<JadwalEvent[]>(initialData);
@@ -12,6 +30,9 @@ export default function JadwalClient({ initialData, categories }: { initialData:
     const [searchTerm, setSearchTerm] = useState("");
     const [editingItem, setEditingItem] = useState<JadwalEvent | null>(null);
     const [isPending, startTransition] = useTransition();
+    const [deleteTarget, setDeleteTarget] = useState<JadwalEvent | null>(null);
+    const [saveConfirmOpen, setSaveConfirmOpen] = useState(false);
+    const [pendingFormData, setPendingFormData] = useState<JadwalEvent | null>(null);
     const router = useRouter();
 
     // Sort by date descending
@@ -27,11 +48,13 @@ export default function JadwalClient({ initialData, categories }: { initialData:
         setIsModalOpen(true);
     };
 
-    const handleDelete = async (id: string) => {
-        if (!confirm("Apakah Anda yakin ingin menghapus kegiatan ini?")) return;
+    const handleDelete = async () => {
+        if (!deleteTarget) return;
+        const id = deleteTarget.id;
 
         const newData = data.filter(item => item.id !== id);
         setData(newData);
+        setDeleteTarget(null);
 
         startTransition(async () => {
             const result = await saveJadwalKegiatan(newData);
@@ -60,13 +83,23 @@ export default function JadwalClient({ initialData, categories }: { initialData:
             linkUrl: formData.get("linkUrl") as string,
         };
 
+        // Show confirmation modal
+        setPendingFormData(newItem);
+        setSaveConfirmOpen(true);
+    };
+
+    const handleConfirmSave = async () => {
+        if (!pendingFormData) return;
+
         const newData = editingItem
-            ? data.map(item => item.id === newItem.id ? newItem : item)
-            : [...data, newItem];
+            ? data.map(item => item.id === pendingFormData.id ? pendingFormData : item)
+            : [...data, pendingFormData];
 
         setData(newData);
         setIsModalOpen(false);
         setEditingItem(null);
+        setSaveConfirmOpen(false);
+        setPendingFormData(null);
 
         startTransition(async () => {
             const result = await saveJadwalKegiatan(newData);
@@ -80,35 +113,35 @@ export default function JadwalClient({ initialData, categories }: { initialData:
     };
 
     return (
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+        <div className="bg-white rounded-lg shadow-sm border border-slate-200">
             {/* Header Actions */}
-            <div className="p-4 border-b border-gray-200 flex flex-col sm:flex-row justify-between gap-4">
+            <div className="p-4 border-b border-slate-200 flex flex-col sm:flex-row justify-between gap-4">
                 <div className="relative flex-1 max-w-md">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                    <input
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                    <Input
                         type="text"
                         placeholder="Cari Kegiatan..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-brand-blue focus:border-transparent outline-none text-sm"
+                        className="pl-10"
                     />
                 </div>
-                <button
+                <Button
                     onClick={() => {
                         setEditingItem(null);
                         setIsModalOpen(true);
                     }}
-                    className="flex items-center gap-2 px-4 py-2 bg-brand-blue text-white rounded-lg hover:bg-brand-darkBlue transition-colors text-sm font-medium"
+                    className="bg-blue-600 hover:bg-blue-700"
                 >
-                    <Plus className="h-4 w-4" />
+                    <Plus className="h-4 w-4 mr-2" />
                     Tambah Kegiatan
-                </button>
+                </Button>
             </div>
 
             {/* Table */}
             <div className="overflow-x-auto">
                 <table className="w-full text-sm text-left">
-                    <thead className="bg-gray-50 text-gray-700 font-medium uppercase text-xs">
+                    <thead className="bg-slate-50 text-slate-700 font-medium uppercase text-xs">
                         <tr>
                             <th className="px-6 py-3">Tanggal & Waktu</th>
                             <th className="px-6 py-3">Kegiatan</th>
@@ -117,56 +150,60 @@ export default function JadwalClient({ initialData, categories }: { initialData:
                             <th className="px-6 py-3 text-right">Aksi</th>
                         </tr>
                     </thead>
-                    <tbody className="divide-y divide-gray-200">
+                    <tbody className="divide-y divide-slate-200">
                         {filteredData.length > 0 ? (
                             filteredData.map((item) => (
-                                <tr key={item.id} className="hover:bg-gray-50 transition-colors">
+                                <tr key={item.id} className="hover:bg-slate-50 transition-colors">
                                     <td className="px-6 py-4 whitespace-nowrap">
-                                        <div className="font-medium text-brand-dark flex items-center gap-2">
-                                            <CalendarIcon className="h-3 w-3 text-gray-400" />
+                                        <div className="font-medium text-slate-900 flex items-center gap-2">
+                                            <CalendarIcon className="h-3 w-3 text-slate-400" />
                                             {new Date(item.date).toLocaleDateString("id-ID", { day: 'numeric', month: 'short', year: 'numeric' })}
                                         </div>
-                                        <div className="text-gray-500 text-xs mt-1 flex items-center gap-2">
+                                        <div className="text-slate-500 text-xs mt-1 flex items-center gap-2">
                                             <Clock className="h-3 w-3" />
                                             {item.time}
                                         </div>
                                     </td>
                                     <td className="px-6 py-4">
-                                        <div className="font-medium text-brand-dark">{item.title}</div>
-                                        <div className="text-gray-500 text-xs line-clamp-1">{item.description}</div>
+                                        <div className="font-medium text-slate-900">{item.title}</div>
+                                        <div className="text-slate-500 text-xs line-clamp-1">{item.description}</div>
                                     </td>
-                                    <td className="px-6 py-4 text-gray-600">
+                                    <td className="px-6 py-4 text-slate-600">
                                         <div className="flex items-center gap-1">
-                                            <MapPin className="h-3 w-3 text-gray-400" />
+                                            <MapPin className="h-3 w-3 text-slate-400" />
                                             {item.location}
                                         </div>
                                     </td>
                                     <td className="px-6 py-4">
-                                        <span className={`px-2 py-1 rounded text-xs font-medium border bg-gray-50 text-gray-700 border-gray-100`}>
+                                        <span className="px-2 py-1 rounded text-xs font-medium border bg-slate-50 text-slate-700 border-slate-100">
                                             {item.category.charAt(0).toUpperCase() + item.category.slice(1)}
                                         </span>
                                     </td>
                                     <td className="px-6 py-4 text-right">
-                                        <div className="flex items-center justify-end gap-2">
-                                            <button
+                                        <div className="flex items-center justify-end gap-1">
+                                            <Button
+                                                variant="ghost"
+                                                size="icon"
                                                 onClick={() => handleEdit(item)}
-                                                className="p-1 text-gray-400 hover:text-brand-blue transition-colors"
+                                                className="h-8 w-8 text-slate-500 hover:text-blue-600"
                                             >
                                                 <Pencil className="h-4 w-4" />
-                                            </button>
-                                            <button
-                                                onClick={() => handleDelete(item.id)}
-                                                className="p-1 text-gray-400 hover:text-red-600 transition-colors"
+                                            </Button>
+                                            <Button
+                                                variant="ghost"
+                                                size="icon"
+                                                onClick={() => setDeleteTarget(item)}
+                                                className="h-8 w-8 text-slate-500 hover:text-red-600"
                                             >
                                                 <Trash2 className="h-4 w-4" />
-                                            </button>
+                                            </Button>
                                         </div>
                                     </td>
                                 </tr>
                             ))
                         ) : (
                             <tr>
-                                <td colSpan={5} className="px-6 py-12 text-center text-gray-500">
+                                <td colSpan={5} className="px-6 py-12 text-center text-slate-500">
                                     {searchTerm ? "Tidak ada hasil pencarian" : "Belum ada agenda kegiatan"}
                                 </td>
                             </tr>
@@ -175,143 +212,164 @@ export default function JadwalClient({ initialData, categories }: { initialData:
                 </table>
             </div>
 
-            {/* Modal */}
-            {isModalOpen && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-                    <div className="bg-white rounded-xl shadow-xl w-full max-w-lg overflow-hidden animate-fade-in">
-                        <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center">
-                            <h3 className="font-bold text-lg text-gray-900">
-                                {editingItem ? "Edit Kegiatan" : "Tambah Kegiatan Baru"}
-                            </h3>
-                            <button
-                                onClick={() => setIsModalOpen(false)}
-                                className="text-gray-400 hover:text-gray-600 transition-colors"
-                            >
-                                <span className="text-2xl">&times;</span>
-                            </button>
+            {/* Add/Edit Dialog */}
+            <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+                <DialogContent className="sm:max-w-lg">
+                    <DialogHeader>
+                        <DialogTitle>
+                            {editingItem ? "Edit Kegiatan" : "Tambah Kegiatan Baru"}
+                        </DialogTitle>
+                    </DialogHeader>
+
+                    <form onSubmit={handleSubmit} className="space-y-4">
+                        <div className="space-y-2">
+                            <Label htmlFor="title">Nama Kegiatan</Label>
+                            <Input
+                                id="title"
+                                name="title"
+                                defaultValue={editingItem?.title}
+                                required
+                                placeholder="Contoh: Rapat Dewan Paroki"
+                            />
                         </div>
 
-                        <form onSubmit={handleSubmit} className="p-6 space-y-4">
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Nama Kegiatan</label>
-                                <input
-                                    name="title"
-                                    defaultValue={editingItem?.title}
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                                <Label htmlFor="date">Tanggal</Label>
+                                <Input
+                                    type="date"
+                                    id="date"
+                                    name="date"
+                                    defaultValue={editingItem?.date}
                                     required
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-blue focus:border-brand-blue outline-none text-sm"
-                                    placeholder="Contoh: Rapat Dewan Paroki"
                                 />
                             </div>
-
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Tanggal</label>
-                                    <input
-                                        type="date"
-                                        name="date"
-                                        defaultValue={editingItem?.date}
-                                        required
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-blue focus:border-brand-blue outline-none text-sm"
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Waktu</label>
-                                    <input
-                                        type="time"
-                                        name="time"
-                                        defaultValue={editingItem?.time}
-                                        required
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-blue focus:border-brand-blue outline-none text-sm"
-                                    />
-                                </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="time">Waktu</Label>
+                                <Input
+                                    type="time"
+                                    id="time"
+                                    name="time"
+                                    defaultValue={editingItem?.time}
+                                    required
+                                />
                             </div>
+                        </div>
 
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Lokasi</label>
-                                    <input
-                                        name="location"
-                                        defaultValue={editingItem?.location}
-                                        required
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-blue focus:border-brand-blue outline-none text-sm"
-                                        placeholder="Tempat kegiatan"
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Kategori</label>
-                                    <select
-                                        name="category"
-                                        defaultValue={editingItem?.category || categories[0] || ""}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-blue focus:border-brand-blue outline-none text-sm"
-                                    >
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                                <Label htmlFor="location">Lokasi</Label>
+                                <Input
+                                    id="location"
+                                    name="location"
+                                    defaultValue={editingItem?.location}
+                                    required
+                                    placeholder="Tempat kegiatan"
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="category">Kategori</Label>
+                                <Select name="category" defaultValue={editingItem?.category || categories[0] || ""}>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Pilih kategori" />
+                                    </SelectTrigger>
+                                    <SelectContent>
                                         {categories.map((cat) => (
-                                            <option key={cat} value={cat}>
+                                            <SelectItem key={cat} value={cat}>
                                                 {cat}
-                                            </option>
+                                            </SelectItem>
                                         ))}
-                                    </select>
-                                </div>
+                                    </SelectContent>
+                                </Select>
                             </div>
+                        </div>
 
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Link Gambar (URL)</label>
-                                    <input
-                                        name="imageUrl"
-                                        defaultValue={editingItem?.imageUrl}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-blue focus:border-brand-blue outline-none text-sm"
-                                        placeholder="https://..."
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Link Eksternal (URL)</label>
-                                    <input
-                                        name="linkUrl"
-                                        defaultValue={editingItem?.linkUrl}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-blue focus:border-brand-blue outline-none text-sm"
-                                        placeholder="https://..."
-                                    />
-                                </div>
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Deskripsi</label>
-                                <textarea
-                                    name="description"
-                                    defaultValue={editingItem?.description}
-                                    rows={3}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-blue focus:border-brand-blue outline-none text-sm"
-                                    placeholder="Keterangan tambahan..."
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                                <Label htmlFor="imageUrl">Link Gambar (URL)</Label>
+                                <Input
+                                    id="imageUrl"
+                                    name="imageUrl"
+                                    defaultValue={editingItem?.imageUrl}
+                                    placeholder="https://..."
                                 />
                             </div>
-
-                            <div className="flex justify-end gap-3 pt-4">
-                                <button
-                                    type="button"
-                                    onClick={() => setIsModalOpen(false)}
-                                    className="px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
-                                >
-                                    Batal
-                                </button>
-                                <button
-                                    type="submit"
-                                    disabled={isPending}
-                                    className="flex items-center gap-2 px-4 py-2 bg-brand-blue text-white rounded-lg hover:bg-brand-darkBlue transition-colors text-sm font-medium disabled:opacity-70"
-                                >
-                                    {isPending ? (
-                                        <>
-                                            <Loader2 className="h-4 w-4 animate-spin" />
-                                            Menyimpan...
-                                        </>
-                                    ) : (
-                                        "Simpan"
-                                    )}
-                                </button>
+                            <div className="space-y-2">
+                                <Label htmlFor="linkUrl">Link Eksternal (URL)</Label>
+                                <Input
+                                    id="linkUrl"
+                                    name="linkUrl"
+                                    defaultValue={editingItem?.linkUrl}
+                                    placeholder="https://..."
+                                />
                             </div>
-                        </form>
-                    </div>
-                </div>
-            )}
+                        </div>
+
+                        <div className="space-y-2">
+                            <Label htmlFor="description">Deskripsi</Label>
+                            <Textarea
+                                id="description"
+                                name="description"
+                                defaultValue={editingItem?.description}
+                                rows={3}
+                                placeholder="Keterangan tambahan..."
+                            />
+                        </div>
+
+                        <div className="flex justify-end gap-3 pt-4">
+                            <Button
+                                type="button"
+                                variant="outline"
+                                onClick={() => setIsModalOpen(false)}
+                            >
+                                Batal
+                            </Button>
+                            <Button
+                                type="submit"
+                                disabled={isPending}
+                                className="bg-blue-600 hover:bg-blue-700"
+                            >
+                                {isPending ? (
+                                    <>
+                                        <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                                        Menyimpan...
+                                    </>
+                                ) : (
+                                    "Simpan"
+                                )}
+                            </Button>
+                        </div>
+                    </form>
+                </DialogContent>
+            </Dialog>
+
+            {/* Delete Confirmation */}
+            <ConfirmModal
+                isOpen={!!deleteTarget}
+                onClose={() => setDeleteTarget(null)}
+                onConfirm={handleDelete}
+                title="Hapus Kegiatan"
+                description={`Apakah Anda yakin ingin menghapus "${deleteTarget?.title}"? Tindakan ini tidak dapat dibatalkan.`}
+                confirmText="Hapus"
+                variant="destructive"
+            />
+
+            {/* Save Confirmation */}
+            <ConfirmModal
+                isOpen={saveConfirmOpen}
+                onClose={() => {
+                    setSaveConfirmOpen(false);
+                    setPendingFormData(null);
+                }}
+                onConfirm={handleConfirmSave}
+                title={editingItem ? "Simpan Perubahan" : "Tambah Kegiatan"}
+                description={editingItem
+                    ? `Apakah Anda yakin ingin menyimpan perubahan pada "${pendingFormData?.title}"?`
+                    : `Apakah Anda yakin ingin menambahkan kegiatan "${pendingFormData?.title}"?`
+                }
+                confirmText="Simpan"
+                loading={isPending}
+            />
         </div>
     );
 }

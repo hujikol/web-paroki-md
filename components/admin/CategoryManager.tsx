@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import { CategoryType, MasterCategoriesData, addCategory, deleteCategory, updateCategory } from "@/actions/master-categories";
 import { Plus, Trash2, Pencil, Loader2, Save, X } from "lucide-react";
+import ConfirmModal from "@/components/admin/ConfirmModal";
 
 interface CategoryManagerProps {
     initialData: MasterCategoriesData;
@@ -20,6 +21,7 @@ export default function CategoryManager({ initialData }: CategoryManagerProps) {
     const [isPending, startTransition] = useTransition();
     const [editingState, setEditingState] = useState<{ type: CategoryType; oldVal: string; newVal: string } | null>(null);
     const [newCategoryState, setNewCategoryState] = useState<{ type: CategoryType; val: string } | null>(null);
+    const [deleteTarget, setDeleteTarget] = useState<{ type: CategoryType; val: string } | null>(null);
 
     const handleAdd = (type: CategoryType) => {
         if (!newCategoryState || !newCategoryState.val.trim()) return;
@@ -40,8 +42,9 @@ export default function CategoryManager({ initialData }: CategoryManagerProps) {
         });
     };
 
-    const handleDelete = (type: CategoryType, val: string) => {
-        if (!confirm(`Are you sure you want to delete "${val}"?`)) return;
+    const handleDelete = () => {
+        if (!deleteTarget) return;
+        const { type, val } = deleteTarget;
 
         startTransition(async () => {
             const result = await deleteCategory(type, val);
@@ -53,6 +56,7 @@ export default function CategoryManager({ initialData }: CategoryManagerProps) {
             } else {
                 alert(result.error);
             }
+            setDeleteTarget(null);
         });
     };
 
@@ -76,45 +80,45 @@ export default function CategoryManager({ initialData }: CategoryManagerProps) {
     };
 
     const renderSection = (type: CategoryType) => (
-        <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden" key={type}>
-            <div className="p-4 bg-gray-50 border-b border-gray-100 flex justify-between items-center">
-                <h3 className="font-bold text-gray-800">{SECTION_TITLES[type]}</h3>
-                <span className="text-xs bg-white border border-gray-200 px-2 py-0.5 rounded-full text-gray-500 font-medium">
+        <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden" key={type}>
+            <div className="p-4 bg-slate-50 border-b border-slate-100 flex justify-between items-center">
+                <h3 className="font-bold text-slate-800">{SECTION_TITLES[type]}</h3>
+                <span className="text-xs bg-white border border-slate-200 px-2 py-0.5 rounded-full text-slate-500 font-medium">
                     {data[type].length}
                 </span>
             </div>
 
             <div className="p-4 space-y-2 max-h-[300px] overflow-y-auto">
                 {data[type].map(item => (
-                    <div key={item} className="flex justify-between items-center p-2 rounded-lg hover:bg-gray-50 group transition-colors border border-transparent hover:border-gray-100">
+                    <div key={item} className="flex justify-between items-center p-2 rounded-lg hover:bg-slate-50 group transition-colors border border-transparent hover:border-slate-100">
                         {editingState?.type === type && editingState.oldVal === item ? (
                             <div className="flex items-center gap-2 w-full">
                                 <input
                                     value={editingState.newVal}
                                     onChange={(e) => setEditingState({ ...editingState, newVal: e.target.value })}
-                                    className="flex-1 px-2 py-1 text-sm border border-brand-blue rounded outline-none"
+                                    className="flex-1 px-2 py-1 text-sm border border-blue-600 rounded outline-none"
                                     autoFocus
                                 />
-                                <button onClick={handleUpdate} disabled={isPending} className="text-brand-blue hover:bg-blue-50 p-1 rounded">
+                                <button onClick={handleUpdate} disabled={isPending} className="text-blue-600 hover:bg-blue-50 p-1 rounded">
                                     <Save className="w-4 h-4" />
                                 </button>
-                                <button onClick={() => setEditingState(null)} disabled={isPending} className="text-gray-400 hover:text-gray-600 p-1 rounded">
+                                <button onClick={() => setEditingState(null)} disabled={isPending} className="text-slate-400 hover:text-slate-600 p-1 rounded">
                                     <X className="w-4 h-4" />
                                 </button>
                             </div>
                         ) : (
                             <>
-                                <span className="text-sm font-medium text-gray-700">{item}</span>
+                                <span className="text-sm font-medium text-slate-700">{item}</span>
                                 <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                                     <button
                                         onClick={() => setEditingState({ type, oldVal: item, newVal: item })}
-                                        className="p-1.5 text-gray-400 hover:text-brand-blue hover:bg-blue-50 rounded transition-colors"
+                                        className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors"
                                     >
                                         <Pencil className="w-3.5 h-3.5" />
                                     </button>
                                     <button
-                                        onClick={() => handleDelete(type, item)}
-                                        className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded transition-colors"
+                                        onClick={() => setDeleteTarget({ type, val: item })}
+                                        className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded transition-colors"
                                     >
                                         <Trash2 className="w-3.5 h-3.5" />
                                     </button>
@@ -125,27 +129,27 @@ export default function CategoryManager({ initialData }: CategoryManagerProps) {
                 ))}
             </div>
 
-            <div className="p-4 border-t border-gray-100 bg-gray-50/30">
+            <div className="p-4 border-t border-slate-100 bg-slate-50/30">
                 {newCategoryState?.type === type ? (
                     <div className="flex gap-2">
                         <input
                             value={newCategoryState.val}
                             onChange={(e) => setNewCategoryState({ ...newCategoryState, val: e.target.value })}
                             placeholder="New category..."
-                            className="flex-1 px-3 py-2 text-sm border border-gray-200 rounded-lg outline-none focus:border-brand-blue focus:ring-2 focus:ring-brand-blue/10"
+                            className="flex-1 px-3 py-2 text-sm border border-slate-200 rounded-lg outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-600/10"
                             autoFocus
                             onKeyDown={(e) => e.key === 'Enter' && handleAdd(type)}
                         />
                         <button
                             onClick={() => handleAdd(type)}
                             disabled={isPending || !newCategoryState.val.trim()}
-                            className="px-3 py-2 bg-brand-blue text-white rounded-lg hover:bg-brand-darkBlue shadow-sm shadow-brand-blue/20 disabled:opacity-50 disabled:shadow-none"
+                            className="px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 shadow-sm shadow-blue-600/20 disabled:opacity-50 disabled:shadow-none"
                         >
                             {isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
                         </button>
                         <button
                             onClick={() => setNewCategoryState(null)}
-                            className="px-3 py-2 bg-white border border-gray-200 text-gray-600 rounded-lg hover:bg-gray-50"
+                            className="px-3 py-2 bg-white border border-slate-200 text-slate-600 rounded-lg hover:bg-slate-50"
                         >
                             <X className="w-4 h-4" />
                         </button>
@@ -153,7 +157,7 @@ export default function CategoryManager({ initialData }: CategoryManagerProps) {
                 ) : (
                     <button
                         onClick={() => setNewCategoryState({ type, val: "" })}
-                        className="w-full py-2 flex items-center justify-center gap-2 text-sm font-bold text-gray-500 border border-dashed border-gray-300 rounded-lg hover:border-brand-blue hover:text-brand-blue hover:bg-brand-blue/5 transition-all"
+                        className="w-full py-2 flex items-center justify-center gap-2 text-sm font-bold text-slate-500 border border-dashed border-slate-300 rounded-lg hover:border-blue-600 hover:text-blue-600 hover:bg-blue-600/5 transition-all"
                     >
                         <Plus className="w-4 h-4" /> Add Category
                     </button>
@@ -163,11 +167,24 @@ export default function CategoryManager({ initialData }: CategoryManagerProps) {
     );
 
     return (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 items-start">
-            {renderSection("post")}
-            {renderSection("umkm")}
-            {renderSection("jadwal")}
-            {renderSection("formulir")}
-        </div>
+        <>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 items-start">
+                {renderSection("post")}
+                {renderSection("umkm")}
+                {renderSection("jadwal")}
+                {renderSection("formulir")}
+            </div>
+
+            {/* Delete Confirmation */}
+            <ConfirmModal
+                isOpen={!!deleteTarget}
+                onClose={() => setDeleteTarget(null)}
+                onConfirm={handleDelete}
+                title="Hapus Kategori"
+                description={`Apakah Anda yakin ingin menghapus kategori "${deleteTarget?.val}"? Tindakan ini tidak dapat dibatalkan.`}
+                confirmText="Hapus"
+                variant="destructive"
+            />
+        </>
     );
 }

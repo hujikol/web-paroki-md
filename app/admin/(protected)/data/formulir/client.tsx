@@ -5,6 +5,24 @@ import { Formulir, saveFormulir } from "@/actions/data";
 import { Plus, Pencil, Trash2, Search, Loader2, FileText, Link as LinkIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { v4 as uuidv4 } from "uuid";
+import ConfirmModal from "@/components/admin/ConfirmModal";
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
 
 export default function FormulirClient({ initialData, categories }: { initialData: Formulir[], categories: string[] }) {
     const [data, setData] = useState<Formulir[]>(initialData);
@@ -12,6 +30,9 @@ export default function FormulirClient({ initialData, categories }: { initialDat
     const [searchTerm, setSearchTerm] = useState("");
     const [editingItem, setEditingItem] = useState<Formulir | null>(null);
     const [isPending, startTransition] = useTransition();
+    const [deleteTarget, setDeleteTarget] = useState<Formulir | null>(null);
+    const [saveConfirmOpen, setSaveConfirmOpen] = useState(false);
+    const [pendingFormData, setPendingFormData] = useState<Formulir | null>(null);
     const router = useRouter();
 
     const filteredData = data.filter(item =>
@@ -23,11 +44,13 @@ export default function FormulirClient({ initialData, categories }: { initialDat
         setIsModalOpen(true);
     };
 
-    const handleDelete = async (id: string) => {
-        if (!confirm("Apakah Anda yakin ingin menghapus formulir ini?")) return;
+    const handleDelete = async () => {
+        if (!deleteTarget) return;
+        const id = deleteTarget.id;
 
         const newData = data.filter(item => item.id !== id);
         setData(newData);
+        setDeleteTarget(null);
 
         startTransition(async () => {
             const result = await saveFormulir(newData);
@@ -52,13 +75,23 @@ export default function FormulirClient({ initialData, categories }: { initialDat
             category: formData.get("category") as any,
         };
 
+        // Show confirmation modal
+        setPendingFormData(newItem);
+        setSaveConfirmOpen(true);
+    };
+
+    const handleConfirmSave = async () => {
+        if (!pendingFormData) return;
+
         const newData = editingItem
-            ? data.map(item => item.id === newItem.id ? newItem : item)
-            : [...data, newItem];
+            ? data.map(item => item.id === pendingFormData.id ? pendingFormData : item)
+            : [...data, pendingFormData];
 
         setData(newData);
         setIsModalOpen(false);
         setEditingItem(null);
+        setSaveConfirmOpen(false);
+        setPendingFormData(null);
 
         startTransition(async () => {
             const result = await saveFormulir(newData);
@@ -72,35 +105,35 @@ export default function FormulirClient({ initialData, categories }: { initialDat
     };
 
     return (
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+        <div className="bg-white rounded-lg shadow-sm border border-slate-200">
             {/* Header Actions */}
-            <div className="p-4 border-b border-gray-200 flex flex-col sm:flex-row justify-between gap-4">
+            <div className="p-4 border-b border-slate-200 flex flex-col sm:flex-row justify-between gap-4">
                 <div className="relative flex-1 max-w-md">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                    <input
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                    <Input
                         type="text"
                         placeholder="Cari Formulir..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-brand-blue focus:border-transparent outline-none text-sm"
+                        className="pl-10"
                     />
                 </div>
-                <button
+                <Button
                     onClick={() => {
                         setEditingItem(null);
                         setIsModalOpen(true);
                     }}
-                    className="flex items-center gap-2 px-4 py-2 bg-brand-blue text-white rounded-lg hover:bg-brand-darkBlue transition-colors text-sm font-medium"
+                    className="bg-blue-600 hover:bg-blue-700"
                 >
-                    <Plus className="h-4 w-4" />
+                    <Plus className="h-4 w-4 mr-2" />
                     Tambah Formulir
-                </button>
+                </Button>
             </div>
 
             {/* Table */}
             <div className="overflow-x-auto">
                 <table className="w-full text-sm text-left">
-                    <thead className="bg-gray-50 text-gray-700 font-medium uppercase text-xs">
+                    <thead className="bg-slate-50 text-slate-700 font-medium uppercase text-xs">
                         <tr>
                             <th className="px-6 py-3">Nama Formulir</th>
                             <th className="px-6 py-3">Kategori</th>
@@ -108,18 +141,18 @@ export default function FormulirClient({ initialData, categories }: { initialDat
                             <th className="px-6 py-3 text-right">Aksi</th>
                         </tr>
                     </thead>
-                    <tbody className="divide-y divide-gray-200">
+                    <tbody className="divide-y divide-slate-200">
                         {filteredData.length > 0 ? (
                             filteredData.map((item) => (
-                                <tr key={item.id} className="hover:bg-gray-50 transition-colors">
+                                <tr key={item.id} className="hover:bg-slate-50 transition-colors">
                                     <td className="px-6 py-4">
                                         <div className="flex items-start gap-3">
-                                            <div className="p-2 bg-blue-50 text-brand-blue rounded-lg mt-0.5">
+                                            <div className="p-2 bg-blue-50 text-blue-700 rounded-lg mt-0.5">
                                                 <FileText className="h-4 w-4" />
                                             </div>
                                             <div>
-                                                <div className="font-medium text-gray-900">{item.title}</div>
-                                                <a href={item.url} target="_blank" rel="noopener noreferrer" className="text-xs text-brand-blue hover:underline flex items-center gap-1 mt-0.5">
+                                                <div className="font-medium text-slate-900">{item.title}</div>
+                                                <a href={item.url} target="_blank" rel="noopener noreferrer" className="text-xs text-blue-600 hover:underline flex items-center gap-1 mt-0.5">
                                                     <LinkIcon className="h-3 w-3" />
                                                     {item.url}
                                                 </a>
@@ -127,34 +160,38 @@ export default function FormulirClient({ initialData, categories }: { initialDat
                                         </div>
                                     </td>
                                     <td className="px-6 py-4">
-                                        <span className={`px-2 py-1 rounded text-xs font-medium border bg-gray-50 text-gray-600 border-gray-200`}>
+                                        <span className="px-2 py-1 rounded text-xs font-medium border bg-slate-50 text-slate-600 border-slate-200">
                                             {item.category.charAt(0).toUpperCase() + item.category.slice(1)}
                                         </span>
                                     </td>
-                                    <td className="px-6 py-4 text-gray-600 max-w-xs truncate" title={item.description}>
+                                    <td className="px-6 py-4 text-slate-600 max-w-xs truncate" title={item.description}>
                                         {item.description || "-"}
                                     </td>
                                     <td className="px-6 py-4 text-right">
-                                        <div className="flex items-center justify-end gap-2">
-                                            <button
+                                        <div className="flex items-center justify-end gap-1">
+                                            <Button
+                                                variant="ghost"
+                                                size="icon"
                                                 onClick={() => handleEdit(item)}
-                                                className="p-1 text-gray-400 hover:text-brand-blue transition-colors"
+                                                className="h-8 w-8 text-slate-500 hover:text-blue-600"
                                             >
                                                 <Pencil className="h-4 w-4" />
-                                            </button>
-                                            <button
-                                                onClick={() => handleDelete(item.id)}
-                                                className="p-1 text-gray-400 hover:text-red-600 transition-colors"
+                                            </Button>
+                                            <Button
+                                                variant="ghost"
+                                                size="icon"
+                                                onClick={() => setDeleteTarget(item)}
+                                                className="h-8 w-8 text-slate-500 hover:text-red-600"
                                             >
                                                 <Trash2 className="h-4 w-4" />
-                                            </button>
+                                            </Button>
                                         </div>
                                     </td>
                                 </tr>
                             ))
                         ) : (
                             <tr>
-                                <td colSpan={4} className="px-6 py-12 text-center text-gray-500">
+                                <td colSpan={4} className="px-6 py-12 text-center text-slate-500">
                                     {searchTerm ? "Tidak ada hasil pencarian" : "Belum ada formulir"}
                                 </td>
                             </tr>
@@ -163,98 +200,123 @@ export default function FormulirClient({ initialData, categories }: { initialDat
                 </table>
             </div>
 
-            {/* Modal */}
-            {isModalOpen && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-                    <div className="bg-white rounded-xl shadow-xl w-full max-w-lg overflow-hidden animate-fade-in">
-                        <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center">
-                            <h3 className="font-bold text-lg text-gray-900">
-                                {editingItem ? "Edit Formulir" : "Tambah Formulir"}
-                            </h3>
-                            <button
-                                onClick={() => setIsModalOpen(false)}
-                                className="text-gray-400 hover:text-gray-600 transition-colors"
-                            >
-                                <span className="text-2xl">&times;</span>
-                            </button>
+            {/* Add/Edit Dialog */}
+            <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+                <DialogContent className="sm:max-w-lg">
+                    <DialogHeader>
+                        <DialogTitle>
+                            {editingItem ? "Edit Formulir" : "Tambah Formulir"}
+                        </DialogTitle>
+                    </DialogHeader>
+
+                    <form onSubmit={handleSubmit} className="space-y-4">
+                        <div className="space-y-2">
+                            <Label htmlFor="title">Judul Formulir</Label>
+                            <Input
+                                id="title"
+                                name="title"
+                                defaultValue={editingItem?.title}
+                                required
+                                placeholder="Contoh: Formulir Pendaftaran Baptis"
+                            />
                         </div>
 
-                        <form onSubmit={handleSubmit} className="p-6 space-y-4">
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Judul Formulir</label>
-                                <input
-                                    name="title"
-                                    defaultValue={editingItem?.title}
+                        <div className="space-y-2">
+                            <Label htmlFor="url">Link / URL</Label>
+                            <div className="relative">
+                                <LinkIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                                <Input
+                                    id="url"
+                                    name="url"
+                                    defaultValue={editingItem?.url}
                                     required
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-blue outline-none text-sm"
-                                    placeholder="Contoh: Formulir Pendaftaran Baptis"
+                                    className="pl-10"
+                                    placeholder="https://..."
                                 />
                             </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Link / URL</label>
-                                <div className="relative">
-                                    <LinkIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                                    <input
-                                        name="url"
-                                        defaultValue={editingItem?.url}
-                                        required
-                                        className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-blue outline-none text-sm"
-                                        placeholder="https://..."
-                                    />
-                                </div>
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Kategori</label>
-                                <select
-                                    name="category"
-                                    defaultValue={editingItem?.category || categories[0] || ""}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-blue outline-none text-sm"
-                                >
-                                    {categories.map((cat) => (
-                                        <option key={cat} value={cat}>
-                                            {cat}
-                                        </option>
-                                    ))}
-                                </select>
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Keterangan</label>
-                                <textarea
-                                    name="description"
-                                    defaultValue={editingItem?.description}
-                                    rows={3}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-blue outline-none text-sm"
-                                    placeholder="Deskripsi singkat formulir..."
-                                />
-                            </div>
+                        </div>
 
-                            <div className="flex justify-end gap-3 pt-4">
-                                <button
-                                    type="button"
-                                    onClick={() => setIsModalOpen(false)}
-                                    className="px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
-                                >
-                                    Batal
-                                </button>
-                                <button
-                                    type="submit"
-                                    disabled={isPending}
-                                    className="flex items-center gap-2 px-4 py-2 bg-brand-blue text-white rounded-lg hover:bg-brand-darkBlue transition-colors text-sm font-medium disabled:opacity-70"
-                                >
-                                    {isPending ? (
-                                        <>
-                                            <Loader2 className="h-4 w-4 animate-spin" />
-                                            Menyimpan...
-                                        </>
-                                    ) : (
-                                        "Simpan"
-                                    )}
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            )}
+                        <div className="space-y-2">
+                            <Label htmlFor="category">Kategori</Label>
+                            <Select name="category" defaultValue={editingItem?.category || categories[0] || ""}>
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Pilih kategori" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {categories.map((cat) => (
+                                        <SelectItem key={cat} value={cat}>
+                                            {cat}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
+
+                        <div className="space-y-2">
+                            <Label htmlFor="description">Keterangan</Label>
+                            <Textarea
+                                id="description"
+                                name="description"
+                                defaultValue={editingItem?.description}
+                                rows={3}
+                                placeholder="Deskripsi singkat formulir..."
+                            />
+                        </div>
+
+                        <div className="flex justify-end gap-3 pt-4">
+                            <Button
+                                type="button"
+                                variant="outline"
+                                onClick={() => setIsModalOpen(false)}
+                            >
+                                Batal
+                            </Button>
+                            <Button
+                                type="submit"
+                                disabled={isPending}
+                                className="bg-blue-600 hover:bg-blue-700"
+                            >
+                                {isPending ? (
+                                    <>
+                                        <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                                        Menyimpan...
+                                    </>
+                                ) : (
+                                    "Simpan"
+                                )}
+                            </Button>
+                        </div>
+                    </form>
+                </DialogContent>
+            </Dialog>
+
+            {/* Delete Confirmation */}
+            <ConfirmModal
+                isOpen={!!deleteTarget}
+                onClose={() => setDeleteTarget(null)}
+                onConfirm={handleDelete}
+                title="Hapus Formulir"
+                description={`Apakah Anda yakin ingin menghapus "${deleteTarget?.title}"? Tindakan ini tidak dapat dibatalkan.`}
+                confirmText="Hapus"
+                variant="destructive"
+            />
+
+            {/* Save Confirmation */}
+            <ConfirmModal
+                isOpen={saveConfirmOpen}
+                onClose={() => {
+                    setSaveConfirmOpen(false);
+                    setPendingFormData(null);
+                }}
+                onConfirm={handleConfirmSave}
+                title={editingItem ? "Simpan Perubahan" : "Tambah Formulir"}
+                description={editingItem
+                    ? `Apakah Anda yakin ingin menyimpan perubahan pada "${pendingFormData?.title}"?`
+                    : `Apakah Anda yakin ingin menambahkan formulir "${pendingFormData?.title}"?`
+                }
+                confirmText="Simpan"
+                loading={isPending}
+            />
         </div>
     );
 }

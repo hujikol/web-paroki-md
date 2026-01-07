@@ -6,7 +6,7 @@ import { deletePost } from "@/actions/posts";
 import { PostMetadata } from "@/types/post";
 import { useRouter } from "next/navigation";
 import { useLoading } from "./LoadingProvider";
-import DeleteConfirmModal from "./DeleteConfirmModal";
+import ConfirmModal from "./ConfirmModal";
 import { Input } from "@/components/ui/input";
 import { Eye, Pencil, Trash2, Search, FileText, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Plus } from "lucide-react";
 import {
@@ -404,16 +404,18 @@ export default function PostTable({ posts, hidePagination = false, showCreateBut
       )}
 
       {/* Delete Confirmation Modal */}
-      <DeleteConfirmModal
+      <ConfirmModal
         isOpen={deleteModalOpen}
         onClose={() => {
           setDeleteModalOpen(false);
           setPostToDelete(null);
         }}
         onConfirm={handleConfirmDelete}
-        title="Delete Post"
-        message={`Are you sure you want to delete "${postToDelete?.title}"? This action cannot be undone.`}
+        title="Hapus Post"
+        description={`Apakah Anda yakin ingin menghapus "${postToDelete?.title}"? Tindakan ini tidak dapat dibatalkan.`}
         loading={!!isDeleting}
+        confirmText="Hapus"
+        variant="destructive"
       />
     </div>
   );

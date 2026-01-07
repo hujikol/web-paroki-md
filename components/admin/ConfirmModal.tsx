@@ -17,10 +17,12 @@ interface ConfirmModalProps {
     onClose: () => void;
     onConfirm: () => void;
     title: string;
-    message: string;
+    message?: string;
+    description?: string;
     loading?: boolean;
     confirmText?: string;
     confirmVariant?: "default" | "destructive";
+    variant?: "default" | "destructive";
 }
 
 export default function ConfirmModal({
@@ -29,17 +31,24 @@ export default function ConfirmModal({
     onConfirm,
     title,
     message,
+    description,
     loading = false,
     confirmText = "Confirm",
-    confirmVariant = "default",
+    confirmVariant,
+    variant = "default",
 }: ConfirmModalProps) {
+    // Support both message and description props
+    const displayMessage = message || description || "";
+    // Support both confirmVariant and variant props
+    const buttonVariant = confirmVariant || variant;
+
     return (
         <AlertDialog open={isOpen} onOpenChange={onClose}>
             <AlertDialogContent className="z-[100]">
                 <AlertDialogHeader>
                     <AlertDialogTitle>{title}</AlertDialogTitle>
                     <AlertDialogDescription>
-                        {message}
+                        {displayMessage}
                     </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
@@ -50,7 +59,7 @@ export default function ConfirmModal({
                             onConfirm();
                         }}
                         disabled={loading}
-                        className={confirmVariant === "destructive"
+                        className={buttonVariant === "destructive"
                             ? "bg-red-600 hover:bg-red-700 focus:ring-red-600"
                             : "bg-blue-600 hover:bg-blue-700 focus:ring-blue-600"
                         }

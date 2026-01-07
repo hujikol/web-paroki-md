@@ -5,6 +5,7 @@ import Image from "next/image";
 import { deleteImage, MediaImage } from "@/actions/media";
 import { useRouter } from "next/navigation";
 import { useLoading } from "./LoadingProvider";
+import ConfirmModal from "@/components/admin/ConfirmModal";
 import {
   Tooltip,
   TooltipContent,
@@ -22,11 +23,10 @@ import {
   Pagination,
   PaginationContent,
   PaginationItem,
-  PaginationLink,
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { Copy, Trash2, Image as ImageIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -44,6 +44,7 @@ export default function MediaGrid({ initialImages }: MediaGridProps) {
   const [sortBy, setSortBy] = useState<SortOption>("latest");
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState<string>("25");
+  const [deleteTarget, setDeleteTarget] = useState<MediaImage | null>(null);
 
   // Sync state when initialImages changes (from router.refresh)
   useEffect(() => {
@@ -102,21 +103,23 @@ export default function MediaGrid({ initialImages }: MediaGridProps) {
     setCurrentPage(1);
   }, [sortBy]);
 
-  const handleDelete = async (path: string) => {
-    if (confirm(`Are you sure you want to delete this image?\n${path}`)) {
-      startTransition(async () => {
-        setDeleting(path);
-        const result = await deleteImage(path);
+  const handleDelete = async () => {
+    if (!deleteTarget) return;
+    const path = deleteTarget.path;
 
-        if (result.success) {
-          setImages(images.filter((img) => img.path !== path));
-          router.refresh();
-        } else {
-          alert("Failed to delete image: " + result.error);
-        }
-        setDeleting(null);
-      });
-    }
+    startTransition(async () => {
+      setDeleting(path);
+      const result = await deleteImage(path);
+
+      if (result.success) {
+        setImages(images.filter((img) => img.path !== path));
+        router.refresh();
+      } else {
+        alert("Failed to delete image: " + result.error);
+      }
+      setDeleting(null);
+      setDeleteTarget(null);
+    });
   };
 
   return (
@@ -195,7 +198,6 @@ export default function MediaGrid({ initialImages }: MediaGridProps) {
                         <button
                           onClick={() => {
                             navigator.clipboard.writeText(img.path);
-                            // Use Sonner toast ideal here instead of alert, but keeping logic simpler
                             alert("Path copied to clipboard!");
                           }}
                           className="p-2 bg-background text-foreground rounded-md hover:bg-primary hover:text-primary-foreground transition-all transform hover:scale-110 shadow-sm"
@@ -209,7 +211,7 @@ export default function MediaGrid({ initialImages }: MediaGridProps) {
                     <Tooltip>
                       <TooltipTrigger asChild>
                         <button
-                          onClick={() => handleDelete(img.path)}
+                          onClick={() => setDeleteTarget(img)}
                           disabled={deleting === img.path}
                           className="p-2 bg-destructive text-destructive-foreground rounded-md hover:bg-destructive/90 transition-all transform hover:scale-110 shadow-sm"
                         >
@@ -261,6 +263,17 @@ export default function MediaGrid({ initialImages }: MediaGridProps) {
           )}
         </>
       )}
+
+      {/* Delete Confirmation */}
+      <ConfirmModal
+        isOpen={!!deleteTarget}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={handleDelete}
+        title="Hapus Gambar"
+        description={`Apakah Anda yakin ingin menghapus gambar "${deleteTarget?.name}"? Tindakan ini tidak dapat dibatalkan.`}
+        confirmText="Hapus"
+        variant="destructive"
+      />
     </div>
   );
 }
