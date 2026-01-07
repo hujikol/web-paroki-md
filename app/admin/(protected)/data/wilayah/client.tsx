@@ -5,6 +5,7 @@ import { Wilayah, Lingkungan, saveWilayahLingkungan } from "@/actions/data";
 import { Plus, Pencil, Trash2, Search, ChevronDown, ChevronRight, User, Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { v4 as uuidv4 } from "uuid";
+import { toast } from "sonner";
 import ConfirmModal from "@/components/admin/ConfirmModal";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -168,7 +169,7 @@ export default function WilayahClient({ initialData }: { initialData: Wilayah[] 
         const newData = data.filter(item => item.id !== deleteConfirm.id);
         setData(newData);
         setDeleteConfirm(null);
-        saveData(newData);
+        saveData(newData, "Wilayah berhasil dihapus!");
     };
 
     const handleSubmitWilayah = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -200,7 +201,7 @@ export default function WilayahClient({ initialData }: { initialData: Wilayah[] 
         setIsWilayahModalOpen(false);
         setSaveConfirmOpen(false);
         setPendingData(null);
-        saveData(newData);
+        saveData(newData, editingWilayah ? "Wilayah berhasil diperbarui!" : "Wilayah berhasil ditambahkan!");
     };
 
     // Lingkungan Handlers
@@ -228,7 +229,7 @@ export default function WilayahClient({ initialData }: { initialData: Wilayah[] 
 
         setData(newData);
         setDeleteConfirm(null);
-        saveData(newData);
+        saveData(newData, "Lingkungan berhasil dihapus!");
     };
 
     const handleSubmitLingkungan = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -265,7 +266,7 @@ export default function WilayahClient({ initialData }: { initialData: Wilayah[] 
         setIsLingkunganModalOpen(false);
         setSaveConfirmOpen(false);
         setPendingData(null);
-        saveData(newData);
+        saveData(newData, editingLingkungan ? "Lingkungan berhasil diperbarui!" : "Lingkungan berhasil ditambahkan!");
     };
 
     const handleConfirmSave = () => {
@@ -277,13 +278,14 @@ export default function WilayahClient({ initialData }: { initialData: Wilayah[] 
         }
     };
 
-    const saveData = (newData: Wilayah[]) => {
+    const saveData = (newData: Wilayah[], action?: string) => {
         startTransition(async () => {
             const result = await saveWilayahLingkungan(newData);
             if (!result.success) {
-                alert("Gagal menyimpan: " + result.error);
+                toast.error("Gagal menyimpan: " + result.error);
                 router.refresh();
             } else {
+                if (action) toast.success(action);
                 router.refresh();
             }
         });

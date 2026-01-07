@@ -5,6 +5,7 @@ import { useState } from "react";
 import { deletePost } from "@/actions/posts";
 import { PostMetadata } from "@/types/post";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import { useLoading } from "./LoadingProvider";
 import ConfirmModal from "./ConfirmModal";
 import { Input } from "@/components/ui/input";
@@ -107,11 +108,12 @@ export default function PostTable({ posts, hidePagination = false, showCreateBut
       const result = await deletePost(postToDelete.slug);
 
       if (result.success) {
+        toast.success("Post deleted successfully!");
         setDeleteModalOpen(false);
         setPostToDelete(null);
         router.refresh();
       } else {
-        alert("Failed to delete post: " + result.error);
+        toast.error("Failed to delete post: " + result.error);
       }
       setIsDeleting(null);
     });

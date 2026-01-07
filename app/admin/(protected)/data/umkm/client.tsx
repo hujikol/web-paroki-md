@@ -5,6 +5,7 @@ import { UMKMData, saveUMKM } from "@/actions/data";
 import { Plus, Pencil, Trash2, Search, Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { v4 as uuidv4 } from "uuid";
+import { toast } from "sonner";
 import ConfirmModal from "@/components/admin/ConfirmModal";
 import {
     Dialog,
@@ -113,9 +114,10 @@ export default function UMKMClient({ initialData, categories }: { initialData: U
         startTransition(async () => {
             const result = await saveUMKM(newData);
             if (!result.success) {
-                alert("Gagal menyimpan perubahan: " + result.error);
+                toast.error("Gagal menyimpan perubahan: " + result.error);
                 setData(data); // Revert
             } else {
+                toast.success("UMKM berhasil dihapus!");
                 router.refresh();
             }
         });
@@ -155,9 +157,10 @@ export default function UMKMClient({ initialData, categories }: { initialData: U
         startTransition(async () => {
             const result = await saveUMKM(newData);
             if (!result.success) {
-                alert("Gagal menyimpan perubahan: " + result.error);
+                toast.error("Gagal menyimpan perubahan: " + result.error);
                 setData(data); // Revert
             } else {
+                toast.success(editingItem ? "UMKM berhasil diperbarui!" : "UMKM berhasil ditambahkan!");
                 router.refresh();
             }
         });

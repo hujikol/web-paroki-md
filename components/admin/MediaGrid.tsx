@@ -5,6 +5,7 @@ import Image from "next/image";
 import { deleteImage, MediaImage } from "@/actions/media";
 import { useRouter } from "next/navigation";
 import { useLoading } from "./LoadingProvider";
+import { toast } from "sonner";
 import ConfirmModal from "@/components/admin/ConfirmModal";
 import {
   Tooltip,
@@ -112,10 +113,11 @@ export default function MediaGrid({ initialImages }: MediaGridProps) {
       const result = await deleteImage(path);
 
       if (result.success) {
+        toast.success("Image deleted successfully!");
         setImages(images.filter((img) => img.path !== path));
         router.refresh();
       } else {
-        alert("Failed to delete image: " + result.error);
+        toast.error("Failed to delete image: " + result.error);
       }
       setDeleting(null);
       setDeleteTarget(null);
@@ -198,7 +200,7 @@ export default function MediaGrid({ initialImages }: MediaGridProps) {
                         <button
                           onClick={() => {
                             navigator.clipboard.writeText(img.path);
-                            alert("Path copied to clipboard!");
+                            toast.success("Path copied to clipboard!");
                           }}
                           className="p-2 bg-background text-foreground rounded-md hover:bg-primary hover:text-primary-foreground transition-all transform hover:scale-110 shadow-sm"
                         >

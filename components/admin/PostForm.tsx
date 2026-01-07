@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { createPost, updatePost, deletePost } from "@/actions/posts";
+import { toast } from "sonner";
 import { getAllCategories, addCategory } from "@/actions/categories";
 import QuillEditor from "./QuillEditor";
 import MediaPickerModal from "./MediaPickerModal";
@@ -170,6 +171,7 @@ export default function PostForm({ post, mode, user, categories: masterCategorie
             setSaving(false);
 
             if (result.success) {
+                toast.success(mode === "create" ? "Post created successfully!" : "Post updated successfully!");
                 router.push("/admin/posts");
                 router.refresh();
             } else {
@@ -195,6 +197,7 @@ export default function PostForm({ post, mode, user, categories: masterCategorie
             setSaving(true);
             const result = await deletePost(post.frontmatter.slug);
             if (result.success) {
+                toast.success("Post deleted successfully!");
                 router.push("/admin/posts");
                 router.refresh();
             } else {

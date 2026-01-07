@@ -34,7 +34,7 @@ export default async function AdminLayout({
               {children}
             </main>
           </SidebarInset>
-          <Toaster />
+          <Toaster position="bottom-right" richColors />
         </SidebarProvider>
       </LoadingProvider>
     </div>

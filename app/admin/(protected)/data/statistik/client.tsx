@@ -4,6 +4,7 @@ import { useState, useTransition, useEffect, useCallback } from "react";
 import { StatistikData, saveStatistik } from "@/actions/data";
 import { Save, Loader2, Users, Home, MapPin, Church } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import ConfirmModal from "@/components/admin/ConfirmModal";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -50,9 +51,10 @@ export default function StatistikClient({ initialData }: { initialData: Statisti
         startTransition(async () => {
             const result = await saveStatistik(data);
             if (result.success) {
+                toast.success("Statistik berhasil disimpan!");
                 router.refresh();
             } else {
-                alert("Gagal menyimpan: " + result.error);
+                toast.error("Gagal menyimpan: " + result.error);
             }
         });
     };

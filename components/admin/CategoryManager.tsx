@@ -4,6 +4,7 @@ import { useState } from "react";
 import { CategoryType, MasterCategoriesData, addCategory, deleteCategory, updateCategory } from "@/actions/master-categories";
 import { Plus, Trash2, Pencil, Loader2, Save, X } from "lucide-react";
 import ConfirmModal from "@/components/admin/ConfirmModal";
+import { toast } from "sonner";
 
 interface CategoryManagerProps {
     initialData: MasterCategoriesData;
@@ -32,13 +33,14 @@ export default function CategoryManager({ initialData }: CategoryManagerProps) {
         try {
             const result = await addCategory(type, newVal);
             if (result.success) {
+                toast.success("Category added successfully!");
                 setData(prev => ({
                     ...prev,
                     [type]: [...prev[type], newVal].sort()
                 }));
                 setNewCategoryState(null);
             } else {
-                alert(result.error);
+                toast.error(result.error);
             }
         } finally {
             setIsProcessing(false);
@@ -53,12 +55,13 @@ export default function CategoryManager({ initialData }: CategoryManagerProps) {
         try {
             const result = await deleteCategory(type, val);
             if (result.success) {
+                toast.success("Category deleted successfully!");
                 setData(prev => ({
                     ...prev,
                     [type]: prev[type].filter(item => item !== val)
                 }));
             } else {
-                alert(result.error);
+                toast.error(result.error);
             }
             // Only close modal after operation completes
             setDeleteTarget(null);
@@ -76,13 +79,14 @@ export default function CategoryManager({ initialData }: CategoryManagerProps) {
         try {
             const result = await updateCategory(type, oldVal, newVal);
             if (result.success) {
+                toast.success("Category updated successfully!");
                 setData(prev => ({
                     ...prev,
                     [type]: prev[type].map(item => item === oldVal ? newVal : item).sort()
                 }));
                 setEditingState(null);
             } else {
-                alert(result.error);
+                toast.error(result.error);
             }
         } finally {
             setIsProcessing(false);

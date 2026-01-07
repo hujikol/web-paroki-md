@@ -5,6 +5,7 @@ import { Formulir, saveFormulir } from "@/actions/data";
 import { Plus, Pencil, Trash2, Search, Loader2, FileText, Link as LinkIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { v4 as uuidv4 } from "uuid";
+import { toast } from "sonner";
 import ConfirmModal from "@/components/admin/ConfirmModal";
 import {
     Dialog,
@@ -105,9 +106,10 @@ export default function FormulirClient({ initialData, categories }: { initialDat
         startTransition(async () => {
             const result = await saveFormulir(newData);
             if (!result.success) {
-                alert("Gagal menyimpan perubahan: " + result.error);
+                toast.error("Gagal menyimpan perubahan: " + result.error);
                 setData(data); // Revert
             } else {
+                toast.success("Formulir berhasil dihapus!");
                 router.refresh();
             }
         });
@@ -145,9 +147,10 @@ export default function FormulirClient({ initialData, categories }: { initialDat
         startTransition(async () => {
             const result = await saveFormulir(newData);
             if (!result.success) {
-                alert("Gagal menyimpan perubahan: " + result.error);
+                toast.error("Gagal menyimpan perubahan: " + result.error);
                 setData(data); // Revert
             } else {
+                toast.success(editingItem ? "Formulir berhasil diperbarui!" : "Formulir berhasil ditambahkan!");
                 router.refresh();
             }
         });

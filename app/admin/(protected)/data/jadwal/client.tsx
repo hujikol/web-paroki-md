@@ -5,6 +5,7 @@ import { JadwalEvent, saveJadwalKegiatan } from "@/actions/data";
 import { Plus, Pencil, Trash2, Search, Loader2, Calendar as CalendarIcon, Clock, MapPin } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { v4 as uuidv4 } from "uuid";
+import { toast } from "sonner";
 import ConfirmModal from "@/components/admin/ConfirmModal";
 import {
     Dialog,
@@ -125,9 +126,10 @@ export default function JadwalClient({ initialData, categories }: { initialData:
         startTransition(async () => {
             const result = await saveJadwalKegiatan(newData);
             if (!result.success) {
-                alert("Gagal menyimpan perubahan: " + result.error);
+                toast.error("Gagal menyimpan perubahan: " + result.error);
                 setData(data); // Revert
             } else {
+                toast.success("Kegiatan berhasil dihapus!");
                 router.refresh();
             }
         });
@@ -169,9 +171,10 @@ export default function JadwalClient({ initialData, categories }: { initialData:
         startTransition(async () => {
             const result = await saveJadwalKegiatan(newData);
             if (!result.success) {
-                alert("Gagal menyimpan perubahan: " + result.error);
+                toast.error("Gagal menyimpan perubahan: " + result.error);
                 setData(data); // Revert
             } else {
+                toast.success(editingItem ? "Kegiatan berhasil diperbarui!" : "Kegiatan berhasil ditambahkan!");
                 router.refresh();
             }
         });

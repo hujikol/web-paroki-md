@@ -5,6 +5,7 @@ import { PastorTimKerjaData, Pastor, TimKerja, savePastorTimKerja } from "@/acti
 import { Plus, Pencil, Trash2, User, Users, Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { v4 as uuidv4 } from "uuid";
+import { toast } from "sonner";
 import ConfirmModal from "@/components/admin/ConfirmModal";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -39,13 +40,14 @@ export default function PastorTimClient({ initialData }: { initialData: PastorTi
     const router = useRouter();
 
     // Data Handlers
-    const saveAll = (newData: PastorTimKerjaData) => {
+    const saveAll = (newData: PastorTimKerjaData, action?: string) => {
         startTransition(async () => {
             const result = await savePastorTimKerja(newData);
             if (!result.success) {
-                alert("Gagal menyimpan: " + result.error);
+                toast.error("Gagal menyimpan: " + result.error);
                 router.refresh();
             } else {
+                if (action) toast.success(action);
                 router.refresh();
             }
         });
@@ -85,7 +87,7 @@ export default function PastorTimClient({ initialData }: { initialData: PastorTi
         setIsPastorModalOpen(false);
         setSaveConfirmOpen(false);
         setPendingData(null);
-        saveAll(newData);
+        saveAll(newData, editingPastor ? "Pastor berhasil diperbarui!" : "Pastor berhasil ditambahkan!");
     };
 
     const handleDeletePastor = () => {
@@ -94,7 +96,7 @@ export default function PastorTimClient({ initialData }: { initialData: PastorTi
         const newData = { ...data, pastor: newPastors };
         setData(newData);
         setDeleteConfirm(null);
-        saveAll(newData);
+        saveAll(newData, "Pastor berhasil dihapus!");
     };
 
     // Tim Logic
@@ -130,7 +132,7 @@ export default function PastorTimClient({ initialData }: { initialData: PastorTi
         setIsTimModalOpen(false);
         setSaveConfirmOpen(false);
         setPendingData(null);
-        saveAll(newData);
+        saveAll(newData, editingTim ? "Anggota tim berhasil diperbarui!" : "Anggota tim berhasil ditambahkan!");
     };
 
     const handleDeleteTim = () => {
@@ -139,7 +141,7 @@ export default function PastorTimClient({ initialData }: { initialData: PastorTi
         const newData = { ...data, timKerja: newTim };
         setData(newData);
         setDeleteConfirm(null);
-        saveAll(newData);
+        saveAll(newData, "Anggota tim berhasil dihapus!");
     };
 
     const handleConfirmSave = () => {
