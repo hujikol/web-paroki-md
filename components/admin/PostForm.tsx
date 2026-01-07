@@ -16,13 +16,6 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from "@/components/ui/select";
-import {
     Form,
     FormControl,
     FormField,
@@ -35,7 +28,7 @@ import {
     PopoverContent,
     PopoverTrigger,
 } from "@/components/ui/popover";
-import { Eye, ChevronLeft, ChevronDown, Check, X, Image as ImageIcon, Loader2 } from "lucide-react";
+import { Eye, ChevronLeft, ChevronDown, X, Image as ImageIcon, Loader2, Settings, Search, FileImage } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -221,107 +214,116 @@ export default function PostForm({ post, mode, user, categories: masterCategorie
 
     return (
         <Form {...form}>
-            <form className="min-h-screen relative pb-20">
+            <form className="min-h-screen relative pb-16">
                 {/* Sticky Header with Actions */}
-                <div className="sticky top-0 z-40 bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60 py-4 mb-8 border-b flex justify-between items-center">
-                    <div className="flex items-center gap-4">
-                        <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => router.back()}
-                            className="gap-2"
-                        >
-                            <ChevronLeft className="h-4 w-4" />
-                            Back
-                        </Button>
+                <div className="sticky top-0 z-40 bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/80 py-3 mb-6 border-b border-slate-200 -mx-4 sm:-mx-6 px-4 sm:px-6">
+                    <div className="flex justify-between items-center">
                         <div className="flex items-center gap-3">
-                            <StatusPill published={watchedPublished} />
-                            <h2 className="text-xl font-bold text-gray-800">
-                                {mode === "create" ? "Create New Post" : `Editing: ${watchedTitle}`}
-                            </h2>
+                            <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => router.back()}
+                                className="gap-1.5 text-slate-600 hover:text-slate-900"
+                            >
+                                <ChevronLeft className="h-4 w-4" />
+                                Back
+                            </Button>
+                            <div className="h-5 w-px bg-slate-200" />
+                            <div className="flex items-center gap-2">
+                                <StatusPill published={watchedPublished} />
+                                <h2 className="text-base font-semibold text-slate-900 hidden sm:block">
+                                    {mode === "create" ? "Create New Post" : watchedTitle || "Untitled"}
+                                </h2>
+                            </div>
                         </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                        {mode === "edit" && (
-                            <Button
-                                type="button"
-                                variant="destructive"
-                                onClick={handleDelete}
-                                disabled={saving}
-                            >
-                                Delete
-                            </Button>
-                        )}
+                        <div className="flex items-center gap-2">
+                            {mode === "edit" && (
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={handleDelete}
+                                    disabled={saving}
+                                    className="text-red-600 border-red-200 hover:bg-red-50 hover:text-red-700"
+                                >
+                                    Delete
+                                </Button>
+                            )}
 
-                        <div className="flex items-center rounded-md shadow-sm">
-                            <Button
-                                type="button"
-                                onClick={() => handleSaveAction(true)}
-                                disabled={saving}
-                                className="rounded-r-none border-r border-primary-foreground/20"
-                            >
-                                {saving ? (
-                                    <>
-                                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                        Saving...
-                                    </>
-                                ) : (watchedPublished ? "Update" : "Publish")}
-                            </Button>
-                            <Popover>
-                                <PopoverTrigger asChild>
-                                    <Button
-                                        variant="default"
-                                        className="rounded-l-none px-2"
-                                        disabled={saving}
-                                    >
-                                        <ChevronDown className="h-4 w-4" />
-                                    </Button>
-                                </PopoverTrigger>
-                                <PopoverContent align="end" className="w-[200px] p-1">
-                                    <Button
-                                        type="button"
-                                        variant="ghost"
-                                        className="w-full justify-start font-normal"
-                                        onClick={() => handleSaveAction(false)}
-                                    >
-                                        Save as Draft
-                                    </Button>
-                                    <Button
-                                        type="button"
-                                        variant="ghost"
-                                        className="w-full justify-start font-normal"
-                                        onClick={() => {
-                                            const cats = form.getValues("categories");
-                                            // Ensure we grab the first one and kebab-case it
-                                            const category = (cats.length > 0 ? cats[0].trim().toLowerCase().replace(/\s+/g, '-') : 'lainnya');
-                                            const title = form.getValues("title");
-                                            const slug = post?.frontmatter.slug || (title ? title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') : null);
+                            <div className="flex items-center">
+                                <Button
+                                    type="button"
+                                    onClick={() => handleSaveAction(true)}
+                                    disabled={saving}
+                                    size="sm"
+                                    className="rounded-r-none bg-blue-600 hover:bg-blue-700"
+                                >
+                                    {saving ? (
+                                        <>
+                                            <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />
+                                            Saving...
+                                        </>
+                                    ) : (watchedPublished ? "Update" : "Publish")}
+                                </Button>
+                                <Popover>
+                                    <PopoverTrigger asChild>
+                                        <Button
+                                            type="button"
+                                            size="sm"
+                                            className="rounded-l-none px-2 bg-blue-600 hover:bg-blue-700 border-l border-blue-500"
+                                            disabled={saving}
+                                        >
+                                            <ChevronDown className="h-4 w-4" />
+                                        </Button>
+                                    </PopoverTrigger>
+                                    <PopoverContent align="end" className="w-[180px] p-1">
+                                        <Button
+                                            type="button"
+                                            variant="ghost"
+                                            size="sm"
+                                            className="w-full justify-start font-normal"
+                                            onClick={() => handleSaveAction(false)}
+                                        >
+                                            Save as Draft
+                                        </Button>
+                                        <Button
+                                            type="button"
+                                            variant="ghost"
+                                            size="sm"
+                                            className="w-full justify-start font-normal"
+                                            onClick={() => {
+                                                const cats = form.getValues("categories");
+                                                const category = (cats.length > 0 ? cats[0].trim().toLowerCase().replace(/\s+/g, '-') : 'lainnya');
+                                                const title = form.getValues("title");
+                                                const slug = post?.frontmatter.slug || (title ? title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') : null);
 
-                                            if (slug) {
-                                                window.open(`/artikel/${category}/${slug}`, '_blank');
-                                            } else {
-                                                alert("Please enter a title to preview.");
-                                            }
-                                        }}
-                                    >
-                                        <Eye className="mr-2 h-4 w-4" />
-                                        Preview
-                                    </Button>
-                                </PopoverContent>
-                            </Popover>
+                                                if (slug) {
+                                                    window.open(`/artikel/${category}/${slug}`, '_blank');
+                                                } else {
+                                                    alert("Please enter a title to preview.");
+                                                }
+                                            }}
+                                        >
+                                            <Eye className="mr-2 h-4 w-4" />
+                                            Preview
+                                        </Button>
+                                    </PopoverContent>
+                                </Popover>
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                    <div className="md:col-span-2 space-y-6">
-                        {error && (
-                            <div className="p-4 bg-destructive/10 text-destructive rounded-lg border border-destructive/20 font-medium">
-                                {error}
-                            </div>
-                        )}
+                {error && (
+                    <div className="mb-6 p-3 bg-red-50 text-red-700 rounded-lg border border-red-200 text-sm font-medium">
+                        {error}
+                    </div>
+                )}
 
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    {/* Main Content Area */}
+                    <div className="lg:col-span-2">
                         <FormField
                             control={form.control}
                             name="content"
@@ -339,10 +341,13 @@ export default function PostForm({ post, mode, user, categories: masterCategorie
                         />
                     </div>
 
+                    {/* Sidebar Settings */}
                     <div className="relative">
-                        <div className="sticky top-[100px] space-y-6">
-                            <div className="bg-white p-5 rounded-lg border shadow-sm space-y-4">
-                                <h3 className="font-semibold text-sm uppercase tracking-wider border-b pb-2">
+                        <div className="lg:sticky lg:top-[76px] space-y-4">
+                            {/* Post Settings Card */}
+                            <div className="bg-white p-4 rounded-lg border border-slate-200 shadow-sm">
+                                <h3 className="font-semibold text-sm text-slate-900 mb-4 pb-2 border-b border-slate-100 flex items-center gap-2">
+                                    <Settings className="w-4 h-4 text-slate-400" />
                                     Post Settings
                                 </h3>
 
@@ -352,9 +357,13 @@ export default function PostForm({ post, mode, user, categories: masterCategorie
                                         name="title"
                                         render={({ field }) => (
                                             <FormItem>
-                                                <FormLabel>Post Title</FormLabel>
+                                                <FormLabel className="text-slate-700">Title</FormLabel>
                                                 <FormControl>
-                                                    <Input placeholder="Enter title here..." {...field} />
+                                                    <Input
+                                                        placeholder="Enter title..."
+                                                        {...field}
+                                                        className="border-slate-200 focus-visible:ring-blue-500"
+                                                    />
                                                 </FormControl>
                                                 <FormMessage />
                                             </FormItem>
@@ -366,9 +375,14 @@ export default function PostForm({ post, mode, user, categories: masterCategorie
                                         name="description"
                                         render={({ field }) => (
                                             <FormItem>
-                                                <FormLabel>Description</FormLabel>
+                                                <FormLabel className="text-slate-700">Description</FormLabel>
                                                 <FormControl>
-                                                    <Textarea placeholder="Short summary..." rows={3} {...field} />
+                                                    <Textarea
+                                                        placeholder="Short summary..."
+                                                        rows={2}
+                                                        {...field}
+                                                        className="border-slate-200 focus-visible:ring-blue-500 resize-none"
+                                                    />
                                                 </FormControl>
                                                 <FormMessage />
                                             </FormItem>
@@ -377,49 +391,55 @@ export default function PostForm({ post, mode, user, categories: masterCategorie
 
                                     {/* Categories */}
                                     <div className="space-y-2">
-                                        <Label>Categories</Label>
-                                        <p className="text-[10px] text-muted-foreground">
-                                            The first category will be used as the primary URL channel.
+                                        <Label className="text-slate-700">Categories</Label>
+                                        <p className="text-[10px] text-slate-500">
+                                            First category is the primary URL channel.
                                         </p>
 
-                                        <div className="flex flex-wrap gap-2 mb-2">
-                                            {watchedCategories.map((cat) => (
-                                                <Badge key={cat} variant="secondary" className="gap-1">
-                                                    {cat}
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => removeCategoryItem(cat)}
-                                                        className="rounded-full hover:bg-muted p-0.5 transition-colors"
-                                                    >
-                                                        <X className="h-3 w-3" />
-                                                    </button>
-                                                </Badge>
-                                            ))}
-                                        </div>
+                                        {watchedCategories.length > 0 && (
+                                            <div className="flex flex-wrap gap-1.5 mb-2">
+                                                {watchedCategories.map((cat) => (
+                                                    <Badge key={cat} variant="secondary" className="gap-1 bg-blue-50 text-blue-700 hover:bg-blue-100">
+                                                        {cat}
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => removeCategoryItem(cat)}
+                                                            className="rounded-full hover:bg-blue-200 p-0.5 transition-colors"
+                                                        >
+                                                            <X className="h-3 w-3" />
+                                                        </button>
+                                                    </Badge>
+                                                ))}
+                                            </div>
+                                        )}
 
                                         <div className="relative" ref={categoryDropdownRef}>
-                                            <Input
-                                                value={categoryInput}
-                                                onFocus={() => setShowCategoryDropdown(true)}
-                                                onChange={(e) => {
-                                                    setCategoryInput(e.target.value);
-                                                    setShowCategoryDropdown(true);
-                                                }}
-                                                onKeyDown={(e) => {
-                                                    if (e.key === 'Enter') {
-                                                        e.preventDefault();
-                                                        addCategoryItem(categoryInput);
-                                                        setShowCategoryDropdown(false);
-                                                    }
-                                                }}
-                                                placeholder="Add category..."
-                                            />
+                                            <div className="relative">
+                                                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-slate-400" />
+                                                <Input
+                                                    value={categoryInput}
+                                                    onFocus={() => setShowCategoryDropdown(true)}
+                                                    onChange={(e) => {
+                                                        setCategoryInput(e.target.value);
+                                                        setShowCategoryDropdown(true);
+                                                    }}
+                                                    onKeyDown={(e) => {
+                                                        if (e.key === 'Enter') {
+                                                            e.preventDefault();
+                                                            addCategoryItem(categoryInput);
+                                                            setShowCategoryDropdown(false);
+                                                        }
+                                                    }}
+                                                    placeholder="Add category..."
+                                                    className="pl-9 border-slate-200 focus-visible:ring-blue-500"
+                                                />
+                                            </div>
 
                                             {showCategoryDropdown && (
-                                                <div className="absolute z-50 w-full mt-1 bg-popover text-popover-foreground border rounded-md shadow-md max-h-48 overflow-y-auto">
+                                                <div className="absolute z-50 w-full mt-1 bg-white border border-slate-200 rounded-md shadow-lg max-h-40 overflow-y-auto">
                                                     {loadingCategories ? (
-                                                        <div className="p-2 text-center text-xs text-muted-foreground">
-                                                            Searching...
+                                                        <div className="p-2 text-center text-xs text-slate-500">
+                                                            Loading...
                                                         </div>
                                                     ) : (
                                                         <>
@@ -436,11 +456,23 @@ export default function PostForm({ post, mode, user, categories: masterCategorie
                                                                             addCategoryItem(cat);
                                                                             setShowCategoryDropdown(false);
                                                                         }}
-                                                                        className="w-full text-left px-3 py-2 text-sm hover:bg-accent hover:text-accent-foreground flex items-center justify-between"
+                                                                        className="w-full text-left px-3 py-2 text-sm hover:bg-blue-50 hover:text-blue-700"
                                                                     >
-                                                                        <span>{cat}</span>
+                                                                        {cat}
                                                                     </button>
                                                                 ))}
+                                                            {categoryInput && !existingCategories.some(c => c.toLowerCase() === categoryInput.toLowerCase()) && (
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => {
+                                                                        addCategoryItem(categoryInput);
+                                                                        setShowCategoryDropdown(false);
+                                                                    }}
+                                                                    className="w-full text-left px-3 py-2 text-sm text-blue-600 hover:bg-blue-50 font-medium"
+                                                                >
+                                                                    + Create &quot;{categoryInput}&quot;
+                                                                </button>
+                                                            )}
                                                         </>
                                                     )}
                                                 </div>
@@ -453,9 +485,9 @@ export default function PostForm({ post, mode, user, categories: masterCategorie
                                         name="author"
                                         render={({ field }) => (
                                             <FormItem>
-                                                <FormLabel>Author</FormLabel>
+                                                <FormLabel className="text-slate-700">Author</FormLabel>
                                                 <FormControl>
-                                                    <Input {...field} />
+                                                    <Input {...field} className="border-slate-200 focus-visible:ring-blue-500" />
                                                 </FormControl>
                                                 <FormMessage />
                                             </FormItem>
@@ -464,25 +496,27 @@ export default function PostForm({ post, mode, user, categories: masterCategorie
                                 </div>
                             </div>
 
-                            <div className="bg-white p-5 rounded-lg border shadow-sm space-y-4">
-                                <h3 className="font-semibold text-sm uppercase tracking-wider border-b pb-2">
+                            {/* Featured Image Card */}
+                            <div className="bg-white p-4 rounded-lg border border-slate-200 shadow-sm">
+                                <h3 className="font-semibold text-sm text-slate-900 mb-3 pb-2 border-b border-slate-100 flex items-center gap-2">
+                                    <FileImage className="w-4 h-4 text-slate-400" />
                                     Featured Image
                                 </h3>
-                                <div className="space-y-3">
+                                <div className="space-y-2">
                                     {watchedBanner ? (
-                                        <div className="relative group rounded-md overflow-hidden border h-32">
+                                        <div className="relative group rounded-lg overflow-hidden border border-slate-200 h-28">
                                             <Image
                                                 src={watchedBanner}
                                                 alt="Banner"
                                                 fill
                                                 className="object-cover"
-                                                sizes="(max-width: 768px) 100vw, 50vw"
+                                                sizes="(max-width: 768px) 100vw, 33vw"
                                             />
                                             <Button
                                                 type="button"
                                                 variant="destructive"
                                                 size="icon"
-                                                className="absolute top-1 right-1 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
+                                                className="absolute top-2 right-2 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
                                                 onClick={() => form.setValue("banner", "")}
                                             >
                                                 <X className="h-3 w-3" />
@@ -491,9 +525,9 @@ export default function PostForm({ post, mode, user, categories: masterCategorie
                                     ) : (
                                         <div
                                             onClick={() => setShowBannerPicker(true)}
-                                            className="h-32 border-2 border-dashed rounded-md flex flex-col items-center justify-center text-muted-foreground text-sm hover:border-primary hover:text-primary cursor-pointer transition-colors bg-muted/50"
+                                            className="h-28 border-2 border-dashed border-slate-200 rounded-lg flex flex-col items-center justify-center text-slate-400 text-sm hover:border-blue-400 hover:text-blue-500 cursor-pointer transition-colors bg-slate-50"
                                         >
-                                            <ImageIcon className="h-8 w-8 mb-1" />
+                                            <ImageIcon className="h-6 w-6 mb-1" />
                                             Select Image
                                         </div>
                                     )}
@@ -501,9 +535,9 @@ export default function PostForm({ post, mode, user, categories: masterCategorie
                                     {watchedBanner && (
                                         <Button
                                             type="button"
-                                            variant="link"
+                                            variant="ghost"
                                             size="sm"
-                                            className="w-full h-auto p-0"
+                                            className="w-full h-auto py-1 text-blue-600 hover:text-blue-700 hover:bg-blue-50"
                                             onClick={() => setShowBannerPicker(true)}
                                         >
                                             Replace Image
@@ -512,21 +546,26 @@ export default function PostForm({ post, mode, user, categories: masterCategorie
                                 </div>
                             </div>
 
-                            <div className="bg-white p-5 rounded-lg border shadow-sm space-y-4">
-                                <h3 className="font-semibold text-sm uppercase tracking-wider border-b pb-2">
+                            {/* SEO Settings Card */}
+                            <div className="bg-white p-4 rounded-lg border border-slate-200 shadow-sm">
+                                <h3 className="font-semibold text-sm text-slate-900 mb-3 pb-2 border-b border-slate-100 flex items-center gap-2">
+                                    <Search className="w-4 h-4 text-slate-400" />
                                     SEO Settings
                                 </h3>
-                                <div className="space-y-4">
+                                <div className="space-y-3">
                                     <FormField
                                         control={form.control}
                                         name="metaTitle"
                                         render={({ field }) => (
                                             <FormItem>
-                                                <FormLabel>Meta Title</FormLabel>
+                                                <FormLabel className="text-slate-700 text-xs">Meta Title</FormLabel>
                                                 <FormControl>
-                                                    <Input placeholder="Leave empty to use post title" {...field} />
+                                                    <Input
+                                                        placeholder="Leave empty to use post title"
+                                                        {...field}
+                                                        className="border-slate-200 focus-visible:ring-blue-500 h-8 text-sm"
+                                                    />
                                                 </FormControl>
-                                                <p className="text-[10px] text-muted-foreground">Recommended: 50-60 characters</p>
                                                 <FormMessage />
                                             </FormItem>
                                         )}
@@ -536,11 +575,15 @@ export default function PostForm({ post, mode, user, categories: masterCategorie
                                         name="metaDescription"
                                         render={({ field }) => (
                                             <FormItem>
-                                                <FormLabel>Meta Description</FormLabel>
+                                                <FormLabel className="text-slate-700 text-xs">Meta Description</FormLabel>
                                                 <FormControl>
-                                                    <Textarea placeholder="Leave empty to use post description" rows={3} {...field} />
+                                                    <Textarea
+                                                        placeholder="Leave empty to use post description"
+                                                        rows={2}
+                                                        {...field}
+                                                        className="border-slate-200 focus-visible:ring-blue-500 resize-none text-sm"
+                                                    />
                                                 </FormControl>
-                                                <p className="text-[10px] text-muted-foreground">Recommended: 150-160 characters</p>
                                                 <FormMessage />
                                             </FormItem>
                                         )}
@@ -550,31 +593,35 @@ export default function PostForm({ post, mode, user, categories: masterCategorie
                                         name="metaKeywords"
                                         render={({ field }) => (
                                             <FormItem>
-                                                <FormLabel>Meta Keywords</FormLabel>
+                                                <FormLabel className="text-slate-700 text-xs">Meta Keywords</FormLabel>
                                                 <FormControl>
-                                                    <Input placeholder="keyword1, keyword2, keyword3" {...field} />
+                                                    <Input
+                                                        placeholder="keyword1, keyword2"
+                                                        {...field}
+                                                        className="border-slate-200 focus-visible:ring-blue-500 h-8 text-sm"
+                                                    />
                                                 </FormControl>
                                                 <FormMessage />
                                             </FormItem>
                                         )}
                                     />
 
-                                    <div className="space-y-2">
-                                        <Label>Open Graph Image</Label>
+                                    <div className="space-y-1.5">
+                                        <Label className="text-slate-700 text-xs">OG Image</Label>
                                         {watchedOgImage ? (
-                                            <div className="relative group rounded-md overflow-hidden border h-32">
+                                            <div className="relative group rounded-lg overflow-hidden border border-slate-200 h-20">
                                                 <Image
                                                     src={watchedOgImage}
                                                     alt="OG Image"
                                                     fill
                                                     className="object-cover"
-                                                    sizes="(max-width: 768px) 100vw, 50vw"
+                                                    sizes="(max-width: 768px) 100vw, 33vw"
                                                 />
                                                 <Button
                                                     type="button"
                                                     variant="destructive"
                                                     size="icon"
-                                                    className="absolute top-1 right-1 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
+                                                    className="absolute top-1 right-1 h-5 w-5 opacity-0 group-hover:opacity-100 transition-opacity"
                                                     onClick={() => form.setValue("ogImage", "")}
                                                 >
                                                     <X className="h-3 w-3" />
@@ -583,24 +630,24 @@ export default function PostForm({ post, mode, user, categories: masterCategorie
                                         ) : (
                                             <div
                                                 onClick={() => setShowOgImagePicker(true)}
-                                                className="h-32 border-2 border-dashed rounded-md flex flex-col items-center justify-center text-muted-foreground text-sm hover:border-primary hover:text-primary cursor-pointer transition-colors bg-muted/50"
+                                                className="h-20 border-2 border-dashed border-slate-200 rounded-lg flex flex-col items-center justify-center text-slate-400 text-xs hover:border-blue-400 hover:text-blue-500 cursor-pointer transition-colors bg-slate-50"
                                             >
-                                                <ImageIcon className="h-8 w-8 mb-1" />
+                                                <ImageIcon className="h-5 w-5 mb-1" />
                                                 Select OG Image
                                             </div>
                                         )}
                                         {watchedOgImage && (
                                             <Button
                                                 type="button"
-                                                variant="link"
+                                                variant="ghost"
                                                 size="sm"
-                                                className="w-full h-auto p-0"
+                                                className="w-full h-auto py-1 text-xs text-blue-600 hover:text-blue-700 hover:bg-blue-50"
                                                 onClick={() => setShowOgImagePicker(true)}
                                             >
-                                                Replace Image
+                                                Replace
                                             </Button>
                                         )}
-                                        <p className="text-[10px] text-muted-foreground">Leave empty to use banner image</p>
+                                        <p className="text-[10px] text-slate-400">Leave empty to use banner</p>
                                     </div>
                                 </div>
                             </div>

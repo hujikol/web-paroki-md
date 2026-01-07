@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { signOut } from "next-auth/react";
@@ -14,9 +15,10 @@ import {
     Calendar,
     LogOut,
     ExternalLink,
-    ChevronRight,
     MapPin,
-    UserIcon
+    UserIcon,
+    Database,
+    PenTool,
 } from "lucide-react";
 import {
     Sidebar,
@@ -26,8 +28,18 @@ import {
     SidebarMenu,
     SidebarMenuButton,
     SidebarMenuItem,
+    SidebarGroup,
+    SidebarGroupLabel,
+    SidebarGroupContent,
     useSidebar,
+    SidebarRail,
 } from "@/components/ui/sidebar"
+import { Button } from "@/components/ui/button";
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface AdminSidebarProps {
     user: {
@@ -40,32 +52,37 @@ export function AdminSidebar({ user }: AdminSidebarProps) {
     const { startTransition } = useLoading();
     const pathname = usePathname();
     const [isSignOutPending, setIsSignOutPending] = useState(false);
-    const { setOpenMobile } = useSidebar();
+    const { setOpenMobile, state } = useSidebar();
 
-    const navItems = [
+    const isCollapsed = state === "collapsed";
+
+    // Dashboard is standalone, not grouped
+    const dashboardItem = { name: "Dashboard", href: "/admin/dashboard", icon: LayoutDashboard };
+
+    // Navigation groups
+    const navGroups = [
         {
-            title: "Dashboard",
+            title: "Content",
             items: [
-                { name: "Overview", href: "/admin/dashboard", icon: LayoutDashboard },
                 { name: "Posts", href: "/admin/posts", icon: FileText },
                 { name: "Media", href: "/admin/media", icon: ImageIcon },
             ]
         },
         {
-            title: "Data",
+            title: "Data Management",
             items: [
                 { name: "UMKM", href: "/admin/data/umkm", icon: Store },
                 { name: "Jadwal", href: "/admin/data/jadwal", icon: Calendar },
-                { name: "Formulir", href: "/admin/data/formulir", icon: FileText },
+                { name: "Formulir", href: "/admin/data/formulir", icon: Database },
                 { name: "Wilayah", href: "/admin/data/wilayah", icon: MapPin },
                 { name: "Pastor & Tim", href: "/admin/data/pastor-tim", icon: UserIcon },
-                { name: "Statistik", href: "/admin/data/statistik", icon: BarChart3 },
             ]
         },
         {
-            title: "Master",
+            title: "Settings",
             items: [
-                { name: "Kategori", href: "/admin/master/categories", icon: ChevronRight },
+                { name: "Categories", href: "/admin/master/categories", icon: PenTool },
+                { name: "Statistik", href: "/admin/data/statistik", icon: BarChart3 },
             ]
         }
     ];
@@ -77,81 +94,187 @@ export function AdminSidebar({ user }: AdminSidebarProps) {
         });
     };
 
+    const isDashboardActive = pathname === "/admin/dashboard";
+
+    // Reusable nav item component
+    const NavItem = ({ href, icon: Icon, name, isActive }: { href: string; icon: React.ComponentType<{ className?: string }>; name: string; isActive: boolean }) => {
+        const content = (
+            <Link
+                href={href}
+                onClick={() => setOpenMobile(false)}
+                className={`flex h-9 items-center gap-3 rounded-md px-3 text-sm font-medium transition-colors
+                    ${isCollapsed ? 'justify-center px-0 size-9' : ''}
+                    ${isActive
+                        ? 'bg-blue-100 text-blue-700'
+                        : 'text-slate-600 hover:bg-blue-50 hover:text-blue-700'
+                    }`}
+            >
+                <Icon className="size-4 shrink-0" />
+                {!isCollapsed && <span>{name}</span>}
+            </Link>
+        );
+
+        if (isCollapsed) {
+            return (
+                <Tooltip>
+                    <TooltipTrigger asChild>{content}</TooltipTrigger>
+                    <TooltipContent side="right">{name}</TooltipContent>
+                </Tooltip>
+            );
+        }
+        return content;
+    };
+
     return (
-        <Sidebar>
-            <SidebarHeader>
-                <div className="flex items-center h-16 px-2">
-                    <Link href="/admin" className="flex items-center gap-2">
-                        <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center text-primary-foreground font-bold text-lg">
-                            P
-                        </div>
-                        <span className="text-lg font-bold text-foreground tracking-tight">Admin<span className="text-primary">Paroki</span></span>
-                    </Link>
-                </div>
+        <Sidebar collapsible="icon" className="bg-white border-r border-slate-200">
+            {/* Header with Logo */}
+            <SidebarHeader className="border-b border-slate-100 p-2">
+                <Tooltip>
+                    <TooltipTrigger asChild>
+                        <Link
+                            href="/admin/dashboard"
+                            className={`flex items-center gap-3 rounded-lg p-2 hover:bg-slate-50 transition-colors ${isCollapsed ? 'justify-center p-1' : ''}`}
+                        >
+                            <div className="flex size-8 shrink-0 items-center justify-center rounded-lg overflow-hidden">
+                                <Image
+                                    src="/favicons/logo.png"
+                                    alt="Logo"
+                                    width={32}
+                                    height={32}
+                                    className="size-8 object-cover"
+                                />
+                            </div>
+                            {!isCollapsed && (
+                                <div className="grid flex-1 text-left text-sm leading-tight">
+                                    <span className="truncate font-semibold text-slate-900">Admin CMS</span>
+                                    <span className="truncate text-xs text-slate-500">Paroki Brayut</span>
+                                </div>
+                            )}
+                        </Link>
+                    </TooltipTrigger>
+                    {isCollapsed && <TooltipContent side="right">Admin CMS</TooltipContent>}
+                </Tooltip>
             </SidebarHeader>
-            <SidebarContent>
-                {navItems.map((group, index) => (
-                    <div key={index} className="px-3 py-2">
-                        <h3 className="mb-2 px-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                            {group.title}
-                        </h3>
-                        <SidebarMenu>
+
+            <SidebarContent className="p-2">
+                {/* Dashboard */}
+                <div className="mb-2">
+                    <NavItem
+                        href={dashboardItem.href}
+                        icon={dashboardItem.icon}
+                        name={dashboardItem.name}
+                        isActive={isDashboardActive}
+                    />
+                </div>
+
+                {/* Navigation Groups */}
+                {navGroups.map((group, index) => (
+                    <div key={index} className="mb-2">
+                        {!isCollapsed && (
+                            <div className="px-3 py-2 text-[10px] font-semibold text-slate-400 uppercase tracking-wider">
+                                {group.title}
+                            </div>
+                        )}
+                        <div className="space-y-1">
                             {group.items.map((item) => {
-                                const isActive = pathname === item.href || (item.href !== "/admin/dashboard" && pathname.startsWith(item.href));
-                                const Icon = item.icon;
+                                const isActive = pathname === item.href ||
+                                    (item.href !== "/admin/dashboard" && pathname.startsWith(item.href));
                                 return (
-                                    <SidebarMenuItem key={item.href}>
-                                        <SidebarMenuButton
-                                            asChild
-                                            isActive={isActive}
-                                            onClick={() => setOpenMobile(false)}
-                                            tooltip={item.name}
-                                        >
-                                            <Link href={item.href}>
-                                                <Icon />
-                                                <span>{item.name}</span>
-                                            </Link>
-                                        </SidebarMenuButton>
-                                    </SidebarMenuItem>
-                                )
+                                    <NavItem
+                                        key={item.href}
+                                        href={item.href}
+                                        icon={item.icon}
+                                        name={item.name}
+                                        isActive={isActive}
+                                    />
+                                );
                             })}
-                        </SidebarMenu>
+                        </div>
                     </div>
                 ))}
             </SidebarContent>
-            <SidebarFooter className="border-t p-4">
-                <SidebarMenu>
-                    <div className="space-y-4">
-                        <Link
-                            href="/"
-                            target="_blank"
-                            className="flex items-center justify-center gap-2 w-full px-4 py-2 text-xs font-medium text-primary bg-primary/10 rounded-lg hover:bg-primary/20 transition-colors"
-                        >
-                            <ExternalLink className="w-3.5 h-3.5" />
-                            View Live Website
-                        </Link>
 
-                        <div className="flex items-center gap-3 pt-2">
-                            <div className="w-8 h-8 rounded-full bg-muted border flex items-center justify-center text-primary font-bold shadow-sm shrink-0">
-                                {user?.name ? user.name.charAt(0).toUpperCase() : "A"}
+            {/* Footer */}
+            <SidebarFooter className="border-t border-slate-100 p-2">
+                {!isCollapsed ? (
+                    <div className="flex flex-col gap-2">
+                        <Button
+                            asChild
+                            variant="outline"
+                            size="sm"
+                            className="w-full justify-center gap-2 h-9 text-slate-600 hover:text-blue-600 hover:border-blue-200 hover:bg-blue-50"
+                        >
+                            <Link href="/" target="_blank">
+                                <ExternalLink className="size-4" />
+                                <span>View Live Website</span>
+                            </Link>
+                        </Button>
+
+                        <div className="flex items-center gap-3 px-2 py-2 rounded-md">
+                            <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-blue-600 text-white">
+                                <span className="font-semibold text-xs">
+                                    {user?.name ? user.name.charAt(0).toUpperCase() : "A"}
+                                </span>
                             </div>
-                            <div className="flex-1 min-w-0">
-                                <p className="text-sm font-bold truncate">{user?.name || "Admin"}</p>
-                                <p className="text-xs text-muted-foreground truncate">{user?.email}</p>
+                            <div className="grid flex-1 text-left text-sm leading-tight overflow-hidden">
+                                <span className="truncate font-medium text-slate-900">{user?.name || "Admin"}</span>
+                                <span className="truncate text-xs text-slate-500">{user?.email}</span>
                             </div>
                         </div>
 
-                        <button
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            className="w-full justify-start gap-2 h-9 text-red-600 hover:text-red-700 hover:bg-red-50"
                             onClick={handleSignOut}
                             disabled={isSignOutPending}
-                            className="flex items-center gap-2 w-full text-left px-2 text-xs font-medium text-destructive hover:text-destructive/80 transition-colors"
                         >
-                            <LogOut className="w-3.5 h-3.5" />
-                            {isSignOutPending ? "Signing out..." : "Sign out"}
-                        </button>
+                            <LogOut className="size-4" />
+                            <span>{isSignOutPending ? "Signing out..." : "Sign out"}</span>
+                        </Button>
                     </div>
-                </SidebarMenu>
+                ) : (
+                    <div className="flex flex-col items-center gap-2">
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <Button asChild variant="ghost" size="icon" className="size-8 text-slate-600 hover:text-blue-600 hover:bg-blue-50">
+                                    <Link href="/" target="_blank">
+                                        <ExternalLink className="size-4" />
+                                    </Link>
+                                </Button>
+                            </TooltipTrigger>
+                            <TooltipContent side="right">View Site</TooltipContent>
+                        </Tooltip>
+
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <div className="flex size-6 shrink-0 items-center justify-center rounded-full bg-blue-600 text-white cursor-default">
+                                    <span className="font-semibold text-xs">
+                                        {user?.name ? user.name.charAt(0).toUpperCase() : "A"}
+                                    </span>
+                                </div>
+                            </TooltipTrigger>
+                            <TooltipContent side="right">{user?.name || "Admin"}</TooltipContent>
+                        </Tooltip>
+
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="size-8 text-red-600 hover:text-red-700 hover:bg-red-50"
+                                    onClick={handleSignOut}
+                                    disabled={isSignOutPending}
+                                >
+                                    <LogOut className="size-4" />
+                                </Button>
+                            </TooltipTrigger>
+                            <TooltipContent side="right">Sign out</TooltipContent>
+                        </Tooltip>
+                    </div>
+                )}
             </SidebarFooter>
+            <SidebarRail />
         </Sidebar>
     );
 }

@@ -2,9 +2,18 @@
 
 import { useState, useTransition } from "react";
 import { Wilayah, Lingkungan, saveWilayahLingkungan } from "@/actions/data";
-import { Plus, Pencil, Trash2, Search, Loader2, ChevronDown, ChevronRight, User } from "lucide-react";
+import { Plus, Pencil, Trash2, Search, ChevronDown, ChevronRight, User } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { v4 as uuidv4 } from "uuid";
+import ConfirmModal from "@/components/admin/ConfirmModal";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+} from "@/components/ui/dialog";
 
 export default function WilayahClient({ initialData }: { initialData: Wilayah[] }) {
     const [data, setData] = useState<Wilayah[]>(initialData);
@@ -21,6 +30,9 @@ export default function WilayahClient({ initialData }: { initialData: Wilayah[] 
 
     // Expanded Wilayah State
     const [expandedWilayah, setExpandedWilayah] = useState<Set<string>>(new Set());
+
+    // Confirmation Modal States
+    const [deleteConfirm, setDeleteConfirm] = useState<{ type: 'wilayah' | 'lingkungan', id: string, name: string, parentId?: string } | null>(null);
 
     const [isPending, startTransition] = useTransition();
     const router = useRouter();
@@ -51,11 +63,12 @@ export default function WilayahClient({ initialData }: { initialData: Wilayah[] 
         setIsWilayahModalOpen(true);
     };
 
-    const handleDeleteWilayah = async (id: string) => {
-        if (!confirm("Hapus Wilayah ini? Semua lingkungan di dalamnya juga akan terhapus.")) return;
+    const handleDeleteWilayah = async () => {
+        if (!deleteConfirm || deleteConfirm.type !== 'wilayah') return;
 
-        const newData = data.filter(item => item.id !== id);
+        const newData = data.filter(item => item.id !== deleteConfirm.id);
         setData(newData);
+        setDeleteConfirm(null);
         saveData(newData);
     };
 
@@ -95,20 +108,21 @@ export default function WilayahClient({ initialData }: { initialData: Wilayah[] 
         setIsLingkunganModalOpen(true);
     };
 
-    const handleDeleteLingkungan = (wilayahId: string, lingkunganId: string) => {
-        if (!confirm("Hapus Lingkungan ini?")) return;
+    const handleDeleteLingkungan = () => {
+        if (!deleteConfirm || deleteConfirm.type !== 'lingkungan' || !deleteConfirm.parentId) return;
 
         const newData = data.map(w => {
-            if (w.id === wilayahId) {
+            if (w.id === deleteConfirm.parentId) {
                 return {
                     ...w,
-                    lingkungan: w.lingkungan.filter(l => l.id !== lingkunganId)
+                    lingkungan: w.lingkungan.filter(l => l.id !== deleteConfirm.id)
                 };
             }
             return w;
         });
 
         setData(newData);
+        setDeleteConfirm(null);
         saveData(newData);
     };
 
@@ -147,7 +161,7 @@ export default function WilayahClient({ initialData }: { initialData: Wilayah[] 
             const result = await saveWilayahLingkungan(newData);
             if (!result.success) {
                 alert("Gagal menyimpan: " + result.error);
-                router.refresh(); // Reload to reset state
+                router.refresh();
             } else {
                 router.refresh();
             }
@@ -155,37 +169,34 @@ export default function WilayahClient({ initialData }: { initialData: Wilayah[] 
     };
 
     return (
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+        <div className="bg-white rounded-lg shadow-sm border border-slate-200">
             {/* Header Actions */}
-            <div className="p-4 border-b border-gray-200 flex flex-col sm:flex-row justify-between gap-4">
+            <div className="p-4 border-b border-slate-200 flex flex-col sm:flex-row justify-between gap-3">
                 <div className="relative flex-1 max-w-md">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                    <input
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                    <Input
                         type="text"
                         placeholder="Cari Wilayah / Koordinator..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-brand-blue focus:border-transparent outline-none text-sm"
+                        className="pl-10"
                     />
                 </div>
-                <button
-                    onClick={handleAddWilayah}
-                    className="flex items-center gap-2 px-4 py-2 bg-brand-blue text-white rounded-lg hover:bg-brand-darkBlue transition-colors text-sm font-medium"
-                >
+                <Button onClick={handleAddWilayah} className="bg-blue-600 hover:bg-blue-700 gap-2">
                     <Plus className="h-4 w-4" />
                     Tambah Wilayah
-                </button>
+                </Button>
             </div>
 
             {/* List */}
-            <div className="divide-y divide-gray-200">
+            <div className="divide-y divide-slate-200">
                 {filteredData.length > 0 ? (
                     filteredData.map((wilayah) => (
                         <div key={wilayah.id} className="bg-white">
                             {/* Wilayah Row */}
-                            <div className="p-4 flex items-center justify-between hover:bg-gray-50 transition-colors group">
+                            <div className="p-4 flex items-center justify-between hover:bg-slate-50 transition-colors group">
                                 <div className="flex items-center gap-3 flex-1 cursor-pointer" onClick={() => toggleExpand(wilayah.id)}>
-                                    <button className="text-gray-400 hover:text-brand-blue">
+                                    <button className="text-slate-400 hover:text-blue-600">
                                         {expandedWilayah.has(wilayah.id) ? (
                                             <ChevronDown className="h-5 w-5" />
                                         ) : (
@@ -193,8 +204,8 @@ export default function WilayahClient({ initialData }: { initialData: Wilayah[] 
                                         )}
                                     </button>
                                     <div>
-                                        <h3 className="font-semibold text-gray-900">{wilayah.name}</h3>
-                                        <div className="flex items-center gap-1 text-sm text-gray-500">
+                                        <h3 className="font-semibold text-slate-900">{wilayah.name}</h3>
+                                        <div className="flex items-center gap-1 text-sm text-slate-500">
                                             <User className="h-3 w-3" />
                                             <span>Koord: {wilayah.coordinator}</span>
                                             <span className="mx-1">•</span>
@@ -203,61 +214,68 @@ export default function WilayahClient({ initialData }: { initialData: Wilayah[] 
                                     </div>
                                 </div>
                                 <div className="flex items-center gap-2">
-                                    <button
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
                                         onClick={() => handleAddLingkungan(wilayah.id)}
-                                        className="p-1.5 text-brand-blue hover:bg-blue-50 rounded text-sm font-medium flex items-center gap-1"
-                                        title="Tambah Lingkungan"
+                                        className="text-blue-600 hover:text-blue-700 hover:bg-blue-50 gap-1"
                                     >
                                         <Plus className="h-4 w-4" />
                                         <span className="hidden sm:inline">Lingkungan</span>
-                                    </button>
-                                    <button
+                                    </Button>
+                                    <Button
+                                        variant="ghost"
+                                        size="icon"
                                         onClick={() => handleEditWilayah(wilayah)}
-                                        className="p-1.5 text-gray-400 hover:text-brand-blue hover:bg-gray-100 rounded transition-colors"
-                                        title="Edit Wilayah"
+                                        className="text-slate-400 hover:text-blue-600 hover:bg-blue-50"
                                     >
                                         <Pencil className="h-4 w-4" />
-                                    </button>
-                                    <button
-                                        onClick={() => handleDeleteWilayah(wilayah.id)}
-                                        className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
-                                        title="Hapus Wilayah"
+                                    </Button>
+                                    <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        onClick={() => setDeleteConfirm({ type: 'wilayah', id: wilayah.id, name: wilayah.name })}
+                                        className="text-slate-400 hover:text-red-600 hover:bg-red-50"
                                     >
                                         <Trash2 className="h-4 w-4" />
-                                    </button>
+                                    </Button>
                                 </div>
                             </div>
 
                             {/* Lingkungan List (Collapsible) */}
                             {expandedWilayah.has(wilayah.id) && (
-                                <div className="bg-gray-50 border-t border-gray-100 pl-12 pr-4 py-2">
+                                <div className="bg-slate-50 border-t border-slate-100 pl-12 pr-4 py-2">
                                     {wilayah.lingkungan.length > 0 ? (
-                                        <div className="divide-y divide-gray-200/50">
+                                        <div className="divide-y divide-slate-200/50">
                                             {wilayah.lingkungan.map((lingkungan) => (
                                                 <div key={lingkungan.id} className="py-3 flex items-center justify-between">
                                                     <div>
-                                                        <div className="font-medium text-gray-800">{lingkungan.name}</div>
-                                                        <div className="text-sm text-gray-500">Ketua: {lingkungan.chief}</div>
+                                                        <div className="font-medium text-slate-800">{lingkungan.name}</div>
+                                                        <div className="text-sm text-slate-500">Ketua: {lingkungan.chief}</div>
                                                     </div>
                                                     <div className="flex items-center gap-2">
-                                                        <button
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="icon"
                                                             onClick={() => handleEditLingkungan(wilayah.id, lingkungan)}
-                                                            className="p-1 text-gray-400 hover:text-brand-blue transition-colors"
+                                                            className="h-8 w-8 text-slate-400 hover:text-blue-600"
                                                         >
                                                             <Pencil className="h-3.5 w-3.5" />
-                                                        </button>
-                                                        <button
-                                                            onClick={() => handleDeleteLingkungan(wilayah.id, lingkungan.id)}
-                                                            className="p-1 text-gray-400 hover:text-red-600 transition-colors"
+                                                        </Button>
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="icon"
+                                                            onClick={() => setDeleteConfirm({ type: 'lingkungan', id: lingkungan.id, name: lingkungan.name, parentId: wilayah.id })}
+                                                            className="h-8 w-8 text-slate-400 hover:text-red-600"
                                                         >
                                                             <Trash2 className="h-3.5 w-3.5" />
-                                                        </button>
+                                                        </Button>
                                                     </div>
                                                 </div>
                                             ))}
                                         </div>
                                     ) : (
-                                        <div className="py-4 text-center text-sm text-gray-500 italic">
+                                        <div className="py-4 text-center text-sm text-slate-500 italic">
                                             Belum ada data lingkungan
                                         </div>
                                     )}
@@ -266,185 +284,116 @@ export default function WilayahClient({ initialData }: { initialData: Wilayah[] 
                         </div>
                     ))
                 ) : (
-                    <div className="p-12 text-center text-gray-500">
+                    <div className="p-12 text-center text-slate-500">
                         {searchTerm ? "Tidak ada hasil pencarian" : "Belum ada data Wilayah"}
                     </div>
                 )}
             </div>
 
             {/* Wilayah Modal */}
-            {isWilayahModalOpen && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-                    <div className="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden animate-fade-in max-h-[90vh] overflow-y-auto">
-                        <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center sticky top-0 bg-white z-10">
-                            <h3 className="font-bold text-lg text-gray-900">
-                                {editingWilayah ? "Edit Wilayah" : "Tambah Wilayah"}
-                            </h3>
-                            <button
-                                onClick={() => setIsWilayahModalOpen(false)}
-                                className="text-gray-400 hover:text-gray-600 transition-colors"
-                            >
-                                <span className="text-2xl">&times;</span>
-                            </button>
+            <Dialog open={isWilayahModalOpen} onOpenChange={setIsWilayahModalOpen}>
+                <DialogContent className="max-w-md">
+                    <DialogHeader>
+                        <DialogTitle>{editingWilayah ? "Edit Wilayah" : "Tambah Wilayah"}</DialogTitle>
+                    </DialogHeader>
+                    <form onSubmit={handleSubmitWilayah} className="space-y-4">
+                        <div>
+                            <label className="block text-sm font-medium text-slate-700 mb-1">Nama Wilayah</label>
+                            <Input name="name" defaultValue={editingWilayah?.name} required placeholder="Contoh: Wilayah I" />
                         </div>
-                        <form onSubmit={handleSubmitWilayah} className="p-6 space-y-4">
+                        <div>
+                            <label className="block text-sm font-medium text-slate-700 mb-1">Ketua Wilayah</label>
+                            <Input name="coordinator" defaultValue={editingWilayah?.coordinator} placeholder="Nama Ketua Wilayah" />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-slate-700 mb-1">Alamat (Opsional)</label>
+                            <textarea
+                                name="address"
+                                defaultValue={editingWilayah?.address}
+                                className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-sm resize-none"
+                                placeholder="Alamat lengkap..."
+                                rows={2}
+                            />
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Nama Wilayah</label>
-                                <input
-                                    name="name"
-                                    defaultValue={editingWilayah?.name}
-                                    required
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-blue outline-none text-sm"
-                                    placeholder="Contoh: Wilayah I"
-                                />
+                                <label className="block text-sm font-medium text-slate-700 mb-1">Email (Opsional)</label>
+                                <Input name="email" type="email" defaultValue={editingWilayah?.email} placeholder="email@contoh.com" />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Ketua Wilayah</label>
-                                <input
-                                    name="coordinator"
-                                    defaultValue={editingWilayah?.coordinator}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-blue outline-none text-sm"
-                                    placeholder="Nama Ketua Wilayah"
-                                />
+                                <label className="block text-sm font-medium text-slate-700 mb-1">No. HP (Opsional)</label>
+                                <Input name="phone" defaultValue={editingWilayah?.phone} placeholder="08..." />
                             </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Alamat (Opsional)</label>
-                                <textarea
-                                    name="address"
-                                    defaultValue={editingWilayah?.address}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-blue outline-none text-sm"
-                                    placeholder="Alamat lengkap..."
-                                    rows={2}
-                                />
-                            </div>
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Email (Opsional)</label>
-                                    <input
-                                        name="email"
-                                        type="email"
-                                        defaultValue={editingWilayah?.email}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-blue outline-none text-sm"
-                                        placeholder="email@contoh.com"
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">No. HP (Opsional)</label>
-                                    <input
-                                        name="phone"
-                                        defaultValue={editingWilayah?.phone}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-blue outline-none text-sm"
-                                        placeholder="08..."
-                                    />
-                                </div>
-                            </div>
-                            <div className="flex justify-end gap-3 pt-2">
-                                <button
-                                    type="button"
-                                    onClick={() => setIsWilayahModalOpen(false)}
-                                    className="px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-lg"
-                                >
-                                    Batal
-                                </button>
-                                <button
-                                    type="submit"
-                                    disabled={isPending}
-                                    className="px-4 py-2 bg-brand-blue text-white rounded-lg hover:bg-brand-darkBlue text-sm font-medium"
-                                >
-                                    {isPending ? "Menyimpan..." : "Simpan"}
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            )}
+                        </div>
+                        <div className="flex justify-end gap-3 pt-2">
+                            <Button type="button" variant="outline" onClick={() => setIsWilayahModalOpen(false)}>Batal</Button>
+                            <Button type="submit" disabled={isPending} className="bg-blue-600 hover:bg-blue-700">
+                                {isPending ? "Menyimpan..." : "Simpan"}
+                            </Button>
+                        </div>
+                    </form>
+                </DialogContent>
+            </Dialog>
 
             {/* Lingkungan Modal */}
-            {isLingkunganModalOpen && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-                    <div className="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden animate-fade-in max-h-[90vh] overflow-y-auto">
-                        <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center sticky top-0 bg-white z-10">
-                            <h3 className="font-bold text-lg text-gray-900">
-                                {editingLingkungan ? "Edit Lingkungan" : "Tambah Lingkungan"}
-                            </h3>
-                            <button
-                                onClick={() => setIsLingkunganModalOpen(false)}
-                                className="text-gray-400 hover:text-gray-600 transition-colors"
-                            >
-                                <span className="text-2xl">&times;</span>
-                            </button>
+            <Dialog open={isLingkunganModalOpen} onOpenChange={setIsLingkunganModalOpen}>
+                <DialogContent className="max-w-md">
+                    <DialogHeader>
+                        <DialogTitle>{editingLingkungan ? "Edit Lingkungan" : "Tambah Lingkungan"}</DialogTitle>
+                    </DialogHeader>
+                    <form onSubmit={handleSubmitLingkungan} className="space-y-4">
+                        <div>
+                            <label className="block text-sm font-medium text-slate-700 mb-1">Nama Lingkungan</label>
+                            <Input name="name" defaultValue={editingLingkungan?.name} required placeholder="Contoh: Lingkungan St. Petrus" />
                         </div>
-                        <form onSubmit={handleSubmitLingkungan} className="p-6 space-y-4">
+                        <div>
+                            <label className="block text-sm font-medium text-slate-700 mb-1">Ketua Lingkungan</label>
+                            <Input name="chief" defaultValue={editingLingkungan?.chief} placeholder="Nama Ketua Lingkungan" />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-slate-700 mb-1">Alamat (Opsional)</label>
+                            <textarea
+                                name="address"
+                                defaultValue={editingLingkungan?.address}
+                                className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-sm resize-none"
+                                placeholder="Alamat lengkap..."
+                                rows={2}
+                            />
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Nama Lingkungan</label>
-                                <input
-                                    name="name"
-                                    defaultValue={editingLingkungan?.name}
-                                    required
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-blue outline-none text-sm"
-                                    placeholder="Contoh: Lingkungan St. Petrus"
-                                />
+                                <label className="block text-sm font-medium text-slate-700 mb-1">Email (Opsional)</label>
+                                <Input name="email" type="email" defaultValue={editingLingkungan?.email} placeholder="email@contoh.com" />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Ketua Lingkungan</label>
-                                <input
-                                    name="chief"
-                                    defaultValue={editingLingkungan?.chief}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-blue outline-none text-sm"
-                                    placeholder="Nama Ketua Lingkungan"
-                                />
+                                <label className="block text-sm font-medium text-slate-700 mb-1">No. HP (Opsional)</label>
+                                <Input name="phone" defaultValue={editingLingkungan?.phone} placeholder="08..." />
                             </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Alamat (Opsional)</label>
-                                <textarea
-                                    name="address"
-                                    defaultValue={editingLingkungan?.address}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-blue outline-none text-sm"
-                                    placeholder="Alamat lengkap..."
-                                    rows={2}
-                                />
-                            </div>
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Email (Opsional)</label>
-                                    <input
-                                        name="email"
-                                        type="email"
-                                        defaultValue={editingLingkungan?.email}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-blue outline-none text-sm"
-                                        placeholder="email@contoh.com"
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">No. HP (Opsional)</label>
-                                    <input
-                                        name="phone"
-                                        defaultValue={editingLingkungan?.phone}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-blue outline-none text-sm"
-                                        placeholder="08..."
-                                    />
-                                </div>
-                            </div>
-                            <div className="flex justify-end gap-3 pt-2">
-                                <button
-                                    type="button"
-                                    onClick={() => setIsLingkunganModalOpen(false)}
-                                    className="px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-lg"
-                                >
-                                    Batal
-                                </button>
-                                <button
-                                    type="submit"
-                                    disabled={isPending}
-                                    className="px-4 py-2 bg-brand-blue text-white rounded-lg hover:bg-brand-darkBlue text-sm font-medium"
-                                >
-                                    {isPending ? "Menyimpan..." : "Simpan"}
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            )}
+                        </div>
+                        <div className="flex justify-end gap-3 pt-2">
+                            <Button type="button" variant="outline" onClick={() => setIsLingkunganModalOpen(false)}>Batal</Button>
+                            <Button type="submit" disabled={isPending} className="bg-blue-600 hover:bg-blue-700">
+                                {isPending ? "Menyimpan..." : "Simpan"}
+                            </Button>
+                        </div>
+                    </form>
+                </DialogContent>
+            </Dialog>
+
+            {/* Delete Confirmation Modal */}
+            <ConfirmModal
+                isOpen={!!deleteConfirm}
+                onClose={() => setDeleteConfirm(null)}
+                onConfirm={deleteConfirm?.type === 'wilayah' ? handleDeleteWilayah : handleDeleteLingkungan}
+                title={`Hapus ${deleteConfirm?.type === 'wilayah' ? 'Wilayah' : 'Lingkungan'}`}
+                message={deleteConfirm?.type === 'wilayah'
+                    ? `Hapus "${deleteConfirm?.name}"? Semua lingkungan di dalamnya juga akan terhapus.`
+                    : `Hapus "${deleteConfirm?.name}"? Data ini tidak dapat dikembalikan.`
+                }
+                loading={isPending}
+                confirmText="Hapus"
+                confirmVariant="destructive"
+            />
         </div>
     );
 }

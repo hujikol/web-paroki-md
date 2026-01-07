@@ -2,9 +2,18 @@
 
 import { useState, useTransition } from "react";
 import { PastorTimKerjaData, Pastor, TimKerja, savePastorTimKerja } from "@/actions/data";
-import { Plus, Pencil, Trash2, Search, Loader2, User, Users } from "lucide-react";
+import { Plus, Pencil, Trash2, User, Users } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { v4 as uuidv4 } from "uuid";
+import ConfirmModal from "@/components/admin/ConfirmModal";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+} from "@/components/ui/dialog";
 
 export default function PastorTimClient({ initialData }: { initialData: PastorTimKerjaData }) {
     const [data, setData] = useState<PastorTimKerjaData>(initialData);
@@ -16,6 +25,9 @@ export default function PastorTimClient({ initialData }: { initialData: PastorTi
 
     const [isTimModalOpen, setIsTimModalOpen] = useState(false);
     const [editingTim, setEditingTim] = useState<TimKerja | null>(null);
+
+    // Delete Confirmation
+    const [deleteConfirm, setDeleteConfirm] = useState<{ type: 'pastor' | 'tim', id: string, name: string } | null>(null);
 
     const [isPending, startTransition] = useTransition();
     const router = useRouter();
@@ -59,11 +71,12 @@ export default function PastorTimClient({ initialData }: { initialData: PastorTi
         saveAll(newData);
     };
 
-    const handleDeletePastor = (id: string) => {
-        if (!confirm("Hapus data Pastor ini?")) return;
-        const newPastors = data.pastor.filter(p => p.id !== id);
+    const handleDeletePastor = () => {
+        if (!deleteConfirm || deleteConfirm.type !== 'pastor') return;
+        const newPastors = data.pastor.filter(p => p.id !== deleteConfirm.id);
         const newData = { ...data, pastor: newPastors };
         setData(newData);
+        setDeleteConfirm(null);
         saveAll(newData);
     };
 
@@ -92,23 +105,24 @@ export default function PastorTimClient({ initialData }: { initialData: PastorTi
         saveAll(newData);
     };
 
-    const handleDeleteTim = (id: string) => {
-        if (!confirm("Hapus anggota tim ini?")) return;
-        const newTim = data.timKerja.filter(t => t.id !== id);
+    const handleDeleteTim = () => {
+        if (!deleteConfirm || deleteConfirm.type !== 'tim') return;
+        const newTim = data.timKerja.filter(t => t.id !== deleteConfirm.id);
         const newData = { ...data, timKerja: newTim };
         setData(newData);
+        setDeleteConfirm(null);
         saveAll(newData);
     };
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-4">
             {/* Tabs */}
-            <div className="flex border-b border-gray-200">
+            <div className="flex border-b border-slate-200">
                 <button
                     onClick={() => setActiveTab("pastor")}
-                    className={`px-6 py-3 text-sm font-medium border-b-2 transition-colors flex items-center gap-2 ${activeTab === "pastor"
-                        ? "border-brand-blue text-brand-blue"
-                        : "border-transparent text-gray-500 hover:text-gray-700"
+                    className={`px-4 py-2.5 text-sm font-medium border-b-2 transition-colors flex items-center gap-2 ${activeTab === "pastor"
+                        ? "border-blue-600 text-blue-600"
+                        : "border-transparent text-slate-500 hover:text-slate-700"
                         }`}
                 >
                     <User className="h-4 w-4" />
@@ -116,9 +130,9 @@ export default function PastorTimClient({ initialData }: { initialData: PastorTi
                 </button>
                 <button
                     onClick={() => setActiveTab("tim")}
-                    className={`px-6 py-3 text-sm font-medium border-b-2 transition-colors flex items-center gap-2 ${activeTab === "tim"
-                        ? "border-brand-blue text-brand-blue"
-                        : "border-transparent text-gray-500 hover:text-gray-700"
+                    className={`px-4 py-2.5 text-sm font-medium border-b-2 transition-colors flex items-center gap-2 ${activeTab === "tim"
+                        ? "border-blue-600 text-blue-600"
+                        : "border-transparent text-slate-500 hover:text-slate-700"
                         }`}
                 >
                     <Users className="h-4 w-4" />
@@ -128,44 +142,56 @@ export default function PastorTimClient({ initialData }: { initialData: PastorTi
 
             {/* Pastor Tab Content */}
             {activeTab === "pastor" && (
-                <div className="bg-white rounded-lg shadow-sm border border-gray-200">
-                    <div className="p-4 border-b border-gray-200 flex justify-between items-center">
-                        <h2 className="font-semibold text-gray-800">Daftar Pastor</h2>
-                        <button
+                <div className="bg-white rounded-lg shadow-sm border border-slate-200">
+                    <div className="p-4 border-b border-slate-200 flex justify-between items-center">
+                        <h2 className="font-semibold text-slate-800">Daftar Pastor</h2>
+                        <Button
                             onClick={() => { setEditingPastor(null); setIsPastorModalOpen(true); }}
-                            className="flex items-center gap-2 px-4 py-2 bg-brand-blue text-white rounded-lg hover:bg-brand-darkBlue transition-colors text-sm font-medium"
+                            className="bg-blue-600 hover:bg-blue-700 gap-2"
                         >
                             <Plus className="h-4 w-4" />
                             Tambah Pastor
-                        </button>
+                        </Button>
                     </div>
                     <div className="overflow-x-auto">
                         <table className="w-full text-sm text-left">
-                            <thead className="bg-gray-50 text-gray-700 font-medium uppercase text-xs">
+                            <thead className="bg-slate-50 text-slate-700 font-medium uppercase text-xs">
                                 <tr>
-                                    <th className="px-6 py-3">Nama</th>
-                                    <th className="px-6 py-3">Jabatan</th>
-                                    <th className="px-6 py-3 text-right">Aksi</th>
+                                    <th className="px-4 py-3">Nama</th>
+                                    <th className="px-4 py-3">Jabatan</th>
+                                    <th className="px-4 py-3 text-right">Aksi</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-gray-200">
+                            <tbody className="divide-y divide-slate-200">
                                 {data.pastor.length > 0 ? (
                                     data.pastor.map((p) => (
-                                        <tr key={p.id}>
-                                            <td className="px-6 py-4 font-medium text-gray-900">{p.name}</td>
-                                            <td className="px-6 py-4 text-gray-600">{p.role}</td>
-                                            <td className="px-6 py-4 text-right flex justify-end gap-2">
-                                                <button onClick={() => { setEditingPastor(p); setIsPastorModalOpen(true); }} className="p-1 text-gray-400 hover:text-brand-blue">
-                                                    <Pencil className="h-4 w-4" />
-                                                </button>
-                                                <button onClick={() => handleDeletePastor(p.id)} className="p-1 text-gray-400 hover:text-red-600">
-                                                    <Trash2 className="h-4 w-4" />
-                                                </button>
+                                        <tr key={p.id} className="hover:bg-slate-50">
+                                            <td className="px-4 py-3 font-medium text-slate-900">{p.name}</td>
+                                            <td className="px-4 py-3 text-slate-600">{p.role}</td>
+                                            <td className="px-4 py-3 text-right">
+                                                <div className="flex justify-end gap-1">
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="icon"
+                                                        onClick={() => { setEditingPastor(p); setIsPastorModalOpen(true); }}
+                                                        className="h-8 w-8 text-slate-400 hover:text-blue-600 hover:bg-blue-50"
+                                                    >
+                                                        <Pencil className="h-4 w-4" />
+                                                    </Button>
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="icon"
+                                                        onClick={() => setDeleteConfirm({ type: 'pastor', id: p.id, name: p.name })}
+                                                        className="h-8 w-8 text-slate-400 hover:text-red-600 hover:bg-red-50"
+                                                    >
+                                                        <Trash2 className="h-4 w-4" />
+                                                    </Button>
+                                                </div>
                                             </td>
                                         </tr>
                                     ))
                                 ) : (
-                                    <tr><td colSpan={3} className="text-center py-8 text-gray-500">Belum ada data Pastor</td></tr>
+                                    <tr><td colSpan={3} className="text-center py-8 text-slate-500">Belum ada data Pastor</td></tr>
                                 )}
                             </tbody>
                         </table>
@@ -175,46 +201,58 @@ export default function PastorTimClient({ initialData }: { initialData: PastorTi
 
             {/* Tim Tab Content */}
             {activeTab === "tim" && (
-                <div className="bg-white rounded-lg shadow-sm border border-gray-200">
-                    <div className="p-4 border-b border-gray-200 flex justify-between items-center">
-                        <h2 className="font-semibold text-gray-800">Daftar Tim Kerja</h2>
-                        <button
+                <div className="bg-white rounded-lg shadow-sm border border-slate-200">
+                    <div className="p-4 border-b border-slate-200 flex justify-between items-center">
+                        <h2 className="font-semibold text-slate-800">Daftar Tim Kerja</h2>
+                        <Button
                             onClick={() => { setEditingTim(null); setIsTimModalOpen(true); }}
-                            className="flex items-center gap-2 px-4 py-2 bg-brand-blue text-white rounded-lg hover:bg-brand-darkBlue transition-colors text-sm font-medium"
+                            className="bg-blue-600 hover:bg-blue-700 gap-2"
                         >
                             <Plus className="h-4 w-4" />
                             Tambah Anggota
-                        </button>
+                        </Button>
                     </div>
                     <div className="overflow-x-auto">
                         <table className="w-full text-sm text-left">
-                            <thead className="bg-gray-50 text-gray-700 font-medium uppercase text-xs">
+                            <thead className="bg-slate-50 text-slate-700 font-medium uppercase text-xs">
                                 <tr>
-                                    <th className="px-6 py-3">Nama</th>
-                                    <th className="px-6 py-3">Bidang/Divisi</th>
-                                    <th className="px-6 py-3">Peran</th>
-                                    <th className="px-6 py-3 text-right">Aksi</th>
+                                    <th className="px-4 py-3">Nama</th>
+                                    <th className="px-4 py-3">Bidang/Divisi</th>
+                                    <th className="px-4 py-3">Peran</th>
+                                    <th className="px-4 py-3 text-right">Aksi</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-gray-200">
+                            <tbody className="divide-y divide-slate-200">
                                 {data.timKerja.length > 0 ? (
                                     data.timKerja.map((t) => (
-                                        <tr key={t.id}>
-                                            <td className="px-6 py-4 font-medium text-gray-900">{t.name}</td>
-                                            <td className="px-6 py-4 text-gray-600">{t.division}</td>
-                                            <td className="px-6 py-4 text-gray-600">{t.role}</td>
-                                            <td className="px-6 py-4 text-right flex justify-end gap-2">
-                                                <button onClick={() => { setEditingTim(t); setIsTimModalOpen(true); }} className="p-1 text-gray-400 hover:text-brand-blue">
-                                                    <Pencil className="h-4 w-4" />
-                                                </button>
-                                                <button onClick={() => handleDeleteTim(t.id)} className="p-1 text-gray-400 hover:text-red-600">
-                                                    <Trash2 className="h-4 w-4" />
-                                                </button>
+                                        <tr key={t.id} className="hover:bg-slate-50">
+                                            <td className="px-4 py-3 font-medium text-slate-900">{t.name}</td>
+                                            <td className="px-4 py-3 text-slate-600">{t.division}</td>
+                                            <td className="px-4 py-3 text-slate-600">{t.role}</td>
+                                            <td className="px-4 py-3 text-right">
+                                                <div className="flex justify-end gap-1">
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="icon"
+                                                        onClick={() => { setEditingTim(t); setIsTimModalOpen(true); }}
+                                                        className="h-8 w-8 text-slate-400 hover:text-blue-600 hover:bg-blue-50"
+                                                    >
+                                                        <Pencil className="h-4 w-4" />
+                                                    </Button>
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="icon"
+                                                        onClick={() => setDeleteConfirm({ type: 'tim', id: t.id, name: t.name })}
+                                                        className="h-8 w-8 text-slate-400 hover:text-red-600 hover:bg-red-50"
+                                                    >
+                                                        <Trash2 className="h-4 w-4" />
+                                                    </Button>
+                                                </div>
                                             </td>
                                         </tr>
                                     ))
                                 ) : (
-                                    <tr><td colSpan={4} className="text-center py-8 text-gray-500">Belum ada data Tim Kerja</td></tr>
+                                    <tr><td colSpan={4} className="text-center py-8 text-slate-500">Belum ada data Tim Kerja</td></tr>
                                 )}
                             </tbody>
                         </table>
@@ -223,96 +261,102 @@ export default function PastorTimClient({ initialData }: { initialData: PastorTi
             )}
 
             {/* Pastor Modal */}
-            {isPastorModalOpen && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-                    <div className="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden animate-fade-in max-h-[90vh] overflow-y-auto">
-                        <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center sticky top-0 bg-white z-10">
-                            <h3 className="font-bold text-lg text-gray-900">{editingPastor ? "Edit Pastor" : "Tambah Pastor"}</h3>
-                            <button onClick={() => setIsPastorModalOpen(false)} className="text-gray-400 hover:text-gray-600"><span className="text-2xl">&times;</span></button>
+            <Dialog open={isPastorModalOpen} onOpenChange={setIsPastorModalOpen}>
+                <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
+                    <DialogHeader>
+                        <DialogTitle>{editingPastor ? "Edit Pastor" : "Tambah Pastor"}</DialogTitle>
+                    </DialogHeader>
+                    <form onSubmit={handleSubmitPastor} className="space-y-4">
+                        <div>
+                            <label className="block text-sm font-medium text-slate-700 mb-1">Nama Lengkap & Gelar</label>
+                            <Input name="name" defaultValue={editingPastor?.name} required />
                         </div>
-                        <form onSubmit={handleSubmitPastor} className="p-6 space-y-4">
+                        <div>
+                            <label className="block text-sm font-medium text-slate-700 mb-1">Jabatan</label>
+                            <Input name="role" defaultValue={editingPastor?.role} required placeholder="Contoh: Pastor Paroki" />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-slate-700 mb-1">Kutipan / Quote (Opsional)</label>
+                            <textarea name="quote" defaultValue={editingPastor?.quote} placeholder="Kutipan inspiratif..." className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-sm resize-none" rows={2} />
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Nama Lengkap & Gelar</label>
-                                <input name="name" defaultValue={editingPastor?.name} required className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-blue outline-none text-sm" />
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Jabatan</label>
-                                <input name="role" defaultValue={editingPastor?.role} required placeholder="Contoh: Pastor Paroki" className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-blue outline-none text-sm" />
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Kutipan / Quote (Opsional)</label>
-                                <textarea name="quote" defaultValue={editingPastor?.quote} placeholder="Kutipan inspiratif..." className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-blue outline-none text-sm" rows={2} />
-                            </div>
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Email (Opsional)</label>
-                                    <input name="email" type="email" defaultValue={editingPastor?.email} placeholder="email@contoh.com" className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-blue outline-none text-sm" />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">No. HP (Opsional)</label>
-                                    <input name="phone" defaultValue={editingPastor?.phone} placeholder="08..." className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-blue outline-none text-sm" />
-                                </div>
+                                <label className="block text-sm font-medium text-slate-700 mb-1">Email (Opsional)</label>
+                                <Input name="email" type="email" defaultValue={editingPastor?.email} placeholder="email@contoh.com" />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">URL Foto (Opsional)</label>
-                                <input name="imageUrl" defaultValue={editingPastor?.imageUrl} placeholder="https://..." className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-blue outline-none text-sm" />
+                                <label className="block text-sm font-medium text-slate-700 mb-1">No. HP (Opsional)</label>
+                                <Input name="phone" defaultValue={editingPastor?.phone} placeholder="08..." />
                             </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Biografi Singkat (Opsional)</label>
-                                <textarea name="description" defaultValue={editingPastor?.description} rows={3} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-blue outline-none text-sm" />
-                            </div>
-                            <div className="flex justify-end gap-3 pt-2">
-                                <button type="button" onClick={() => setIsPastorModalOpen(false)} className="px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-lg">Batal</button>
-                                <button type="submit" disabled={isPending} className="px-4 py-2 bg-brand-blue text-white rounded-lg hover:bg-brand-darkBlue text-sm font-medium">{isPending ? "Menyimpan..." : "Simpan"}</button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            )}
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-slate-700 mb-1">URL Foto (Opsional)</label>
+                            <Input name="imageUrl" defaultValue={editingPastor?.imageUrl} placeholder="https://..." />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-slate-700 mb-1">Biografi Singkat (Opsional)</label>
+                            <textarea name="description" defaultValue={editingPastor?.description} rows={3} className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-sm resize-none" />
+                        </div>
+                        <div className="flex justify-end gap-3 pt-2">
+                            <Button type="button" variant="outline" onClick={() => setIsPastorModalOpen(false)}>Batal</Button>
+                            <Button type="submit" disabled={isPending} className="bg-blue-600 hover:bg-blue-700">{isPending ? "Menyimpan..." : "Simpan"}</Button>
+                        </div>
+                    </form>
+                </DialogContent>
+            </Dialog>
 
             {/* Tim Modal */}
-            {isTimModalOpen && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-                    <div className="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden animate-fade-in max-h-[90vh] overflow-y-auto">
-                        <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center sticky top-0 bg-white z-10">
-                            <h3 className="font-bold text-lg text-gray-900">{editingTim ? "Edit Anggota Tim" : "Tambah Anggota Tim"}</h3>
-                            <button onClick={() => setIsTimModalOpen(false)} className="text-gray-400 hover:text-gray-600"><span className="text-2xl">&times;</span></button>
+            <Dialog open={isTimModalOpen} onOpenChange={setIsTimModalOpen}>
+                <DialogContent className="max-w-md">
+                    <DialogHeader>
+                        <DialogTitle>{editingTim ? "Edit Anggota Tim" : "Tambah Anggota Tim"}</DialogTitle>
+                    </DialogHeader>
+                    <form onSubmit={handleSubmitTim} className="space-y-4">
+                        <div>
+                            <label className="block text-sm font-medium text-slate-700 mb-1">Nama Lengkap</label>
+                            <Input name="name" defaultValue={editingTim?.name} required />
                         </div>
-                        <form onSubmit={handleSubmitTim} className="p-6 space-y-4">
+                        <div>
+                            <label className="block text-sm font-medium text-slate-700 mb-1">Bidang / Divisi</label>
+                            <Input name="division" defaultValue={editingTim?.division} required placeholder="Contoh: Sekretariat" />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-slate-700 mb-1">Peran / Tugas</label>
+                            <Input name="role" defaultValue={editingTim?.role} required placeholder="Contoh: Staf Admin" />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-slate-700 mb-1">Kutipan / Quote (Opsional)</label>
+                            <textarea name="quote" defaultValue={editingTim?.quote} placeholder="Kutipan inspiratif..." className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-sm resize-none" rows={2} />
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Nama Lengkap</label>
-                                <input name="name" defaultValue={editingTim?.name} required className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-blue outline-none text-sm" />
+                                <label className="block text-sm font-medium text-slate-700 mb-1">Email (Opsional)</label>
+                                <Input name="email" type="email" defaultValue={editingTim?.email} placeholder="email@contoh.com" />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Bidang / Divisi</label>
-                                <input name="division" defaultValue={editingTim?.division} required placeholder="Contoh: Sekretariat" className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-blue outline-none text-sm" />
+                                <label className="block text-sm font-medium text-slate-700 mb-1">No. HP (Opsional)</label>
+                                <Input name="phone" defaultValue={editingTim?.phone} placeholder="08..." />
                             </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Peran / Tugas</label>
-                                <input name="role" defaultValue={editingTim?.role} required placeholder="Contoh: Staf Admin" className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-blue outline-none text-sm" />
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Kutipan / Quote (Opsional)</label>
-                                <textarea name="quote" defaultValue={editingTim?.quote} placeholder="Kutipan inspiratif..." className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-blue outline-none text-sm" rows={2} />
-                            </div>
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Email (Opsional)</label>
-                                    <input name="email" type="email" defaultValue={editingTim?.email} placeholder="email@contoh.com" className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-blue outline-none text-sm" />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">No. HP (Opsional)</label>
-                                    <input name="phone" defaultValue={editingTim?.phone} placeholder="08..." className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-blue outline-none text-sm" />
-                                </div>
-                            </div>
-                            <div className="flex justify-end gap-3 pt-2">
-                                <button type="button" onClick={() => setIsTimModalOpen(false)} className="px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-lg">Batal</button>
-                                <button type="submit" disabled={isPending} className="px-4 py-2 bg-brand-blue text-white rounded-lg hover:bg-brand-darkBlue text-sm font-medium">{isPending ? "Menyimpan..." : "Simpan"}</button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            )}
+                        </div>
+                        <div className="flex justify-end gap-3 pt-2">
+                            <Button type="button" variant="outline" onClick={() => setIsTimModalOpen(false)}>Batal</Button>
+                            <Button type="submit" disabled={isPending} className="bg-blue-600 hover:bg-blue-700">{isPending ? "Menyimpan..." : "Simpan"}</Button>
+                        </div>
+                    </form>
+                </DialogContent>
+            </Dialog>
+
+            {/* Delete Confirmation Modal */}
+            <ConfirmModal
+                isOpen={!!deleteConfirm}
+                onClose={() => setDeleteConfirm(null)}
+                onConfirm={deleteConfirm?.type === 'pastor' ? handleDeletePastor : handleDeleteTim}
+                title={`Hapus ${deleteConfirm?.type === 'pastor' ? 'Pastor' : 'Anggota Tim'}`}
+                message={`Hapus "${deleteConfirm?.name}"? Data ini tidak dapat dikembalikan.`}
+                loading={isPending}
+                confirmText="Hapus"
+                confirmVariant="destructive"
+            />
         </div>
     );
 }
