@@ -25,6 +25,13 @@ export const metadata: Metadata = {
     shortcut: "/favicons/logo.png",
     apple: "/favicons/logo.png",
   },
+  openGraph: {
+    images: ["/images/logo/Logo4x.png"],
+  },
+  twitter: {
+    card: "summary_large_image",
+    images: ["/images/logo/Logo4x.png"],
+  },
 };
 
 import { GlobalLoader } from "@/components/ui/global-loader";
