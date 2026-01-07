@@ -156,9 +156,16 @@ export default function Footer() {
                     </div>
 
                     <div className="flex justify-center relative w-full overflow-x-visible -bottom-20">
-                        <h1 className="text-[10vw] font-bold font-serif text-white/5 select-none pointer-events-none tracking-widest uppercase leading-none whitespace-nowrap">
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            whileInView={{ opacity: 1 }}
+                            viewport={{ once: true }}
+                            transition={{ duration: 1 }}
+                            aria-hidden="true"
+                            className="text-[10vw] font-bold font-serif text-white/5 select-none pointer-events-none tracking-widest uppercase leading-none whitespace-nowrap"
+                        >
                             PAROKI BRAYUT
-                        </h1>
+                        </motion.div>
                     </div>
                 </div>
             </div>
